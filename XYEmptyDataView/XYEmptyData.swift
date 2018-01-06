@@ -461,7 +461,7 @@ fileprivate extension NSObject {
     static let implementationDictionary = [String: _SwizzlingObject]()
     
     private func xy_baseClassToSwizzling() -> Swift.AnyClass {
-        
+        return self.classForCoder
     }
     
     ////////////////////////////////////////////////////////////////////////
@@ -494,59 +494,111 @@ fileprivate class NoDataPlaceholderView : UIView {
     
     
     /** 内容视图 */
-    weak open var contentView: UIView?
+    lazy var contentView: UIView = {
+        let contentView = UIView(frame: .zero)
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.backgroundColor = UIColor.clear
+        contentView.isUserInteractionEnabled = true
+        contentView.alpha = 0.0
+        return contentView
+    }()
     
     /** 标题label */
-    weak open var titleLabel: UILabel?
+    lazy var titleLabel: UILabel = {
+        let label = UILabel.init(frame: .zero)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.backgroundColor = UIColor.clear
+        label.font = UIFont.systemFont(ofSize: 27.0)
+        label.textColor = UIColor.init(white: 0.6, alpha: 1.0)
+        label.textAlignment = .center
+        label.lineBreakMode = .byWordWrapping
+        label.numberOfLines = 0
+        return label
+    }()
     
     /** 详情label */
-    weak open var detailLabel: UILabel?
+    lazy var detailLabel: UILabel = {
+        let label = UILabel.init(frame: .zero)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.backgroundColor = UIColor.clear
+        label.font = UIFont.systemFont(ofSize: 17.0)
+        label.textColor = UIColor.init(white: 0.6, alpha: 1.0)
+        label.textAlignment = .center
+        label.lineBreakMode = .byWordWrapping
+        label.numberOfLines = 0
+        return label
+    }()
     
     /** 图片视图 */
-    weak open var imageView: UIImageView?
+    lazy var imageView: UIImageView = {
+        let imageView = UIImageView.init(frame: .zero)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.backgroundColor = UIColor.clear
+        imageView.contentMode = .scaleAspectFit
+        imageView.isUserInteractionEnabled = false
+        return imageView
+    }()
     
-    /** 重新加载的button */
-    weak open var reloadButton: UIButton?
+    /** 刷新按钮 */
+    lazy open var reloadButton: UIButton = {
+        let button = UIButton(type: UIButtonType.custom)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = UIColor.clear
+        button.contentVerticalAlignment = .center
+        button.contentHorizontalAlignment = .center
+        button.addTarget(self, action: #selector(NoDataPlaceholderView.clickReloadBtn(_:)), for: .touchUpInside)
+        return button
+    }()
     
     /** 自定义视图 */
     var customView: UIView?
     
     /** 点按手势 */
-    var tapGesture: UITapGestureRecognizer
+    var tapGesture: UITapGestureRecognizer = {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(NoDataPlaceholderView.tapGestureOnSelf(_:)))
+        return tap
+    }()
     
     /** self顶部距离父控件scrollView 顶部的偏移量 */
-    var contentOffsetY: CGFloat
+    var contentOffsetY: CGFloat = 0.0
     
     /** self顶部距离父控件scrollView 左侧的偏移量 */
-    var contentOffsetX: CGFloat
+    var contentOffsetX: CGFloat = 0.0
     
     /** contentView 左右距离父控件的间距 */
-    var contentViewHorizontalSpace: CGFloat
+    var contentViewHorizontalSpace: CGFloat = 0.0
     
     /** 所有子控件之间垂直间距 */
-    var globalVerticalSpace: CGFloat
+    var globalVerticalSpace: CGFloat = 0.0
     
     /** 各子控件之间的边距，若设置此边距则 */
-    var titleEdgeInsets: UIEdgeInsets
+    var titleEdgeInsets: UIEdgeInsets = .zero
     
-    var imageEdgeInsets: UIEdgeInsets
+    var imageEdgeInsets: UIEdgeInsets = .zero
     
-    var detailEdgeInsets: UIEdgeInsets
+    var detailEdgeInsets: UIEdgeInsets = .zero
     
-    var buttonEdgeInsets: UIEdgeInsets
+    var buttonEdgeInsets: UIEdgeInsets = .zero
     
     /** imageView的size, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero */
-    var imageViewSize: CGSize
+    var imageViewSize: CGSize = .zero
     
     /** tap手势回调block */
-    var tapGestureRecognizerBlock: (UITapGestureRecognizer) -> Swift.Void
+    var tapGestureRecognizerBlock: ((UITapGestureRecognizer) -> Swift.Void)?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        self .setupViews()
     }
     
     required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: aDecoder)
+        setupViews()
+    }
+    
+    private func setupViews() {
+        self.addGestureRecognizer(self.tapGesture)
+        
     }
     
     /// 移除所有子控件及其约束
@@ -562,8 +614,42 @@ fileprivate class NoDataPlaceholderView : UIView {
     
 
     ////////////////////////////////////////////////////////////////////////
-    open class func show(to view: UIView, animated: Bool) -> Self {
+    class func show(to view: UIView, animated: Bool) -> NoDataPlaceholderView {
+        let view = NoDataPlaceholderView(frame: .zero)
+        view.showAnimated(true)
+        return view
+    }
+    
+    private func showAnimated(_ animated: Bool) {
+        
+        UIView.animate(withDuration: animated ? 0.3 : 0.0) {
+            self.contentView.alpha = 1.0
+        }
+    }
+    
+    /// 点击刷新按钮时处理事件
+    @objc private func clickReloadBtn(_ btn: UIButton) {
+        let name = "xy_clickReloadBtn:"
+        let sel = NSSelectorFromString(name)
+        var superV = self.superview
+        while superV != nil {
+            if superV is UIScrollView {
+                superV!.perform(sel, with: btn)
+                superV = nil
+            }
+            else {
+                superV = superV?.superview
+            }
+        }
+        
         
     }
+    
+    @objc private func tapGestureOnSelf(_ tap: UITapGestureRecognizer) {
+        if self.tapGestureRecognizerBlock != nil {
+            self.tapGestureRecognizerBlock!(tap)
+        }
+    }
+
 }
 
