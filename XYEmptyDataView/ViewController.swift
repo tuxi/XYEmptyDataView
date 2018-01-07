@@ -34,22 +34,22 @@ class ViewController: UIViewController {
     }
 
     private func setupEmptyDataView() {
-        tableView.noDataTextLabelBlock = { label in
+        tableView.xy_textLabelBlock = { label in
             label.text = "😁"
         }
         
-        tableView.noDataDetailTextLabelBlock = { label in
+        tableView.xy_detailTextLabelBlock = { label in
             label.text = "这是一个测试"
         }
         
-        tableView.noDataReloadButtonBlock = { button in
+        tableView.xy_reloadButtonBlock = { button in
             button.setTitle("刷新吧", for: .normal)
             button.backgroundColor = UIColor.blue
             button.layer.cornerRadius = 5.0
             button.layer.masksToBounds = true
         }
         
-        tableView.noDataImageViewBlock = { imageView in
+        tableView.xy_imageViewBlock = { imageView in
             imageView.image = UIImage.init(named: "wow")
         }
         
@@ -110,7 +110,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 
 extension ViewController: XYEmptyDataDelegate {
     
-    func noDataPlaceholder(_ scrollView: UIScrollView, didClickReload button: UIButton) {
+    func emptyDataView(_ scrollView: UIScrollView, didClickReload button: UIButton) {
         
         for i in 0...30 {
             dataArray.append(i)
@@ -118,7 +118,8 @@ extension ViewController: XYEmptyDataDelegate {
         self.tableView.reloadData()
     }
     
-    func imageViewSize(forNoDataPlaceholder scrollView: UIScrollView) -> CGSize {
+    func imageViewSize(forEmptyDataView scrollView: UIScrollView) -> CGSize {
+        
         return CGSize(width: 280, height: 280)
     }
 }

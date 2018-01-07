@@ -13,77 +13,77 @@ import UIKit
     
     /// 是否应该淡入淡出，default is YES
     @objc @available(iOS 2.0, *)
-    optional func noDataPlaceholderShouldFadeIn(onDisplay scrollView: UIScrollView) -> Bool
+    optional func emptyDataViewShouldFadeIn(onDisplay scrollView: UIScrollView) -> Bool
     
     
-    /// 是否应显示NoDataPlaceholderView, 默认YES
-    /// @return 如果当前无数据则应显示NoDataPlaceholderView
+    /// 是否应显示emptyDataView, 默认YES
+    /// @return 如果当前无数据则应显示emptyDataView
     @objc @available(iOS 2.0, *)
-    optional func noDataPlaceholderShouldDisplay(_ scrollView: UIScrollView) -> Bool
+    optional func emptyDataViewShouldDisplay(_ scrollView: UIScrollView) -> Bool
     
     
-    /// 当前所在页面的数据源itemCount>0时，是否应该实现NoDataPlaceholder，default return NO
-    /// @return 如果需要强制显示NoDataPlaceholder，return YES即可
+    /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return NO
+    /// @return 如果需要强制显示emptyDataView，return YES即可
     @objc @available(iOS 2.0, *)
-    optional func noDataPlaceholderShouldBeForced(toDisplay scrollView: UIScrollView) -> Bool
+    optional func emptyDataViewShouldBeForced(toDisplay scrollView: UIScrollView) -> Bool
     
     
-    /// 当noDataPlaceholder即将显示的回调
+    /// 当emptyDataView即将显示的回调
     @objc @available(iOS 2.0, *)
-    optional func noDataPlaceholderWillAppear(_ scrollView: UIScrollView)
+    optional func emptyDataViewWillAppear(_ scrollView: UIScrollView)
     
     
-    /// 当noDataPlaceholder完全显示的回调
+    /// 当emptyDataView完全显示的回调
     @objc @available(iOS 2.0, *)
-    optional func noDataPlaceholderDidAppear(_ scrollView: UIScrollView)
+    optional func emptyDataViewDidAppear(_ scrollView: UIScrollView)
     
     
-    /// 当noDataPlaceholder即将消失的回调
+    /// 当emptyDataView即将消失的回调
     @objc @available(iOS 2.0, *)
-    optional  func noDataPlaceholderWillDisappear(_ scrollView: UIScrollView)
+    optional  func emptyDataViewWillDisappear(_ scrollView: UIScrollView)
     
     
-    /// 当noDataPlaceholder完全消失的回调
+    /// 当emptyDataView完全消失的回调
     @objc @available(iOS 2.0, *)
-    optional func noDataPlaceholderDidDisappear(_ scrollView: UIScrollView)
+    optional func emptyDataViewDidDisappear(_ scrollView: UIScrollView)
     
     
-    /// noDataPlaceholder是否可以响应事件，默认YES
+    /// emptyDataView是否可以响应事件，默认YES
     @objc @available(iOS 2.0, *)
-    optional func noDataPlaceholderShouldAllowResponseEvent(_ scrollView: UIScrollView) -> Bool
+    optional func emptyDataViewShouldAllowResponseEvent(_ scrollView: UIScrollView) -> Bool
     
     
-    /// noDataPlaceholder是否可以滚动，默认YES
+    /// emptyDataView是否可以滚动，默认YES
     @objc @available(iOS 2.0, *)
-    optional func noDataPlaceholderShouldAllowScroll(_ scrollView: UIScrollView) -> Bool
+    optional func emptyDataViewShouldAllowScroll(_ scrollView: UIScrollView) -> Bool
     
     
     @objc @available(iOS 3.2, *)
-    optional func noDataPlaceholder(_ scrollView: UIScrollView, didTapOnContentView tap: UITapGestureRecognizer)
+    optional func emptyDataView(_ scrollView: UIScrollView, didTapOnContentView tap: UITapGestureRecognizer)
     
     
     @objc @available(iOS 2.0, *)
-    optional func noDataPlaceholder(_ scrollView: UIScrollView, didClickReload button: UIButton)
+    optional func emptyDataView(_ scrollView: UIScrollView, didClickReload button: UIButton)
     
     
-    /// NoDataPlaceholderView各子控件之间垂直的间距，默认为11
+    /// emptyDataView各子控件之间垂直的间距，默认为11
     @objc @available(iOS 2.0, *)
-    optional func contentSubviewsGlobalVerticalSpaceFoNoDataPlaceholder(_ scrollView: UIScrollView) -> CGFloat
+    optional func contentSubviewsGlobalVerticalSpaceForEmptyDataView(_ scrollView: UIScrollView) -> CGFloat
     
     
-    /// NoDataPlaceholderView 的 contentView左右距离父控件的间距值
+    /// emptyDataView 的 contentView左右距离父控件的间距值
     @objc @available(iOS 2.0, *)
-    optional func contentViewHorizontalSpaceFoNoDataPlaceholder(_ scrollView: UIScrollView) -> CGFloat
+    optional func contentViewHorizontalSpaceForEmptyDataView(_ scrollView: UIScrollView) -> CGFloat
     
     
-    /// NoDataPlaceholderView 顶部 和 左侧 相对 父控件scrollView 顶部 的偏移量, default is 0,0
+    /// emptyDataView 顶部 和 左侧 相对 父控件scrollView 顶部 的偏移量, default is 0,0
     @objc @available(iOS 2.0, *)
-    optional func contentOffset(forNoDataPlaceholder scrollView: UIScrollView) -> CGPoint
+    optional func contentOffset(forEmptyDataView scrollView: UIScrollView) -> CGPoint
     
     
     /// imageView的size, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero
     @objc @available(iOS 2.0, *)
-    optional func imageViewSize(forNoDataPlaceholder scrollView: UIScrollView) -> CGSize
+    optional func imageViewSize(forEmptyDataView scrollView: UIScrollView) -> CGSize
 }
 
 
@@ -92,28 +92,24 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     /// 用于关联对象的keys
     private struct XYEmptyDataKeys {
         static var delegate = "com.alpface.XYEmptyData.delete"
-        static var customNoDataView = "com.alpface.XYEmptyData.customNoDataView"
-        static var noDataTextLabelBlock = "com.alpface.XYEmptyData.noDataTextLabelBlock"
-        static var noDataDetailTextLabelBlock = "com.alpface.XYEmptyData.noDataDetailTextLabelBlock"
-        static var noDataImageViewBlock = "com.alpface.XYEmptyData.noDataImageViewBlock"
-        static var noDataReloadButtonBlock = "com.alpface.XYEmptyData.noDataReloadButtonBlock"
+        static var customEmptyDataView = "com.alpface.XYEmptyData.customEmptyDataView"
+        static var textLabelBlock = "com.alpface.XYEmptyData.TextLabelBlock"
+        static var detailTextLabelBlock = "com.alpface.XYEmptyData.DetailTextLabelBlock"
+        static var imageViewBlock = "com.alpface.XYEmptyData.ImageViewBlock"
+        static var reloadButtonBlock = "com.alpface.XYEmptyData.ReloadButtonBlock"
         
-        static var noDataTextEdgeInsets = "com.alpface.XYEmptyData.noDataTextEdgeInsets"
-        static var noDataImageEdgeInsets = "com.alpface.XYEmptyData.noDataImageEdgeInsets"
-        static var noDataDetailEdgeInsets = "com.alpface.XYEmptyData.noDataDetailEdgeInsets"
-        static var noDataButtonEdgeInsets = "com.alpface.XYEmptyData.noDataButtonEdgeInsets"
+        static var textEdgeInsets = "com.alpface.XYEmptyData.TextEdgeInsets"
+        static var imageEdgeInsets = "com.alpface.XYEmptyData.ImageEdgeInsets"
+        static var detailEdgeInsets = "com.alpface.XYEmptyData.DetailEdgeInsets"
+        static var buttonEdgeInsets = "com.alpface.XYEmptyData.ButtonEdgeInsets"
         
-        static var noDataViewBackgroundColor = "com.alpface.XYEmptyData.noDataViewBackgroundColor"
-        static var noDataViewContentBackgroundColor = "com.alpface.XYEmptyData.noDataViewContentBackgroundColor"
-        static var loading = "com.alpface.XYEmptyData.xy_loading"
+        static var emptyDataViewBackgroundColor = "com.alpface.XYEmptyData.BackgroundColor"
+        static var contentBackgroundColor = "com.alpface.XYEmptyData.ContentBackgroundColor"
+        static var loading = "com.alpface.XYEmptyData.loading"
         
-        static var noDataPlaceholderView = "com.alpface.XYEmptyData.noDataPlaceholderView"
-        static var registerNoDataPlaceholder = "com.alpface.XYEmptyData.registerNoDataPlaceholder"
+        static var emptyDataView = "com.alpface.XYEmptyData.emptyDataView"
+        static var registerEmptyDataView = "com.alpface.XYEmptyData.registerEemptyDataView"
         
-        static var noDataTextLabel = "com.alpface.XYEmptyData.noDataTextLabel"
-        static var noDataDetailTextLabel = "com.alpface.XYEmptyData.noDataTextLabel.noDataDetailTextLabel"
-        static var noDataImageView = "com.alpface.XYEmptyData.noDataTextLabel.noDataImageView"
-        static var noDataReloadButton = "com.alpface.XYEmptyData.noDataTextLabel.noDataReloadButton"
     }
     
     weak open var emptyDataDelegate: XYEmptyDataDelegate? {
@@ -132,88 +128,88 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             }
             
             
-            if newValue == nil || xy_noDataPlacehodlerCanDisplay() == false {
-                xy_removeNoDataPlacehodlerView()
+            if newValue == nil || xy_emptyDataViewCanDisplay() == false {
+                xy_removeEmptyDataView()
             }
             objc_setAssociatedObject(self, &XYEmptyDataKeys.delegate, _WeakObjectContainer(weakObject: newValue as AnyObject), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            registerNoDataPlaceholder()
+            registerEmptyDataView()
         }
     }
     
     
     /// use custom view
-    open var customNoDataView: (() -> UIView)? {
+    open var customEmptyDataView: (() -> UIView)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.customNoDataView) as? () -> UIView {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.customEmptyDataView) as? () -> UIView {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.customNoDataView, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerNoDataPlaceholder()
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.customEmptyDataView, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerEmptyDataView()
         }
     }
     
     
     // setup subviews
-    open var noDataTextLabelBlock: ((UILabel) -> Swift.Void)? {
+    open var xy_textLabelBlock: ((UILabel) -> Swift.Void)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataTextLabelBlock) as? (UILabel) -> Swift.Void {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.textLabelBlock) as? (UILabel) -> Swift.Void {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerNoDataPlaceholder()
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.textLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerEmptyDataView()
         }
     }
     
-    open var noDataDetailTextLabelBlock: ((UILabel) -> Swift.Void)? {
+    open var xy_detailTextLabelBlock: ((UILabel) -> Swift.Void)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataDetailTextLabelBlock) as? (UILabel) -> Swift.Void {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.detailTextLabelBlock) as? (UILabel) -> Swift.Void {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataDetailTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerNoDataPlaceholder()
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.detailTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerEmptyDataView()
         }
     }
     
-    open var noDataImageViewBlock: ((UIImageView) -> Swift.Void)? {
+    open var xy_imageViewBlock: ((UIImageView) -> Swift.Void)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataImageViewBlock) as? (UIImageView) -> Swift.Void {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.imageViewBlock) as? (UIImageView) -> Swift.Void {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataImageViewBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerNoDataPlaceholder()
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.imageViewBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerEmptyDataView()
         }
     }
     
-    open var noDataReloadButtonBlock: ((UIButton) -> Swift.Void)? {
+    open var xy_reloadButtonBlock: ((UIButton) -> Swift.Void)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataReloadButtonBlock) as? (UIButton) -> Swift.Void {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.reloadButtonBlock) as? (UIButton) -> Swift.Void {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataReloadButtonBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerNoDataPlaceholder()
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.reloadButtonBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerEmptyDataView()
         }
     }
     
     
     /// titleLabel 的间距
-    open var noDataTextEdgeInsets: UIEdgeInsets {
+    open var xy_textEdgeInsets: UIEdgeInsets {
         get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataTextEdgeInsets) as? NSValue {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.textEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
             }
             return UIEdgeInsets.zero
@@ -221,14 +217,14 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         set {
             let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
             
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataTextEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.textEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     /// imageView 的间距
-    open var noDataImageEdgeInsets: UIEdgeInsets {
+    open var xy_imageEdgeInsets: UIEdgeInsets {
         get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataImageEdgeInsets) as? NSValue {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.imageEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
             }
             return UIEdgeInsets.zero
@@ -236,14 +232,14 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         set {
             let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
             
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataImageEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.imageEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     /// detaileLable 的间距
-    open var noDataDetailEdgeInsets: UIEdgeInsets {
+    open var xy_detailEdgeInsets: UIEdgeInsets {
         get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataDetailEdgeInsets) as? NSValue {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.detailEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
             }
             return UIEdgeInsets.zero
@@ -251,14 +247,14 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         set {
             let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
             
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataDetailEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.detailEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     /// reloadButton 的间距
-    open var noDataButtonEdgeInsets: UIEdgeInsets {
+    open var xy_buttonEdgeInsets: UIEdgeInsets {
         get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataButtonEdgeInsets) as? NSValue {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.buttonEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
             }
             return UIEdgeInsets.zero
@@ -266,36 +262,36 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         set {
             let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
             
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataButtonEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.buttonEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     
-    /// noDataPlaceholderView 的背景颜色
-    open var noDataViewBackgroundColor: UIColor? {
+    /// emptyDataView 的背景颜色
+    open var emptyDataViewBackgroundColor: UIColor? {
         get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataViewBackgroundColor) as? UIColor {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.emptyDataViewBackgroundColor) as? UIColor {
                 return obj
             }
             return nil
         }
         set {
   
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataViewBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.emptyDataViewBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
-    /// noDataPlaceholderView中contentView的背景颜色
-    open var noDataViewContentBackgroundColor: UIColor? {
+    /// emptyDataView中contentView的背景颜色
+    open var emptyDataViewContentBackgroundColor: UIColor? {
         get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataViewContentBackgroundColor) as? UIColor {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.contentBackgroundColor) as? UIColor {
                 return obj
             }
             return nil
         }
         set {
             
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataViewContentBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.contentBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
@@ -311,27 +307,27 @@ extension UIScrollView: UIGestureRecognizerDelegate {
                 return
             }
             objc_setAssociatedObject(self, &XYEmptyDataKeys.loading, NSNumber.init(value: xy_loading), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            xy_reloadNoData()
+            xy_reloadEmptyDataView()
         }
     }
     
-    fileprivate var noDataPlaceholderView: NoDataPlaceholderView? {
+    fileprivate var emptyDataView: XYEmptyDataView? {
         get {
-            if let view = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataPlaceholderView) as? NoDataPlaceholderView {
+            if let view = objc_getAssociatedObject(self, &XYEmptyDataKeys.emptyDataView) as? XYEmptyDataView {
                 return view
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataPlaceholderView, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.emptyDataView, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     /// 初始化空数据视图
-    fileprivate func setupNoDataPlaceholderView() {
-        var view = self.noDataPlaceholderView
+    fileprivate func setupEmptyDataView() {
+        var view = self.emptyDataView
         if view == nil {
-            view = NoDataPlaceholderView.show(to: self, animated: xy_noDataPlacehodlerShouldFadeInOnDisplay())
+            view = XYEmptyDataView.show(to: self, animated: xy_emptyDataViewShouldFadeInOnDisplay())
             view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             view?.isHidden = true
             view?.tapGesture.delegate = self
@@ -339,182 +335,133 @@ extension UIScrollView: UIGestureRecognizerDelegate {
                 self?.xy_didTapContentView(tap: tap)
             })
             
-            self.noDataPlaceholderView = view
+            self.emptyDataView = view
         }
     }
 
 
     
-    fileprivate func registerNoDataPlaceholder() {
+    fileprivate func registerEmptyDataView() {
         
-        var num = objc_getAssociatedObject(self, &XYEmptyDataKeys.registerNoDataPlaceholder) as? NSNumber
+        var num = objc_getAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView) as? NSNumber
         
-//        if (xy_noDataPlacehodlerShouldDisplay() == true &&
+//        if (xy_emptyDataViewShouldDisplay() == true &&
 //            xy_itemCount() <= 0) ||
-//            xy_noDataPlacehodlerShouldBeForcedToDisplay() == true {
+//            xy_emptyDataViewShouldBeForcedToDisplay() == true {
 //            return
 //        }
         
         if num == nil || num?.boolValue == false {
-            if self.xy_noDataPlacehodlerCanDisplay() == false {
-                self.xy_removeNoDataPlacehodlerView()
+            if self.xy_emptyDataViewCanDisplay() == false {
+                self.xy_removeEmptyDataView()
                 num = NSNumber(value: false)
             }
             else {
                 num = NSNumber(value: true)
-                setupNoDataPlaceholderView()
+                setupEmptyDataView()
                 let executeBlock = { (view: AnyObject?, command: Selector, param1: AnyObject?, param2: AnyObject?) in
                     
                 }
                 
                 // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
                 Swizzler.swizzleSelector(NSSelectorFromString("reloadData"),
-                                         withSelector: #selector(self.xy_reloadNoData),
+                                         withSelector: #selector(self.xy_reloadEmptyDataView),
                                          for: self.classForCoder,
                                          name: "reloadData",
                                          block: executeBlock)
                 if self is UITableView {
                     Swizzler.swizzleSelector(NSSelectorFromString("endUpdates"),
-                                             withSelector: #selector(self.xy_reloadNoData),
+                                             withSelector: #selector(self.xy_reloadEmptyDataView),
                                              for: self.classForCoder,
                                              name: "endUpdates",
                                              block: executeBlock)
                 }
-                objc_setAssociatedObject(self, &XYEmptyDataKeys.registerNoDataPlaceholder, num, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView, num, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
             
         }
     }
     
     
-    fileprivate var noDataTextLabel: (() -> UILabel)? {
-        get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataTextLabel) as? () -> UILabel {
-                return callBack
-            }
-            return nil
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataTextLabel, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-        }
-    }
-    
-    fileprivate var noDataDetailTextLabel: (() -> UILabel)? {
-        get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataDetailTextLabel) as? () -> UILabel {
-                return callBack
-            }
-            return nil
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataDetailTextLabel, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-        }
-    }
-    
-    fileprivate var noDataImageView: (() -> UIImageView)? {
-        get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataImageView) as? () -> UIImageView {
-                return callBack
-            }
-            return nil
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataImageView, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-        }
-    }
-    
-    fileprivate var noDataReloadButton: (() -> UIButton)? {
-        get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataReloadButton) as? () -> UIButton {
-                return callBack
-            }
-            return nil
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataReloadButton, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-        }
-    }
-    
-    
-    /// 刷新NoDataView, 当执行tableView的readData、endUpdates或者CollectionView的readData时会调用此方法
+    /// 刷新emptyDataView, 当执行tableView的readData、endUpdates或者CollectionView的readData时会调用此方法
     ////////////////////////////////////////////////////////////////////////
-    @objc open func xy_reloadNoData() {
-        if (xy_noDataPlacehodlerCanDisplay() == false) {
+    @objc open func xy_reloadEmptyDataView() {
+        if (xy_emptyDataViewCanDisplay() == false) {
             return
         }
         
-        if (xy_noDataPlacehodlerShouldDisplay() == true &&
+        if (xy_emptyDataViewShouldDisplay() == true &&
             xy_itemCount() <= 0) ||
-            xy_noDataPlacehodlerShouldBeForcedToDisplay() == true {
+            xy_emptyDataViewShouldBeForcedToDisplay() == true {
             
             // 通知代理即将显示
-            xy_noDataPlaceholderViewWillAppear()
+            xy_emptyDataViewWillAppear()
             
-            var noDataView = self.noDataPlaceholderView
+            var noDataView = self.emptyDataView
             if  noDataView == nil {
-                setupNoDataPlaceholderView()
-                noDataView = self.noDataPlaceholderView
+                setupEmptyDataView()
+                noDataView = self.emptyDataView
             }
-            guard let noDataPlaceholderView = noDataPlaceholderView else {
+            guard let emptyDataView = emptyDataView else {
                 return
             }
             
             // 重置视图及其约束
-            noDataPlaceholderView.resetSubviews()
+            emptyDataView.resetSubviews()
             
             
-            if let customView = xy_noDataPlacehodlerCustomView() {
-                noDataPlaceholderView.customView = customView
+            if let customView = xy_emptyDataViewCustomView() {
+                emptyDataView.customView = customView
             } else {
                 
                 // customView为nil时，则通过block回到获取子控件 设置
-                if let block = self.noDataTextLabelBlock  {
-                    block(noDataPlaceholderView.titleLabel)
+                if let block = self.xy_textLabelBlock  {
+                    block(emptyDataView.titleLabel)
                 }
-                if let block = self.noDataDetailTextLabelBlock {
-                    block(noDataPlaceholderView.detailLabel)
+                if let block = self.xy_detailTextLabelBlock {
+                    block(emptyDataView.detailLabel)
                 }
                 
-                if let block = self.noDataImageViewBlock {
-                    block(noDataPlaceholderView.imageView)
+                if let block = self.xy_imageViewBlock {
+                    block(emptyDataView.imageView)
                 }
-                if let block = self.noDataReloadButtonBlock {
-                    block(noDataPlaceholderView.reloadButton)
+                if let block = self.xy_reloadButtonBlock {
+                    block(emptyDataView.reloadButton)
                 }
                 
                 // 设置子控件之间的边距
-                noDataPlaceholderView.titleEdgeInsets = self.noDataTextEdgeInsets
-                noDataPlaceholderView.detailEdgeInsets = self.noDataDetailEdgeInsets
-                noDataPlaceholderView.imageEdgeInsets = self.noDataImageEdgeInsets
-                noDataPlaceholderView.buttonEdgeInsets = self.noDataButtonEdgeInsets
-                // 设置noDataPlaceholderView子控件垂直间的间距
-                noDataPlaceholderView.globalVerticalSpace = xy_noDataPlacehodlerGlobalVerticalSpace()
+                emptyDataView.titleEdgeInsets = self.xy_textEdgeInsets
+                emptyDataView.detailEdgeInsets = self.xy_detailEdgeInsets
+                emptyDataView.imageEdgeInsets = self.xy_imageEdgeInsets
+                emptyDataView.buttonEdgeInsets = self.xy_buttonEdgeInsets
+                // 设置emptyDataView子控件垂直间的间距
+                emptyDataView.globalVerticalSpace = xy_emptyDataViewGlobalVerticalSpace()
                 
             }
             
-            noDataPlaceholderView.contentOffsetY = xy_noDataPlacehodlerContentOffset().y
-            noDataPlaceholderView.contentOffsetX = xy_noDataPlacehodlerContentOffset().x
-            noDataPlaceholderView.contentViewHorizontalSpace = xy_noDataPlacehodlerContenViewHorizontalSpace()
-            noDataPlaceholderView.backgroundColor = xy_noDataPlacehodlerBackgroundColor()
-            noDataPlaceholderView.contentView.backgroundColor = xy_noDataPlacehodlerContentBackgroundColor()
-            noDataPlaceholderView.isHidden = false;
-            noDataPlaceholderView.clipsToBounds = true
-            noDataPlaceholderView.imageViewSize = xy_noDataPlaceholderImageViewSize()
+            emptyDataView.contentOffsetY = xy_emptyDataViewContentOffset().y
+            emptyDataView.contentOffsetX = xy_emptyDataViewContentOffset().x
+            emptyDataView.contentViewHorizontalSpace = xy_emptyDataViewContenViewHorizontalSpace()
+            emptyDataView.backgroundColor = xy_emptyDataViewBackgroundColor()
+            emptyDataView.contentView.backgroundColor = xy_emptyDataViewContentBackgroundColor()
+            emptyDataView.isHidden = false;
+            emptyDataView.clipsToBounds = true
+            emptyDataView.imageViewSize = xy_emptyDataViewImageViewSize()
             
-            noDataPlaceholderView.isUserInteractionEnabled = xy_noDataPlacehodlerIsAllowedResponseEvent()
+            emptyDataView.isUserInteractionEnabled = xy_emptyDataViewIsAllowedResponseEvent()
             
-            noDataPlaceholderView.setNeedsUpdateConstraints()
+            emptyDataView.setNeedsUpdateConstraints()
             
             // 此方法会先检查动画当前是否启用，然后禁止动画，执行block块语句
             UIView.performWithoutAnimation {
-                noDataPlaceholderView.layoutIfNeeded()
+                emptyDataView.layoutIfNeeded()
             }
-          self.isScrollEnabled = xy_noDataPlacehodlerIsAllowedScroll()
+          self.isScrollEnabled = xy_emptyDataViewIsAllowedScroll()
             // 通知代理完全显示
-            xy_noDataPlacehodlerDidAppear()
+            xy_emptyDataViewDidAppear()
             
         } else {
-            xy_removeNoDataPlacehodlerView()
+            xy_removeEmptyDataView()
         }
         
         
@@ -536,38 +483,38 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
     }
     
-    private func xy_removeNoDataPlacehodlerView() {
+    private func xy_removeEmptyDataView() {
         // 通知代理即将消失
-        self.xy_noDataPlacehodlerWillDisappear()
-        if let nView = self.noDataPlaceholderView {
+        self.xy_emptyDataViewWillDisappear()
+        if let nView = self.emptyDataView {
             nView.resetSubviews()
             nView.removeFromSuperview()
-            self.noDataPlaceholderView = nil
+            self.emptyDataView = nil
             
         }
         self.isScrollEnabled = true
         
         // 通知代理完全消失
-        self.xy_noDataPlacehodlerDidDisappear()
+        self.xy_emptyDataViewDidDisappear()
     }
     
-    private func xy_noDataPlacehodlerBackgroundColor() -> UIColor {
-        guard let color = self.noDataViewBackgroundColor else {
+    private func xy_emptyDataViewBackgroundColor() -> UIColor {
+        guard let color = emptyDataViewBackgroundColor else {
             return UIColor.clear
         }
         return color
     }
     
     
-    private func xy_noDataPlacehodlerContentBackgroundColor() -> UIColor {
-        guard let color = self.noDataViewContentBackgroundColor else {
+    private func xy_emptyDataViewContentBackgroundColor() -> UIColor {
+        guard let color = emptyDataViewContentBackgroundColor else {
             return UIColor.clear
         }
         return color
     }
     
     // 是否符合显示
-    private func xy_noDataPlacehodlerCanDisplay() -> Bool {
+    private func xy_emptyDataViewCanDisplay() -> Bool {
         if  self is UITableView || self is UICollectionView {
             return true
         }
@@ -628,150 +575,150 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     }
     
     /// 是否需要淡入淡出
-    private func xy_noDataPlacehodlerShouldFadeInOnDisplay() -> Bool {
+    private func xy_emptyDataViewShouldFadeInOnDisplay() -> Bool {
         guard let del = self.emptyDataDelegate else {
             return true
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldFadeIn(onDisplay:))) {
-            return del.noDataPlaceholderShouldFadeIn!(onDisplay: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldFadeIn(onDisplay:))) {
+            return del.emptyDataViewShouldFadeIn!(onDisplay: self)
         }
         return true
     }
     
     /// 是否应该显示
-    private func xy_noDataPlacehodlerShouldDisplay() -> Bool {
+    private func xy_emptyDataViewShouldDisplay() -> Bool {
         guard let del = self.emptyDataDelegate else {
             return true
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldDisplay(_:))) {
-            return del.noDataPlaceholderShouldDisplay!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldDisplay(_:))) {
+            return del.emptyDataViewShouldDisplay!(self)
         }
         return true
     }
     
     /// 是否应该强制显示,默认不需要的
-    private func xy_noDataPlacehodlerShouldBeForcedToDisplay() -> Bool {
+    private func xy_emptyDataViewShouldBeForcedToDisplay() -> Bool {
         guard let del = self.emptyDataDelegate else {
             return false
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldBeForced(toDisplay:))) {
-            return del.noDataPlaceholderShouldBeForced!(toDisplay: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldBeForced(toDisplay:))) {
+            return del.emptyDataViewShouldBeForced!(toDisplay: self)
         }
         return false
     }
 
     /// 即将显示空数据时调用
-    private func xy_noDataPlaceholderViewWillAppear() {
+    private func xy_emptyDataViewWillAppear() {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderWillAppear(_:))) {
-             del.noDataPlaceholderWillAppear!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewWillAppear(_:))) {
+             del.emptyDataViewWillAppear!(self)
         }
         
     }
 
     /// 是否允许响应事件
-    private func xy_noDataPlacehodlerIsAllowedResponseEvent() -> Bool {
+    private func xy_emptyDataViewIsAllowedResponseEvent() -> Bool {
         guard let del = self.emptyDataDelegate else {
             return true
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldAllowResponseEvent(_:))) {
-            return del.noDataPlaceholderShouldAllowResponseEvent!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldAllowResponseEvent(_:))) {
+            return del.emptyDataViewShouldAllowResponseEvent!(self)
         }
         return true
     }
     
     /// 是否运行滚动
-    private func xy_noDataPlacehodlerIsAllowedScroll() -> Bool {
+    private func xy_emptyDataViewIsAllowedScroll() -> Bool {
         guard let del = self.emptyDataDelegate else {
             return true
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldAllowScroll(_:))) {
-            return del.noDataPlaceholderShouldAllowScroll!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldAllowScroll(_:))) {
+            return del.emptyDataViewShouldAllowScroll!(self)
         }
         return true
     }
    
     /// 已经显示空数据时调用
-    private func xy_noDataPlacehodlerDidAppear() {
+    private func xy_emptyDataViewDidAppear() {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderDidAppear(_:))) {
-            del.noDataPlaceholderDidAppear!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewDidAppear(_:))) {
+            del.emptyDataViewDidAppear!(self)
         }
     }
 
     /// 空数据即将消失时调用
-    private func xy_noDataPlacehodlerWillDisappear() {
+    private func xy_emptyDataViewWillDisappear() {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderWillDisappear(_:))) {
-            del.noDataPlaceholderWillDisappear!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewWillDisappear(_:))) {
+            del.emptyDataViewWillDisappear!(self)
         }
     }
    
     /// 空数据已经消失时调用
-    private func xy_noDataPlacehodlerDidDisappear() {
+    private func xy_emptyDataViewDidDisappear() {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderDidDisappear(_:))) {
-            del.noDataPlaceholderDidDisappear!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewDidDisappear(_:))) {
+            del.emptyDataViewDidDisappear!(self)
         }
     }
 
     /// 当自定义空数据视图时调用
-    private func xy_noDataPlacehodlerCustomView() -> UIView? {
+    private func xy_emptyDataViewCustomView() -> UIView? {
         var view: UIView?
-        if self.customNoDataView != nil {
-            view = self.customNoDataView!()
+        if self.customEmptyDataView != nil {
+            view = self.customEmptyDataView!()
         }
         return view
     }
     
     /// 获取子控件垂直间距时调用, 默认为10.0
-    private func xy_noDataPlacehodlerGlobalVerticalSpace() -> CGFloat {
+    private func xy_emptyDataViewGlobalVerticalSpace() -> CGFloat {
         guard let del = self.emptyDataDelegate else {
             return 10.0
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.contentSubviewsGlobalVerticalSpaceFoNoDataPlaceholder(_:))) {
-            return del.contentSubviewsGlobalVerticalSpaceFoNoDataPlaceholder!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.contentSubviewsGlobalVerticalSpaceForEmptyDataView(_:))) {
+            return del.contentSubviewsGlobalVerticalSpaceForEmptyDataView!(self)
         }
         return 10.0;
     }
     
     /// 获取contentView水平间距时调用
-    private func xy_noDataPlacehodlerContenViewHorizontalSpace() -> CGFloat {
+    private func xy_emptyDataViewContenViewHorizontalSpace() -> CGFloat {
         guard let del = self.emptyDataDelegate else {
             return 0.0
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.contentViewHorizontalSpaceFoNoDataPlaceholder(_:))) {
-            return del.contentViewHorizontalSpaceFoNoDataPlaceholder!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.contentViewHorizontalSpaceForEmptyDataView(_:))) {
+            return del.contentViewHorizontalSpaceForEmptyDataView!(self)
         }
         return 0.0
     }
 
     /// 空数据contentView偏移量
-    private func xy_noDataPlacehodlerContentOffset() -> CGPoint {
+    private func xy_emptyDataViewContentOffset() -> CGPoint {
         guard let del = self.emptyDataDelegate else {
             return CGPoint.zero
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.contentOffset(forNoDataPlaceholder:))) {
-            return del.contentOffset!(forNoDataPlaceholder: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.contentOffset(forEmptyDataView:))) {
+            return del.contentOffset!(forEmptyDataView: self)
         }
         return CGPoint.zero
     }
     
     /// 获取空数据视图上ImageView的固定尺寸
-    private func xy_noDataPlaceholderImageViewSize() -> CGSize {
+    private func xy_emptyDataViewImageViewSize() -> CGSize {
         guard let del = self.emptyDataDelegate else {
             return CGSize.zero
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.imageViewSize(forNoDataPlaceholder:))) {
-            return del.imageViewSize!(forNoDataPlaceholder: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.imageViewSize(forEmptyDataView:))) {
+            return del.imageViewSize!(forEmptyDataView: self)
         }
         return CGSize.zero
     }
@@ -781,8 +728,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholder(_:didTapOnContentView:))) {
-            del.noDataPlaceholder!(self, didTapOnContentView: tap)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(_:didTapOnContentView:))) {
+            del.emptyDataView!(self, didTapOnContentView: tap)
         }
     }
     
@@ -791,15 +738,15 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholder(_:didClickReload:))) {
-            del.noDataPlaceholder!(self, didClickReload: btn)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(_:didClickReload:))) {
+            del.emptyDataView!(self, didClickReload: btn)
         }
     }
 
     // MARK: - UIGestureRecognizerDelegate
     open override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        if gestureRecognizer.view?.isEqual(self.noDataPlaceholderView) == true {
-            return self.xy_noDataPlacehodlerIsAllowedResponseEvent()
+        if gestureRecognizer.view?.isEqual(self.emptyDataView) == true {
+            return self.xy_emptyDataViewIsAllowedResponseEvent()
         }
         
         return super.gestureRecognizerShouldBegin(gestureRecognizer)
@@ -811,7 +758,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
 
 
 
-fileprivate let NoDataPlaceholderHorizontalSpaceRatioValue: CGFloat = 16.0
+fileprivate let EmptyDataViewHorizontalSpaceRatioValue: CGFloat = 16.0
 
 fileprivate class _WeakObjectContainer : NSObject {
     
@@ -846,7 +793,7 @@ extension UIView {
     }
 }
 
-fileprivate class NoDataPlaceholderView : UIView {
+fileprivate class XYEmptyDataView : UIView {
     
     
     // MARK: - Lazy
@@ -903,7 +850,7 @@ fileprivate class NoDataPlaceholderView : UIView {
         button.backgroundColor = UIColor.clear
         button.contentVerticalAlignment = .center
         button.contentHorizontalAlignment = .center
-        button.addTarget(self, action: #selector(NoDataPlaceholderView.clickReloadBtn(_:)), for: .touchUpInside)
+        button.addTarget(self, action: #selector(XYEmptyDataView.clickReloadBtn(_:)), for: .touchUpInside)
         return button
     }()
     
@@ -935,7 +882,7 @@ fileprivate class NoDataPlaceholderView : UIView {
     
     /** 点按手势 */
     var tapGesture: UITapGestureRecognizer = {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(NoDataPlaceholderView.tapGestureOnSelf(_:)))
+        let tap = UITapGestureRecognizer(target: self, action: #selector(XYEmptyDataView.tapGestureOnSelf(_:)))
         return tap
     }()
     
@@ -1065,8 +1012,8 @@ fileprivate class NoDataPlaceholderView : UIView {
     
 
     ////////////////////////////////////////////////////////////////////////
-    class func show(to view: UIView, animated: Bool) -> NoDataPlaceholderView {
-        let view = NoDataPlaceholderView.init(view)
+    class func show(to view: UIView, animated: Bool) -> XYEmptyDataView {
+        let view = XYEmptyDataView.init(view)
         view.showAnimated(animated)
         return view
     }
@@ -1147,7 +1094,7 @@ fileprivate class NoDataPlaceholderView : UIView {
             }
             
             // contentView的子控件横向间距  四舍五入
-            let horizontalSpace = roundf(Float(width / NoDataPlaceholderHorizontalSpaceRatioValue))
+            let horizontalSpace = roundf(Float(width / EmptyDataViewHorizontalSpaceRatioValue))
             // contentView的子控件之间的垂直间距，默认为10.0
             let globalverticalSpace = self.globalVerticalSpace
             
