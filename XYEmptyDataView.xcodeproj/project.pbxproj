@@ -13,6 +13,7 @@
 		D2B23E7B20007F9C00329C6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D2B23E7A20007F9C00329C6C /* Assets.xcassets */; };
 		D2B23E7E20007F9C00329C6C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D2B23E7C20007F9C00329C6C /* LaunchScreen.storyboard */; };
 		D2B23E86200083B100329C6C /* XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B23E85200083B100329C6C /* XYEmptyData.swift */; };
+		D2B23EA82001E33A00329C6C /* RuntimeExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B23EA72001E33A00329C6C /* RuntimeExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		D2B23E7D20007F9C00329C6C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D2B23E7F20007F9C00329C6C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D2B23E85200083B100329C6C /* XYEmptyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XYEmptyData.swift; sourceTree = "<group>"; wrapsLines = 1; };
+		D2B23EA72001E33A00329C6C /* RuntimeExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RuntimeExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				D2B23E85200083B100329C6C /* XYEmptyData.swift */,
+				D2B23EA72001E33A00329C6C /* RuntimeExtensions.swift */,
 				D2B23E7320007F9C00329C6C /* AppDelegate.swift */,
 				D2B23E7520007F9C00329C6C /* ViewController.swift */,
 				D2B23E7720007F9C00329C6C /* Main.storyboard */,
@@ -141,6 +144,7 @@
 			files = (
 				D2B23E7620007F9C00329C6C /* ViewController.swift in Sources */,
 				D2B23E7420007F9C00329C6C /* AppDelegate.swift in Sources */,
+				D2B23EA82001E33A00329C6C /* RuntimeExtensions.swift in Sources */,
 				D2B23E86200083B100329C6C /* XYEmptyData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
