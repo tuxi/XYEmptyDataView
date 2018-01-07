@@ -470,6 +470,7 @@ extension UIView {
 fileprivate class NoDataPlaceholderView : UIView {
     
     
+    // MARK: - Lazy
     /** 内容视图 */
     lazy var contentView: UIView = {
         let contentView = UIView(frame: .zero)
@@ -528,7 +529,30 @@ fileprivate class NoDataPlaceholderView : UIView {
     }()
     
     /** 自定义视图 */
-    var customView: UIView?
+    var customView: UIView? {
+        didSet {
+            
+            if let customV = self.customView {
+                if customV.isEqual(oldValue) {
+                    if !(customV.superview != nil)  {
+                        self.contentView.addSubview(customV)
+                    }
+                    return;
+                }
+            }
+            
+            if let oldCustomView = oldValue {
+                oldCustomView.removeFromSuperview()
+            }
+            
+            if let customV = self.customView {
+                customV.removeConstraints(customV.constraints)
+                customV.translatesAutoresizingMaskIntoConstraints = false
+                self.contentView.addSubview(customV)
+            }
+            
+        }
+    }
     
     /** 点按手势 */
     var tapGesture: UITapGestureRecognizer = {
@@ -553,11 +577,17 @@ fileprivate class NoDataPlaceholderView : UIView {
         get {
             return titleLabel.noDataPlaceholderViewContentEdgeInsets
         }
+        set {
+            self.titleLabel.noDataPlaceholderViewContentEdgeInsets = newValue
+        }
     }
     
     var imageEdgeInsets: UIEdgeInsets {
         get {
             return imageView.noDataPlaceholderViewContentEdgeInsets
+        }
+        set {
+            self.imageView.noDataPlaceholderViewContentEdgeInsets = newValue
         }
     }
     
@@ -565,11 +595,17 @@ fileprivate class NoDataPlaceholderView : UIView {
         get {
             return detailLabel.noDataPlaceholderViewContentEdgeInsets
         }
+        set {
+            self.detailLabel.noDataPlaceholderViewContentEdgeInsets = newValue
+        }
     }
     
     var buttonEdgeInsets: UIEdgeInsets {
         get {
             return reloadButton.noDataPlaceholderViewContentEdgeInsets
+        }
+        set {
+            self.reloadButton.noDataPlaceholderViewContentEdgeInsets = newValue
         }
     }
     
@@ -579,9 +615,42 @@ fileprivate class NoDataPlaceholderView : UIView {
     /** tap手势回调block */
     var tapGestureRecognizerBlock: ((UITapGestureRecognizer) -> Swift.Void)?
     
+    convenience init(_ view: UIView) {
+        self.init(frame: view.bounds)
+        
+        if (self.superview == nil) {
+            if view is UITableView || view is UICollectionView {
+                if view.subviews.count > 1 {
+                    view.insertSubview(self, at: 0)
+                }
+                else {
+                    view.addSubview(self)
+                }
+            }
+        }
+        var widthConstant = 0.0
+        if view is UICollectionView {
+            
+            let collectionView = view as! UICollectionView
+            widthConstant = Double(collectionView.contentInset.left + collectionView.contentInset.right)
+        }
+        else if view is UITableView {
+            let tableView = view as! UITableView
+            widthConstant = Double(tableView.contentInset.left + tableView.contentInset.right)
+        }
+        
+        let viewDict = ["self": self]
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[self]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewDict))
+        view.addConstraints([
+            NSLayoutConstraint.init(item: self, attribute: .width, relatedBy: .equal, toItem: view, attribute: .width, multiplier: 1.0, constant: CGFloat(-widthConstant)),
+            NSLayoutConstraint.init(item: self, attribute: .height, relatedBy: .equal, toItem: view, attribute: .height, multiplier: 1.0, constant: 0.0)
+            ])
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[self]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewDict))
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self .setupViews()
+        self.setupViews()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -590,26 +659,36 @@ fileprivate class NoDataPlaceholderView : UIView {
     }
     
     private func setupViews() {
+        self.addSubview(self.contentView)
         self.addGestureRecognizer(self.tapGesture)
         
     }
     
     /// 移除所有子控件及其约束
     func resetSubviews() {
-        
+        for subview in contentView.subviews {
+            subview.removeFromSuperview()
+        }
+        titleLabel.removeFromSuperview()
+        detailLabel.removeFromSuperview()
+        imageView.removeFromSuperview()
+        customView?.removeFromSuperview()
+        reloadButton.removeFromSuperview()
+        self.removeAllConstraints()
     }
     
     /// 设置tap手势
     ////////////////////////////////////////////////////////////////////////
     func tapGestureRecognizer(_ tapBlock: @escaping (UITapGestureRecognizer) -> Swift.Void) {
-        
+     
+        self.tapGestureRecognizerBlock = tapBlock
     }
     
 
     ////////////////////////////////////////////////////////////////////////
     class func show(to view: UIView, animated: Bool) -> NoDataPlaceholderView {
-        let view = NoDataPlaceholderView(frame: .zero)
-        view.showAnimated(true)
+        let view = NoDataPlaceholderView.init(view)
+        view.showAnimated(animated)
         return view
     }
     
@@ -644,6 +723,7 @@ fileprivate class NoDataPlaceholderView : UIView {
         }
     }
 
+    // MARK: - Constraints
     override func updateConstraints() {
         
         removeAllConstraints()
@@ -910,30 +990,53 @@ fileprivate class NoDataPlaceholderView : UIView {
         return nil
     }
     
-    // MARK: -
+    // MARK: - Others
     func canShowImage() -> Bool {
-        return (imageView.image != nil) && (imageView.superview != nil)
+        return (imageView.image != nil) //&& (imageView.superview != nil)
     }
     
     func canShowTitle() -> Bool {
-        return (titleLabel.text != nil) && (titleLabel.superview != nil)
+        return (titleLabel.text != nil) //&& (titleLabel.superview != nil)
     }
   
     func canShowDetail() -> Bool {
-        return (detailLabel.text != nil) && (detailLabel.superview != nil)
+        return (detailLabel.text != nil) //&& (detailLabel.superview != nil)
     }
     
     func canShowReloadButton() -> Bool {
         if (reloadButton.title(for: .normal) != nil) ||
             (reloadButton.image(for: .normal) != nil) ||
             (reloadButton.attributedTitle(for: .normal) != nil) {
-            return reloadButton.superview != nil
+            return true//reloadButton.superview != nil
         }
         return false
     }
     
     func canChangeInsets(insets: UIEdgeInsets) -> Bool {
         return UIEdgeInsetsEqualToEdgeInsets(insets, .zero) != false
+    }
+
+    // MARK: - Touchs
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard let touchView = super.hitTest(point, with: event) else {
+            return nil
+        }
+        
+        // 如果hitView是UIControl或其子类初始化的，就返回此hitView的实例
+        if touchView is UIControl {
+            return touchView
+        }
+        // 如果hitView是contentView或customView, 就返回此实例
+        if touchView.isEqual(contentView) {
+            return touchView
+        }
+        if let customView = customView {
+            if touchView.isEqual(customView) {
+                return touchView
+            }
+        }
+        
+        return nil;
     }
 
 }
