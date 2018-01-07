@@ -943,7 +943,11 @@ fileprivate class XYEmptyDataView : UIView {
     
     convenience init(_ view: UIView) {
         self.init(frame: view.bounds)
-        
+        show(to: view)
+    }
+    
+    private func show(to view: UIView) {
+        self.translatesAutoresizingMaskIntoConstraints = false
         if (self.superview == nil) {
             if view is UITableView || view is UICollectionView {
                 if view.subviews.count > 1 {
