@@ -14,6 +14,7 @@
 		D2B23E7E20007F9C00329C6C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D2B23E7C20007F9C00329C6C /* LaunchScreen.storyboard */; };
 		D2B23E86200083B100329C6C /* XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B23E85200083B100329C6C /* XYEmptyData.swift */; };
 		D2B23EA82001E33A00329C6C /* RuntimeExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B23EA72001E33A00329C6C /* RuntimeExtensions.swift */; };
+		D2B23EAC2002717400329C6C /* IMG_0778.PNG in Resources */ = {isa = PBXBuildFile; fileRef = D2B23EAB2002717400329C6C /* IMG_0778.PNG */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		D2B23E7F20007F9C00329C6C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D2B23E85200083B100329C6C /* XYEmptyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XYEmptyData.swift; sourceTree = "<group>"; wrapsLines = 1; };
 		D2B23EA72001E33A00329C6C /* RuntimeExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RuntimeExtensions.swift; sourceTree = "<group>"; };
+		D2B23EAB2002717400329C6C /* IMG_0778.PNG */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = IMG_0778.PNG; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +68,7 @@
 				D2B23E7A20007F9C00329C6C /* Assets.xcassets */,
 				D2B23E7C20007F9C00329C6C /* LaunchScreen.storyboard */,
 				D2B23E7F20007F9C00329C6C /* Info.plist */,
+				D2B23EAB2002717400329C6C /* IMG_0778.PNG */,
 			);
 			path = XYEmptyDataView;
 			sourceTree = "<group>";
@@ -130,6 +133,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D2B23E7E20007F9C00329C6C /* LaunchScreen.storyboard in Resources */,
+				D2B23EAC2002717400329C6C /* IMG_0778.PNG in Resources */,
 				D2B23E7B20007F9C00329C6C /* Assets.xcassets in Resources */,
 				D2B23E7920007F9C00329C6C /* Main.storyboard in Resources */,
 			);

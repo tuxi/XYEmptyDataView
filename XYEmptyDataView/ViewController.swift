@@ -35,7 +35,7 @@ class ViewController: UIViewController {
 
     private func setupEmptyDataView() {
         tableView.xy_textLabelBlock = { label in
-            label.text = "😁"
+            label.text = "空数据😁简单展示"
         }
         
         tableView.xy_detailTextLabelBlock = { label in
@@ -128,5 +128,8 @@ extension ViewController: XYEmptyDataDelegate {
         return CGPoint(x: 0, y: -20)
     }
 
+    func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat {
+        return 20.0
+    }
 }
 
