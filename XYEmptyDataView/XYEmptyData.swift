@@ -129,7 +129,11 @@ extension UIScrollView: UIGestureRecognizerDelegate {
                 return
             }
             
+            if emptyDataDelegate == nil || xy_noDataPlacehodlerCanDisplay() == false {
+                xy_removeNoDataPlacehodlerView()
+            }
             objc_setAssociatedObject(self, &XYEmptyDataKeys.delegate, _WeakObjectContainer(weakObject: newValue as AnyObject), .OBJC_ASSOCIATION_ASSIGN)
+            registerNoDataPlaceholder()
         }
     }
     
@@ -144,6 +148,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         set {
             objc_setAssociatedObject(self, &XYEmptyDataKeys.customNoDataView, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerNoDataPlaceholder()
         }
     }
     
@@ -158,6 +163,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         set {
             objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerNoDataPlaceholder()
         }
     }
     
@@ -170,6 +176,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         set {
             objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataDetailTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerNoDataPlaceholder()
         }
     }
     
@@ -182,6 +189,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         set {
             objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataImageViewBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerNoDataPlaceholder()
         }
     }
     
@@ -194,6 +202,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         set {
             objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataReloadButtonBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            registerNoDataPlaceholder()
         }
     }
     
@@ -295,8 +304,11 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             return false
         }
         set {
-            
+            if xy_loading == newValue  {
+                return
+            }
             objc_setAssociatedObject(self, &XYEmptyDataKeys.xy_loading, NSNumber.init(value: xy_loading), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            xy_reloadNoData()
         }
     }
     
@@ -330,7 +342,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
 
 
     
-    fileprivate func registerNoDataPlaceholder() -> Bool {
+    fileprivate func registerNoDataPlaceholder() {
         
         var num = objc_getAssociatedObject(self, &XYEmptyDataKeys.registerNoDataPlaceholder) as? NSNumber
         
@@ -363,7 +375,6 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             }
             
         }
-        return true
     }
     
     
@@ -419,6 +430,83 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     /// 刷新NoDataView, 当执行tableView的readData、endUpdates或者CollectionView的readData时会调用此方法
     ////////////////////////////////////////////////////////////////////////
     open func xy_reloadNoData() {
+        if (xy_noDataPlacehodlerCanDisplay() == false) {
+            return
+        }
+        
+        if (xy_noDataPlacehodlerShouldDisplay() == true &&
+            xy_itemCount() > 0) ||
+            xy_noDataPlacehodlerShouldBeForcedToDisplay() == true {
+            
+            // 通知代理即将显示
+            xy_noDataPlaceholderViewWillAppear()
+            
+            var noDataView = self.noDataPlaceholderView
+            if  noDataView == nil {
+                setupNoDataPlaceholderView()
+                noDataView = self.noDataPlaceholderView
+            }
+            guard let noDataPlaceholderView = noDataPlaceholderView else {
+                return
+            }
+            
+            // 重置视图及其约束
+            noDataPlaceholderView.resetSubviews()
+            
+            
+            if let customView = xy_noDataPlacehodlerCustomView() {
+                noDataPlaceholderView.customView = customView
+            } else {
+                
+                // customView为nil时，则通过block回到获取子控件 设置
+                if let block = self.noDataTextLabelBlock  {
+                    block(noDataPlaceholderView.titleLabel)
+                }
+                if let block = self.noDataDetailTextLabelBlock {
+                    block(noDataPlaceholderView.detailLabel)
+                }
+                
+                if let block = self.noDataImageViewBlock {
+                    block(noDataPlaceholderView.imageView)
+                }
+                if let block = self.noDataReloadButtonBlock {
+                    block(noDataPlaceholderView.reloadButton)
+                }
+                
+                // 设置子控件之间的边距
+                noDataPlaceholderView.titleEdgeInsets = self.noDataTextEdgeInsets
+                noDataPlaceholderView.detailEdgeInsets = self.noDataDetailEdgeInsets
+                noDataPlaceholderView.imageEdgeInsets = self.noDataImageEdgeInsets
+                noDataPlaceholderView.buttonEdgeInsets = self.noDataButtonEdgeInsets
+                // 设置noDataPlaceholderView子控件垂直间的间距
+                noDataPlaceholderView.globalVerticalSpace = xy_noDataPlacehodlerGlobalVerticalSpace()
+                
+            }
+            
+            noDataPlaceholderView.contentOffsetY = xy_noDataPlacehodlerContentOffset().y
+            noDataPlaceholderView.contentOffsetX = xy_noDataPlacehodlerContentOffset().x
+            noDataPlaceholderView.contentViewHorizontalSpace = xy_noDataPlacehodlerContenViewHorizontalSpace()
+            noDataPlaceholderView.backgroundColor = xy_noDataPlacehodlerBackgroundColor()
+            noDataPlaceholderView.contentView.backgroundColor = xy_noDataPlacehodlerContentBackgroundColor()
+            noDataPlaceholderView.isHidden = false;
+            noDataPlaceholderView.clipsToBounds = true
+            noDataPlaceholderView.imageViewSize = xy_noDataPlaceholderImageViewSize()
+            
+            noDataPlaceholderView.isUserInteractionEnabled = xy_noDataPlacehodlerIsAllowedResponseEvent()
+            
+            noDataPlaceholderView.setNeedsUpdateConstraints()
+            
+            // 此方法会先检查动画当前是否启用，然后禁止动画，执行block块语句
+            UIView.performWithoutAnimation {
+                noDataPlaceholderView.layoutIfNeeded()
+            }
+          self.isScrollEnabled = xy_noDataPlacehodlerIsAllowedScroll()
+            // 通知代理完全显示
+            xy_noDataPlacehodlerDidAppear()
+            
+        } else {
+            xy_removeNoDataPlacehodlerView()
+        }
         
     }
     
