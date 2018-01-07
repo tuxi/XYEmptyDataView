@@ -125,14 +125,17 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             return nil
         }
         set {
-            if (emptyDataDelegate?.isEqual(newValue))! {
-                return
+            if let oldDelegate = emptyDataDelegate {
+                if oldDelegate.isEqual(newValue) {
+                    return
+                }
             }
             
-            if emptyDataDelegate == nil || xy_noDataPlacehodlerCanDisplay() == false {
+            
+            if newValue == nil || xy_noDataPlacehodlerCanDisplay() == false {
                 xy_removeNoDataPlacehodlerView()
             }
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.delegate, _WeakObjectContainer(weakObject: newValue as AnyObject), .OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.delegate, _WeakObjectContainer(weakObject: newValue as AnyObject), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             registerNoDataPlaceholder()
         }
     }
@@ -366,13 +369,13 @@ extension UIScrollView: UIGestureRecognizerDelegate {
                 
                 // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
                 Swizzler.swizzleSelector(NSSelectorFromString("reloadData"),
-                                         withSelector: NSSelectorFromString("xy_reloadNoData"),
+                                         withSelector: #selector(self.xy_reloadNoData),
                                          for: self.classForCoder,
                                          name: "reloadData",
                                          block: executeBlock)
                 if self is UITableView {
                     Swizzler.swizzleSelector(NSSelectorFromString("endUpdates"),
-                                             withSelector: NSSelectorFromString("xy_reloadNoData"),
+                                             withSelector: #selector(self.xy_reloadNoData),
                                              for: self.classForCoder,
                                              name: "endUpdates",
                                              block: executeBlock)
@@ -435,7 +438,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     
     /// 刷新NoDataView, 当执行tableView的readData、endUpdates或者CollectionView的readData时会调用此方法
     ////////////////////////////////////////////////////////////////////////
-    open func xy_reloadNoData() {
+    @objc open func xy_reloadNoData() {
         if (xy_noDataPlacehodlerCanDisplay() == false) {
             return
         }
@@ -539,6 +542,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         if let nView = self.noDataPlaceholderView {
             nView.resetSubviews()
             nView.removeFromSuperview()
+            self.noDataPlaceholderView = nil
             
         }
         self.isScrollEnabled = true
@@ -783,7 +787,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     }
     
     /// 点击空数据视图的 reload的回调
-    private func xy_clickReloadBtn(btn: UIButton) {
+    @objc fileprivate func xy_clickReloadBtn(btn: UIButton) {
         guard let del = self.emptyDataDelegate else {
             return
         }
@@ -1076,8 +1080,7 @@ fileprivate class NoDataPlaceholderView : UIView {
     
     /// 点击刷新按钮时处理事件
     @objc private func clickReloadBtn(_ btn: UIButton) {
-        let name = "xy_clickReloadBtn:"
-        let sel = NSSelectorFromString(name)
+        let sel = #selector(UIScrollView.xy_clickReloadBtn(btn:))
         var superV = self.superview
         while superV != nil {
             if superV is UIScrollView {
@@ -1179,7 +1182,7 @@ fileprivate class NoDataPlaceholderView : UIView {
                 if (self.imageViewSize.width > 0.0 && self.imageViewSize.height > 0.0) {
                     self.contentView.addConstraints([
                         NSLayoutConstraint.init(item: self.imageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.width),
-                        NSLayoutConstraint.init(item: self.imageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.height)
+                        NSLayoutConstraint.init(item: self.imageView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.height)
                         ])
                 }
                 
@@ -1306,13 +1309,18 @@ fileprivate class NoDataPlaceholderView : UIView {
     }
     
     func getSelfTopConstraint() -> NSLayoutConstraint? {
-        let superViewConstraints = superview?.constraints
-        if superViewConstraints?.count == 0 {
+        guard let superViewConstraints = superview?.constraints else {
+            return nil
+        }
+        if superViewConstraints.count == 0 {
             return nil
         }
        
-        for constraint in superViewConstraints! {
-            if constraint.firstItem as! NSObject == self && constraint.firstAttribute == .top {
+        for constraint in superViewConstraints {
+            guard let item = constraint.firstItem else {
+                continue
+            }
+            if item as! NSObject == self && constraint.firstAttribute == .top {
                 return constraint
             }
         }
@@ -1321,13 +1329,18 @@ fileprivate class NoDataPlaceholderView : UIView {
     }
     
     func getSelfBottomConstraint() -> NSLayoutConstraint? {
-        let superViewConstraints = superview?.constraints
-        if superViewConstraints?.count == 0 {
+        guard let superViewConstraints = superview?.constraints else {
+            return nil
+        }
+        if superViewConstraints.count == 0 {
             return nil
         }
         
-        for constraint in superViewConstraints! {
-            if constraint.secondItem as! NSObject == self && constraint.firstAttribute == .bottom {
+        for constraint in superViewConstraints {
+            guard let item = constraint.secondItem else {
+                continue
+            }
+            if item as! NSObject == self && constraint.firstAttribute == .bottom {
                 return constraint
             }
         }
@@ -1336,13 +1349,17 @@ fileprivate class NoDataPlaceholderView : UIView {
     }
     
     func getSelfLeftConstraint() -> NSLayoutConstraint? {
-        let superViewConstraints = superview?.constraints
-        if superViewConstraints?.count == 0 {
+        guard let superViewConstraints = superview?.constraints else {
             return nil
         }
-        
-        for constraint in superViewConstraints! {
-            if constraint.firstItem as! NSObject == self && constraint.firstAttribute == .leading {
+        if superViewConstraints.count == 0 {
+            return nil
+        }
+        for constraint in superViewConstraints {
+            guard let item = constraint.firstItem else {
+                continue
+            }
+            if item as! NSObject == self && constraint.firstAttribute == .leading {
                 return constraint
             }
         }
@@ -1351,13 +1368,18 @@ fileprivate class NoDataPlaceholderView : UIView {
     }
     
     func getSelfRightConstraint() -> NSLayoutConstraint? {
-        let superViewConstraints = superview?.constraints
-        if superViewConstraints?.count == 0 {
+        guard let superViewConstraints = superview?.constraints else {
+            return nil
+        }
+        if superViewConstraints.count == 0 {
             return nil
         }
         
-        for constraint in superViewConstraints! {
-            if constraint.secondItem as! NSObject == self && constraint.firstAttribute == .trailing {
+        for constraint in superViewConstraints {
+            guard let item = constraint.secondItem else {
+                continue
+            }
+            if item as! NSObject == self && constraint.firstAttribute == .trailing {
                 return constraint
             }
         }
@@ -1388,7 +1410,7 @@ fileprivate class NoDataPlaceholderView : UIView {
     }
     
     func canChangeInsets(insets: UIEdgeInsets) -> Bool {
-        return UIEdgeInsetsEqualToEdgeInsets(insets, .zero) != false
+        return UIEdgeInsetsEqualToEdgeInsets(insets, .zero) == false
     }
 
     // MARK: - Touchs
