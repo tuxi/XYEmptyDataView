@@ -60,8 +60,7 @@
 		D2B23E7220007F9C00329C6C /* XYEmptyDataView */ = {
 			isa = PBXGroup;
 			children = (
-				D2B23E85200083B100329C6C /* XYEmptyData.swift */,
-				D2B23EA72001E33A00329C6C /* RuntimeExtensions.swift */,
+				D2B23EAE2002757A00329C6C /* XYEmptyDataView */,
 				D2B23E7320007F9C00329C6C /* AppDelegate.swift */,
 				D2B23E7520007F9C00329C6C /* ViewController.swift */,
 				D2B23E7720007F9C00329C6C /* Main.storyboard */,
@@ -71,6 +70,15 @@
 				D2B23EAB2002717400329C6C /* IMG_0778.PNG */,
 			);
 			path = XYEmptyDataView;
+			sourceTree = "<group>";
+		};
+		D2B23EAE2002757A00329C6C /* XYEmptyDataView */ = {
+			isa = PBXGroup;
+			children = (
+				D2B23E85200083B100329C6C /* XYEmptyData.swift */,
+				D2B23EA72001E33A00329C6C /* RuntimeExtensions.swift */,
+			);
+			name = XYEmptyDataView;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
