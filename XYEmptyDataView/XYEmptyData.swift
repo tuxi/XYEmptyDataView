@@ -13,49 +13,49 @@ import UIKit
     
     /// 是否应该淡入淡出，default is YES
     @objc @available(iOS 2.0, *)
-    optional func emptyDataViewShouldFadeIn(onDisplay scrollView: UIScrollView) -> Bool
+    optional func emptyDataView(shouldFadeInOnDisplay scrollView: UIScrollView) -> Bool
     
     
     /// 是否应显示emptyDataView, 默认YES
     /// @return 如果当前无数据则应显示emptyDataView
     @objc @available(iOS 2.0, *)
-    optional func emptyDataViewShouldDisplay(_ scrollView: UIScrollView) -> Bool
+    optional func emptyDataView(shouldDisplay scrollView: UIScrollView) -> Bool
     
     
     /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return NO
     /// @return 如果需要强制显示emptyDataView，return YES即可
     @objc @available(iOS 2.0, *)
-    optional func emptyDataViewShouldBeForced(toDisplay scrollView: UIScrollView) -> Bool
+    optional func emptyDataView(shouldBeForcedToDisplay scrollView: UIScrollView) -> Bool
     
     
     /// 当emptyDataView即将显示的回调
     @objc @available(iOS 2.0, *)
-    optional func emptyDataViewWillAppear(_ scrollView: UIScrollView)
+    optional func emptyDataView(willAppear scrollView: UIScrollView)
     
     
     /// 当emptyDataView完全显示的回调
     @objc @available(iOS 2.0, *)
-    optional func emptyDataViewDidAppear(_ scrollView: UIScrollView)
+    optional func emptyDataView(didAppear scrollView: UIScrollView)
     
     
     /// 当emptyDataView即将消失的回调
     @objc @available(iOS 2.0, *)
-    optional  func emptyDataViewWillDisappear(_ scrollView: UIScrollView)
+    optional  func emptyDataView(willDisappear scrollView: UIScrollView)
     
     
     /// 当emptyDataView完全消失的回调
     @objc @available(iOS 2.0, *)
-    optional func emptyDataViewDidDisappear(_ scrollView: UIScrollView)
+    optional func emptyDataView(didDisappear scrollView: UIScrollView)
     
     
     /// emptyDataView是否可以响应事件，默认YES
     @objc @available(iOS 2.0, *)
-    optional func emptyDataViewShouldAllowResponseEvent(_ scrollView: UIScrollView) -> Bool
+    optional func emptyDataView(shouldAllowResponseEvent scrollView: UIScrollView) -> Bool
     
     
     /// emptyDataView是否可以滚动，默认YES
     @objc @available(iOS 2.0, *)
-    optional func emptyDataViewShouldAllowScroll(_ scrollView: UIScrollView) -> Bool
+    optional func emptyDataView(shouldAllowScroll scrollView: UIScrollView) -> Bool
     
     
     @objc @available(iOS 3.2, *)
@@ -68,22 +68,21 @@ import UIKit
     
     /// emptyDataView各子控件之间垂直的间距，默认为11
     @objc @available(iOS 2.0, *)
-    optional func contentSubviewsGlobalVerticalSpaceForEmptyDataView(_ scrollView: UIScrollView) -> CGFloat
+    optional func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat
     
     
     /// emptyDataView 的 contentView左右距离父控件的间距值
     @objc @available(iOS 2.0, *)
-    optional func contentViewHorizontalSpaceForEmptyDataView(_ scrollView: UIScrollView) -> CGFloat
-    
+    optional func emptyDataView(contentViewHorizontalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat
     
     /// emptyDataView 顶部 和 左侧 相对 父控件scrollView 顶部 的偏移量, default is 0,0
     @objc @available(iOS 2.0, *)
-    optional func contentOffset(forEmptyDataView scrollView: UIScrollView) -> CGPoint
+    optional func emptyDataView(contentOffsetforEmptyDataView scrollView: UIScrollView) -> CGPoint
     
     
     /// imageView的size, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero
     @objc @available(iOS 2.0, *)
-    optional func imageViewSize(forEmptyDataView scrollView: UIScrollView) -> CGSize
+    optional func emptyDataView(imageViewSizeforEmptyDataView scrollView: UIScrollView) -> CGSize
 }
 
 
@@ -579,9 +578,11 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return true
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldFadeIn(onDisplay:))) {
-            return del.emptyDataViewShouldFadeIn!(onDisplay: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldFadeInOnDisplay:))) {
+            return del.emptyDataView!(shouldFadeInOnDisplay: self)
+            
         }
+        
         return true
     }
     
@@ -590,8 +591,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return true
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldDisplay(_:))) {
-            return del.emptyDataViewShouldDisplay!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldDisplay:))) {
+            return del.emptyDataView!(shouldDisplay: self)
         }
         return true
     }
@@ -601,8 +602,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return false
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldBeForced(toDisplay:))) {
-            return del.emptyDataViewShouldBeForced!(toDisplay: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldBeForcedToDisplay:))) {
+            return del.emptyDataView!(shouldBeForcedToDisplay: self)
         }
         return false
     }
@@ -612,8 +613,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewWillAppear(_:))) {
-             del.emptyDataViewWillAppear!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(willAppear:))) {
+             del.emptyDataView!(willAppear: self)
         }
         
     }
@@ -623,8 +624,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return true
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldAllowResponseEvent(_:))) {
-            return del.emptyDataViewShouldAllowResponseEvent!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldAllowResponseEvent:))) {
+            return del.emptyDataView!(shouldAllowResponseEvent: self)
         }
         return true
     }
@@ -634,8 +635,9 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return true
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewShouldAllowScroll(_:))) {
-            return del.emptyDataViewShouldAllowScroll!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldAllowScroll:))) {
+            return del.emptyDataView!(shouldAllowScroll: self)
+            
         }
         return true
     }
@@ -645,8 +647,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewDidAppear(_:))) {
-            del.emptyDataViewDidAppear!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(didAppear:))) {
+            del.emptyDataView!(didAppear: self)
         }
     }
 
@@ -655,8 +657,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewWillDisappear(_:))) {
-            del.emptyDataViewWillDisappear!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(willDisappear:))) {
+            del.emptyDataView!(willDisappear: self)
         }
     }
    
@@ -665,8 +667,9 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataViewDidDisappear(_:))) {
-            del.emptyDataViewDidDisappear!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(didDisappear:))) {
+            del.emptyDataView!(didDisappear: self)
+            
         }
     }
 
@@ -684,8 +687,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return 10.0
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.contentSubviewsGlobalVerticalSpaceForEmptyDataView(_:))) {
-            return del.contentSubviewsGlobalVerticalSpaceForEmptyDataView!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView:))) {
+            return del.emptyDataView!(contentSubviewsGlobalVerticalSpaceForEmptyDataView: self)
         }
         return 10.0;
     }
@@ -695,8 +698,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return 0.0
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.contentViewHorizontalSpaceForEmptyDataView(_:))) {
-            return del.contentViewHorizontalSpaceForEmptyDataView!(self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(contentViewHorizontalSpaceForEmptyDataView:))) {
+            return del.emptyDataView!(contentViewHorizontalSpaceForEmptyDataView: self)
         }
         return 0.0
     }
@@ -706,8 +709,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return CGPoint.zero
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.contentOffset(forEmptyDataView:))) {
-            return del.contentOffset!(forEmptyDataView: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(contentOffsetforEmptyDataView:))) {
+            return del.emptyDataView!(contentOffsetforEmptyDataView: self)
         }
         return CGPoint.zero
     }
@@ -717,8 +720,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return CGSize.zero
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.imageViewSize(forEmptyDataView:))) {
-            return del.imageViewSize!(forEmptyDataView: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(imageViewSizeforEmptyDataView:))) {
+            return del.emptyDataView!(imageViewSizeforEmptyDataView: self)
         }
         return CGSize.zero
     }

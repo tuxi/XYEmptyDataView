@@ -39,12 +39,12 @@ class ViewController: UIViewController {
         }
         
         tableView.xy_detailTextLabelBlock = { label in
-            label.text = "这是一个测试"
+            label.text = "这是一个测试\n😝😝😝"
         }
         
         tableView.xy_reloadButtonBlock = { button in
             button.setTitle("刷新吧", for: .normal)
-            button.backgroundColor = UIColor.blue
+            button.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
             button.layer.cornerRadius = 5.0
             button.layer.masksToBounds = true
         }
@@ -106,6 +106,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         cell.textLabel?.text = "\(indexPath.row)"
         return cell
     }
+    
 }
 
 extension ViewController: XYEmptyDataDelegate {
@@ -118,9 +119,14 @@ extension ViewController: XYEmptyDataDelegate {
         self.tableView.reloadData()
     }
     
-    func imageViewSize(forEmptyDataView scrollView: UIScrollView) -> CGSize {
+    func emptyDataView(imageViewSizeforEmptyDataView scrollView: UIScrollView) -> CGSize {
         
         return CGSize(width: 280, height: 280)
     }
+    
+    func emptyDataView(contentOffsetforEmptyDataView scrollView: UIScrollView) -> CGPoint {
+        return CGPoint(x: 0, y: -20)
+    }
+
 }
 
