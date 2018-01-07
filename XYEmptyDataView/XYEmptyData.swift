@@ -8,7 +8,7 @@
 
 import UIKit
 
-@objc public protocol NoDataPlaceholderDelegate: NSObjectProtocol {
+@objc public protocol XYEmptyDataDelegate: NSObjectProtocol {
     
     
     /// 是否应该淡入淡出，default is YES
@@ -87,10 +87,10 @@ import UIKit
 }
 
 
-extension UIScrollView {
+extension UIScrollView: UIGestureRecognizerDelegate {
     
     /// 用于关联对象的keys
-    private struct EmptyDataKeys {
+    private struct XYEmptyDataKeys {
         static var delegate = "com.alpface.XYEmptyData.delete"
         static var customNoDataView = "com.alpface.XYEmptyData.customNoDataView"
         static var noDataTextLabelBlock = "com.alpface.XYEmptyData.noDataTextLabelBlock"
@@ -109,7 +109,6 @@ extension UIScrollView {
         
         static var noDataPlaceholderView = "com.alpface.XYEmptyData.noDataPlaceholderView"
         static var registerNoDataPlaceholder = "com.alpface.XYEmptyData.registerNoDataPlaceholder"
-        static var delegateFlags = "com.alpface.XYEmptyData.delegateFlags"
         
         static var noDataTextLabel = "com.alpface.XYEmptyData.noDataTextLabel"
         static var noDataDetailTextLabel = "com.alpface.XYEmptyData.noDataTextLabel.noDataDetailTextLabel"
@@ -117,20 +116,20 @@ extension UIScrollView {
         static var noDataReloadButton = "com.alpface.XYEmptyData.noDataTextLabel.noDataReloadButton"
     }
     
-    weak open var noDataPlaceholderDelegate: NoDataPlaceholderDelegate? {
+    weak open var emptyDataDelegate: XYEmptyDataDelegate? {
         get {
-            let delegateCon = objc_getAssociatedObject(self, &EmptyDataKeys.delegate) as? _WeakObjectContainer
-            if let delegate = delegateCon?.weakObject as? NoDataPlaceholderDelegate {
+            let delegateCon = objc_getAssociatedObject(self, &XYEmptyDataKeys.delegate) as? _WeakObjectContainer
+            if let delegate = delegateCon?.weakObject as? XYEmptyDataDelegate {
                 return delegate
             }
             return nil
         }
         set {
-            if (noDataPlaceholderDelegate?.isEqual(newValue))! {
+            if (emptyDataDelegate?.isEqual(newValue))! {
                 return
             }
             
-            objc_setAssociatedObject(self, &EmptyDataKeys.delegate, _WeakObjectContainer(weakObject: newValue as AnyObject), .OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.delegate, _WeakObjectContainer(weakObject: newValue as AnyObject), .OBJC_ASSOCIATION_ASSIGN)
         }
     }
     
@@ -138,13 +137,13 @@ extension UIScrollView {
     /// use custom view
     open var customNoDataView: (() -> UIView)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, EmptyDataKeys.customNoDataView) as? () -> UIView {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.customNoDataView) as? () -> UIView {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.customNoDataView, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.customNoDataView, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
     
@@ -152,49 +151,49 @@ extension UIScrollView {
     // setup subviews
     open var noDataTextLabelBlock: ((UILabel) -> Swift.Void)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, EmptyDataKeys.noDataTextLabelBlock) as? (UILabel) -> Swift.Void {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataTextLabelBlock) as? (UILabel) -> Swift.Void {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
     
     open var noDataDetailTextLabelBlock: ((UILabel) -> Swift.Void)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, EmptyDataKeys.noDataDetailTextLabelBlock) as? (UILabel) -> Swift.Void {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataDetailTextLabelBlock) as? (UILabel) -> Swift.Void {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataDetailTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataDetailTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
     
     open var noDataImageViewBlock: ((UIImageView) -> Swift.Void)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, EmptyDataKeys.noDataImageViewBlock) as? (UIImageView) -> Swift.Void {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataImageViewBlock) as? (UIImageView) -> Swift.Void {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataImageViewBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataImageViewBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
     
     open var noDataReloadButtonBlock: ((UIButton) -> Swift.Void)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, EmptyDataKeys.noDataReloadButtonBlock) as? (UIButton) -> Swift.Void {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataReloadButtonBlock) as? (UIButton) -> Swift.Void {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataReloadButtonBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataReloadButtonBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
     
@@ -202,7 +201,7 @@ extension UIScrollView {
     /// titleLabel 的间距
     open var noDataTextEdgeInsets: UIEdgeInsets {
         get {
-            if let obj = objc_getAssociatedObject(self, EmptyDataKeys.noDataTextEdgeInsets) as? NSValue {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataTextEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
             }
             return UIEdgeInsets.zero
@@ -210,14 +209,14 @@ extension UIScrollView {
         set {
             let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
             
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataTextEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataTextEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     /// imageView 的间距
     open var noDataImageEdgeInsets: UIEdgeInsets {
         get {
-            if let obj = objc_getAssociatedObject(self, EmptyDataKeys.noDataImageEdgeInsets) as? NSValue {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataImageEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
             }
             return UIEdgeInsets.zero
@@ -225,14 +224,14 @@ extension UIScrollView {
         set {
             let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
             
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataImageEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataImageEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     /// detaileLable 的间距
     open var noDataDetailEdgeInsets: UIEdgeInsets {
         get {
-            if let obj = objc_getAssociatedObject(self, EmptyDataKeys.noDataDetailEdgeInsets) as? NSValue {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataDetailEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
             }
             return UIEdgeInsets.zero
@@ -240,14 +239,14 @@ extension UIScrollView {
         set {
             let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
             
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataDetailEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataDetailEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     /// reloadButton 的间距
     open var noDataButtonEdgeInsets: UIEdgeInsets {
         get {
-            if let obj = objc_getAssociatedObject(self, EmptyDataKeys.noDataButtonEdgeInsets) as? NSValue {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataButtonEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
             }
             return UIEdgeInsets.zero
@@ -255,7 +254,7 @@ extension UIScrollView {
         set {
             let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
             
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataButtonEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataButtonEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
@@ -263,126 +262,156 @@ extension UIScrollView {
     /// noDataPlaceholderView 的背景颜色
     open var noDataViewBackgroundColor: UIColor? {
         get {
-            if let obj = objc_getAssociatedObject(self, EmptyDataKeys.noDataViewBackgroundColor) as? UIColor {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataViewBackgroundColor) as? UIColor {
                 return obj
             }
             return nil
         }
         set {
   
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataViewBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataViewBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     /// noDataPlaceholderView中contentView的背景颜色
     open var noDataViewContentBackgroundColor: UIColor? {
         get {
-            if let obj = objc_getAssociatedObject(self, EmptyDataKeys.noDataViewContentBackgroundColor) as? UIColor {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataViewContentBackgroundColor) as? UIColor {
                 return obj
             }
             return nil
         }
         set {
             
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataViewContentBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataViewContentBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     open var xy_loading: Bool {
         get {
-            if let obj = objc_getAssociatedObject(self, EmptyDataKeys.xy_loading) as? NSNumber {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.xy_loading) as? NSNumber {
                 return obj.boolValue
             }
             return false
         }
         set {
             
-            objc_setAssociatedObject(self, &EmptyDataKeys.xy_loading, NSNumber.init(value: xy_loading), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.xy_loading, NSNumber.init(value: xy_loading), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
     fileprivate var noDataPlaceholderView: NoDataPlaceholderView? {
         get {
-            if let view = objc_getAssociatedObject(self, &EmptyDataKeys.noDataPlaceholderView) as? NoDataPlaceholderView {
+            if let view = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataPlaceholderView) as? NoDataPlaceholderView {
                 return view
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataPlaceholderView, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataPlaceholderView, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
-    fileprivate var registerNoDataPlaceholder: Bool {
-        get {
-            if let num = objc_getAssociatedObject(self, &EmptyDataKeys.registerNoDataPlaceholder) as? NSNumber {
-                return num.boolValue
-            }
-            return false
-        }
-        set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.registerNoDataPlaceholder, NSNumber.init(value: newValue), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    /// 初始化空数据视图
+    fileprivate func setupNoDataPlaceholderView() {
+        var view = self.noDataPlaceholderView
+        if view == nil {
+            view = NoDataPlaceholderView.show(to: self, animated: xy_noDataPlacehodlerShouldFadeInOnDisplay())
+            view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view?.isHidden = true
+            view?.tapGesture.delegate = self
+            view?.tapGestureRecognizer({[weak self] (tap) in
+                self?.xy_didTapContentView(tap: tap)
+            })
+            
+            self.noDataPlaceholderView = view
         }
     }
+
+
     
-    fileprivate var delegateFlags: NoDataPlaceholderDelegateFlags? {
-        get {
-            if let flags = objc_getAssociatedObject(self, &EmptyDataKeys.delegateFlags) as? NoDataPlaceholderDelegateFlags {
-                return flags
+    fileprivate func registerNoDataPlaceholder() -> Bool {
+        
+        var num = objc_getAssociatedObject(self, &XYEmptyDataKeys.registerNoDataPlaceholder) as? NSNumber
+        
+        if num == nil || num?.boolValue == false {
+            if self.xy_noDataPlacehodlerCanDisplay() == false {
+                self.xy_removeNoDataPlacehodlerView()
+                num = NSNumber(value: false)
             }
-            return nil
+            else {
+                num = NSNumber(value: true)
+                setupNoDataPlaceholderView()
+                let executeBlock = { (view: AnyObject?, command: Selector, param1: AnyObject?, param2: AnyObject?) in
+                    
+                }
+                
+                // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
+                Swizzler.swizzleSelector(NSSelectorFromString("reloadData"),
+                                         withSelector: NSSelectorFromString("xy_reloadNoData"),
+                                         for: self.classForCoder,
+                                         name: "reloadData",
+                                         block: executeBlock)
+                if self is UITableView {
+                    Swizzler.swizzleSelector(NSSelectorFromString("endUpdates"),
+                                             withSelector: NSSelectorFromString("xy_reloadNoData"),
+                                             for: self.classForCoder,
+                                             name: "endUpdates",
+                                             block: executeBlock)
+                }
+                objc_setAssociatedObject(self, &XYEmptyDataKeys.registerNoDataPlaceholder, num, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            }
+            
         }
-        set {
-           objc_setAssociatedObject(self, &EmptyDataKeys.delegateFlags, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
+        return true
     }
     
     
     fileprivate var noDataTextLabel: (() -> UILabel)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, EmptyDataKeys.noDataTextLabel) as? () -> UILabel {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataTextLabel) as? () -> UILabel {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataTextLabel, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataTextLabel, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
     
     fileprivate var noDataDetailTextLabel: (() -> UILabel)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, EmptyDataKeys.noDataDetailTextLabel) as? () -> UILabel {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataDetailTextLabel) as? () -> UILabel {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataDetailTextLabel, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataDetailTextLabel, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
     
     fileprivate var noDataImageView: (() -> UIImageView)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, EmptyDataKeys.noDataImageView) as? () -> UIImageView {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataImageView) as? () -> UIImageView {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataImageView, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataImageView, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
     
     fileprivate var noDataReloadButton: (() -> UIButton)? {
         get {
-            if let callBack = objc_getAssociatedObject(self, EmptyDataKeys.noDataReloadButton) as? () -> UIButton {
+            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.noDataReloadButton) as? () -> UIButton {
                 return callBack
             }
             return nil
         }
         set {
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataReloadButton, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.noDataReloadButton, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
     
@@ -392,44 +421,279 @@ extension UIScrollView {
     open func xy_reloadNoData() {
         
     }
-}
+    
+    private func xy_removeNoDataPlacehodlerView() {
+        // 通知代理即将消失
+        self.xy_noDataPlacehodlerWillDisappear()
+        if let nView = self.noDataPlaceholderView {
+            nView.resetSubviews()
+            nView.removeFromSuperview()
+            
+        }
+        self.isScrollEnabled = true
+        
+        // 通知代理完全消失
+        self.xy_noDataPlacehodlerDidDisappear()
+    }
+    
+    private func xy_noDataPlacehodlerBackgroundColor() -> UIColor {
+        guard let color = self.noDataViewBackgroundColor else {
+            return UIColor.clear
+        }
+        return color
+    }
+    
+    
+    private func xy_noDataPlacehodlerContentBackgroundColor() -> UIColor {
+        guard let color = self.noDataViewContentBackgroundColor else {
+            return UIColor.clear
+        }
+        return color
+    }
+    
+    // 是否符合显示
+    private func xy_noDataPlacehodlerCanDisplay() -> Bool {
+        if  self is UITableView || self is UICollectionView {
+            return true
+        }
+        return false
+    }
+    
+    private func xy_itemCount() -> Int {
+        var itemCount = 0
+        
+        let selectorName = "dataSource"
+        
+        if self.responds(to: NSSelectorFromString(selectorName)) == false {
+            return itemCount
+        }
+        
+        // UITableView
+        if (self is UITableView) {
+            let tableView = self as! UITableView
+            guard let dataSource = tableView.dataSource else {
+                return itemCount
+            }
+            var sections = 1
+            let selName1 = "numberOfSectionsInTableView:"
+            if dataSource.responds(to: NSSelectorFromString(selName1)) {
+                sections = dataSource.numberOfSections!(in: tableView)
+            }
+            let selName2 = "tableView:numberOfRowsInSection:"
+            if dataSource.responds(to: NSSelectorFromString(selName2)) {
+                // 遍历所有组获取每组的行数，就相加得到所有item的数量
+                for section in 0...sections {
+                    itemCount += dataSource.tableView(tableView, numberOfRowsInSection: section)
+                }
+            }
+        }
+        
+        // UICollectionView
+        if self is UICollectionView {
+            let collectionView = self as! UICollectionView
+            guard let dataSource = collectionView.dataSource else {
+                return itemCount
+            }
+            
+            var sections = 1
+            let selName1 = "numberOfSectionsInCollectionView:"
+            if dataSource.responds(to: NSSelectorFromString(selName1)) {
+                sections = dataSource.numberOfSections!(in: collectionView)
+            }
+            let selName2 = "collectionView:numberOfItemsInSection:"
+            if dataSource.responds(to: NSSelectorFromString(selName2)) {
+                // 遍历所有组获取每组的行数，就相加得到所有item的数量
+                for section in 0...sections {
+                    itemCount += dataSource.collectionView(collectionView, numberOfItemsInSection: section)
+                }
+            }
+        }
+        
+        return itemCount;
+    }
+    
+    /// 是否需要淡入淡出
+    private func xy_noDataPlacehodlerShouldFadeInOnDisplay() -> Bool {
+        guard let del = self.emptyDataDelegate else {
+            return true
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldFadeIn(onDisplay:))) {
+            return del.noDataPlaceholderShouldFadeIn!(onDisplay: self)
+        }
+        return true
+    }
+    
+    /// 是否应该显示
+    private func xy_noDataPlacehodlerShouldDisplay() -> Bool {
+        guard let del = self.emptyDataDelegate else {
+            return true
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldDisplay(_:))) {
+            return del.noDataPlaceholderShouldDisplay!(self)
+        }
+        return true
+    }
+    
+    /// 是否应该强制显示,默认不需要的
+    private func xy_noDataPlacehodlerShouldBeForcedToDisplay() -> Bool {
+        guard let del = self.emptyDataDelegate else {
+            return false
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldBeForced(toDisplay:))) {
+            return del.noDataPlaceholderShouldBeForced!(toDisplay: self)
+        }
+        return false
+    }
 
-fileprivate struct _NoDataPlaceholderDelegateFlags {
-    
-    public var noDataPlacehodlerShouldDisplay: ObjCBool // 通过delegate方法决定是否应该显示noData
-    
-    public var noDataPlacehodlerShouldBeForcedToDisplay: ObjCBool // 当不可以显示noData时，是否强制显示
-    
-    public var noDataPlacehodlerCanDisplay: ObjCBool // 是否可以显示noData，根据当前noDataView所在的父控件确定
-    
-    public var itemCount: Int // 当前tableView或collectionView的总行数
-    
-    public var noDataPlacehodlerIsAllowedResponseEvent: ObjCBool // noDataView是否可以响应事件
-    
-    public var noDataPlacehodlerIsAllowedScroll: ObjCBool // 是否可以滚动
-    
-    public var noDataPlacehodlerGlobalVerticalSpace: CGFloat // noDataView 各子控件垂直之间的间距值，默认为10.0
-    
-    public var noDataPlacehodlerContentViewHorizontaSpace: CGFloat // contentView 左右距离父控件的间距值，默认为0
-    
-    public var noDataPlacehodlerContentOffset: CGPoint // NoDataPlaceholderView 顶部 和 左侧 相对 父控件scrollView 顶部 的偏移量, default is 0,0
-    
-    public init(noDataPlacehodlerShouldDisplay: ObjCBool, noDataPlacehodlerShouldBeForcedToDisplay: ObjCBool, noDataPlacehodlerCanDisplay: ObjCBool, itemCount: Int, noDataPlacehodlerIsAllowedResponseEvent: ObjCBool, noDataPlacehodlerIsAllowedScroll: ObjCBool, noDataPlacehodlerGlobalVerticalSpace: CGFloat, noDataPlacehodlerContentViewHorizontaSpace: CGFloat, noDataPlacehodlerContentOffset: CGPoint) {
-        self.noDataPlacehodlerShouldDisplay = noDataPlacehodlerShouldDisplay
-        self.noDataPlacehodlerCanDisplay = noDataPlacehodlerCanDisplay
-        self.noDataPlacehodlerShouldBeForcedToDisplay = noDataPlacehodlerShouldBeForcedToDisplay
-        self.itemCount = itemCount
-        self.noDataPlacehodlerIsAllowedResponseEvent = noDataPlacehodlerIsAllowedResponseEvent
-        self.noDataPlacehodlerIsAllowedScroll = noDataPlacehodlerIsAllowedScroll
-        self.noDataPlacehodlerGlobalVerticalSpace = noDataPlacehodlerGlobalVerticalSpace
-        self.noDataPlacehodlerContentViewHorizontaSpace = noDataPlacehodlerContentViewHorizontaSpace
-        self.noDataPlacehodlerContentOffset = noDataPlacehodlerContentOffset
+    /// 即将显示空数据时调用
+    private func xy_noDataPlaceholderViewWillAppear() {
+        guard let del = self.emptyDataDelegate else {
+            return
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderWillAppear(_:))) {
+             del.noDataPlaceholderWillAppear!(self)
+        }
         
     }
 
+    /// 是否允许响应事件
+    private func xy_noDataPlacehodlerIsAllowedResponseEvent() -> Bool {
+        guard let del = self.emptyDataDelegate else {
+            return true
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldAllowResponseEvent(_:))) {
+            return del.noDataPlaceholderShouldAllowResponseEvent!(self)
+        }
+        return true
+    }
+    
+    /// 是否运行滚动
+    private func xy_noDataPlacehodlerIsAllowedScroll() -> Bool {
+        guard let del = self.emptyDataDelegate else {
+            return true
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderShouldAllowScroll(_:))) {
+            return del.noDataPlaceholderShouldAllowScroll!(self)
+        }
+        return true
+    }
+   
+    /// 已经显示空数据时调用
+    private func xy_noDataPlacehodlerDidAppear() {
+        guard let del = self.emptyDataDelegate else {
+            return
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderDidAppear(_:))) {
+            del.noDataPlaceholderDidAppear!(self)
+        }
+    }
+
+    /// 空数据即将消失时调用
+    private func xy_noDataPlacehodlerWillDisappear() {
+        guard let del = self.emptyDataDelegate else {
+            return
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderWillDisappear(_:))) {
+            del.noDataPlaceholderWillDisappear!(self)
+        }
+    }
+   
+    /// 空数据已经消失时调用
+    private func xy_noDataPlacehodlerDidDisappear() {
+        guard let del = self.emptyDataDelegate else {
+            return
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholderDidDisappear(_:))) {
+            del.noDataPlaceholderDidDisappear!(self)
+        }
+    }
+
+    /// 当自定义空数据视图时调用
+    private func xy_noDataPlacehodlerCustomView() -> UIView? {
+        var view: UIView?
+        if self.customNoDataView != nil {
+            view = self.customNoDataView!()
+        }
+        return view
+    }
+    
+    /// 获取子控件垂直间距时调用, 默认为10.0
+    private func xy_noDataPlacehodlerGlobalVerticalSpace() -> CGFloat {
+        guard let del = self.emptyDataDelegate else {
+            return 10.0
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.contentSubviewsGlobalVerticalSpaceFoNoDataPlaceholder(_:))) {
+            return del.contentSubviewsGlobalVerticalSpaceFoNoDataPlaceholder!(self)
+        }
+        return 10.0;
+    }
+    
+    /// 获取contentView水平间距时调用
+    private func xy_noDataPlacehodlerContenViewHorizontalSpace() -> CGFloat {
+        guard let del = self.emptyDataDelegate else {
+            return 0.0
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.contentViewHorizontalSpaceFoNoDataPlaceholder(_:))) {
+            return del.contentViewHorizontalSpaceFoNoDataPlaceholder!(self)
+        }
+        return 0.0
+    }
+
+    /// 空数据contentView偏移量
+    private func xy_noDataPlacehodlerContentOffset() -> CGPoint {
+        guard let del = self.emptyDataDelegate else {
+            return CGPoint.zero
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.contentOffset(forNoDataPlaceholder:))) {
+            return del.contentOffset!(forNoDataPlaceholder: self)
+        }
+        return CGPoint.zero
+    }
+    
+    /// 获取空数据视图上ImageView的固定尺寸
+    private func xy_noDataPlaceholderImageViewSize() -> CGSize {
+        guard let del = self.emptyDataDelegate else {
+            return CGSize.zero
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.imageViewSize(forNoDataPlaceholder:))) {
+            return del.imageViewSize!(forNoDataPlaceholder: self)
+        }
+        return CGSize.zero
+    }
+    
+    /// 点击空数据视图的 contentView的回调
+    private func xy_didTapContentView(tap: UITapGestureRecognizer) -> Void {
+        guard let del = self.emptyDataDelegate else {
+            return
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholder(_:didTapOnContentView:))) {
+            del.noDataPlaceholder!(self, didTapOnContentView: tap)
+        }
+    }
+    
+    /// 点击空数据视图的 reload的回调
+    private func xy_clickReloadBtn(btn: UIButton) {
+        guard let del = self.emptyDataDelegate else {
+            return
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.noDataPlaceholder(_:didClickReload:))) {
+            del.noDataPlaceholder!(self, didClickReload: btn)
+        }
+    }
+
+    // MARK: - UIGestureRecognizerDelegate
+    open override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer.view?.isEqual(self.noDataPlaceholderView) == true {
+            return self.xy_noDataPlacehodlerIsAllowedResponseEvent()
+        }
+        
+        return super.gestureRecognizerShouldBegin(gestureRecognizer)
+        
+    }
+    
 }
 
-fileprivate typealias NoDataPlaceholderDelegateFlags = _NoDataPlaceholderDelegateFlags
+
 
 
 fileprivate let NoDataPlaceholderHorizontalSpaceRatioValue: CGFloat = 16.0
@@ -449,12 +713,12 @@ fileprivate class _WeakObjectContainer : NSObject {
 
 extension UIView {
     
-    struct EmptyDataKeys {
-        static var noDataPlaceholderViewContentEdgeInsets = "com.alpface.XYEmptyData.noDataPlaceholderViewContentEdgeInsets"
+    struct XYEmptyDataKeys {
+        static var emptyDataViewContentEdgeInsets = "com.alpface.XYEmptyData.emptyDataViewContentEdgeInsets"
     }
-    open var noDataPlaceholderViewContentEdgeInsets: UIEdgeInsets {
+    open var emptyDataViewContentEdgeInsets: UIEdgeInsets {
         get {
-            if let obj = objc_getAssociatedObject(self, EmptyDataKeys.noDataPlaceholderViewContentEdgeInsets) as? NSValue {
+            if let obj = objc_getAssociatedObject(self, XYEmptyDataKeys.emptyDataViewContentEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
             }
             return UIEdgeInsets.zero
@@ -462,7 +726,7 @@ extension UIView {
         set {
             let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
             
-            objc_setAssociatedObject(self, &EmptyDataKeys.noDataPlaceholderViewContentEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.emptyDataViewContentEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
 }
@@ -575,37 +839,37 @@ fileprivate class NoDataPlaceholderView : UIView {
     /** 各子控件之间的边距，若设置此边距则 */
     var titleEdgeInsets: UIEdgeInsets {
         get {
-            return titleLabel.noDataPlaceholderViewContentEdgeInsets
+            return titleLabel.emptyDataViewContentEdgeInsets
         }
         set {
-            self.titleLabel.noDataPlaceholderViewContentEdgeInsets = newValue
+            self.titleLabel.emptyDataViewContentEdgeInsets = newValue
         }
     }
     
     var imageEdgeInsets: UIEdgeInsets {
         get {
-            return imageView.noDataPlaceholderViewContentEdgeInsets
+            return imageView.emptyDataViewContentEdgeInsets
         }
         set {
-            self.imageView.noDataPlaceholderViewContentEdgeInsets = newValue
+            self.imageView.emptyDataViewContentEdgeInsets = newValue
         }
     }
     
     var detailEdgeInsets: UIEdgeInsets {
         get {
-            return detailLabel.noDataPlaceholderViewContentEdgeInsets
+            return detailLabel.emptyDataViewContentEdgeInsets
         }
         set {
-            self.detailLabel.noDataPlaceholderViewContentEdgeInsets = newValue
+            self.detailLabel.emptyDataViewContentEdgeInsets = newValue
         }
     }
     
     var buttonEdgeInsets: UIEdgeInsets {
         get {
-            return reloadButton.noDataPlaceholderViewContentEdgeInsets
+            return reloadButton.emptyDataViewContentEdgeInsets
         }
         set {
-            self.reloadButton.noDataPlaceholderViewContentEdgeInsets = newValue
+            self.reloadButton.emptyDataViewContentEdgeInsets = newValue
         }
     }
     
@@ -893,12 +1157,12 @@ fileprivate class NoDataPlaceholderView : UIView {
                     continue
                 }
                 // 拼接间距值
-                if (self.canChangeInsets(insets: view.noDataPlaceholderViewContentEdgeInsets)) {
-                    topSpace = view.noDataPlaceholderViewContentEdgeInsets.top
+                if (self.canChangeInsets(insets: view.emptyDataViewContentEdgeInsets)) {
+                    topSpace = view.emptyDataViewContentEdgeInsets.top
                 }
                 if let previousView = previousView {
-                    if (self.canChangeInsets(insets: previousView.noDataPlaceholderViewContentEdgeInsets)) {
-                        topSpace += previousView.noDataPlaceholderViewContentEdgeInsets.bottom
+                    if (self.canChangeInsets(insets: previousView.emptyDataViewContentEdgeInsets)) {
+                        topSpace += previousView.emptyDataViewContentEdgeInsets.bottom
                     }
                 }
                 
@@ -906,7 +1170,7 @@ fileprivate class NoDataPlaceholderView : UIView {
                 
                 if (viewName == subviewKeyArray.last) {
                     // 最后一个控件把距离父控件底部的约束值也加上
-                    verticalFormat += "-(\(view.noDataPlaceholderViewContentEdgeInsets.bottom)@999)-"
+                    verticalFormat += "-(\(view.emptyDataViewContentEdgeInsets.bottom)@999)-"
                 }
                 
                 previousView = view;
