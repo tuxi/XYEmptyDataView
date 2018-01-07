@@ -105,7 +105,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         
         static var noDataViewBackgroundColor = "com.alpface.XYEmptyData.noDataViewBackgroundColor"
         static var noDataViewContentBackgroundColor = "com.alpface.XYEmptyData.noDataViewContentBackgroundColor"
-        static var xy_loading = "com.alpface.XYEmptyData.xy_loading"
+        static var loading = "com.alpface.XYEmptyData.xy_loading"
         
         static var noDataPlaceholderView = "com.alpface.XYEmptyData.noDataPlaceholderView"
         static var registerNoDataPlaceholder = "com.alpface.XYEmptyData.registerNoDataPlaceholder"
@@ -298,7 +298,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     
     open var xy_loading: Bool {
         get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.xy_loading) as? NSNumber {
+            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.loading) as? NSNumber {
                 return obj.boolValue
             }
             return false
@@ -307,7 +307,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             if xy_loading == newValue  {
                 return
             }
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.xy_loading, NSNumber.init(value: xy_loading), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.loading, NSNumber.init(value: xy_loading), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             xy_reloadNoData()
         }
     }
@@ -345,6 +345,12 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     fileprivate func registerNoDataPlaceholder() {
         
         var num = objc_getAssociatedObject(self, &XYEmptyDataKeys.registerNoDataPlaceholder) as? NSNumber
+        
+//        if (xy_noDataPlacehodlerShouldDisplay() == true &&
+//            xy_itemCount() <= 0) ||
+//            xy_noDataPlacehodlerShouldBeForcedToDisplay() == true {
+//            return
+//        }
         
         if num == nil || num?.boolValue == false {
             if self.xy_noDataPlacehodlerCanDisplay() == false {
@@ -435,7 +441,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         
         if (xy_noDataPlacehodlerShouldDisplay() == true &&
-            xy_itemCount() > 0) ||
+            xy_itemCount() <= 0) ||
             xy_noDataPlacehodlerShouldBeForcedToDisplay() == true {
             
             // 通知代理即将显示
@@ -508,6 +514,23 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             xy_removeNoDataPlacehodlerView()
         }
         
+        
+        let originalSelector = NSSelectorFromString("reloadData")
+        callOriginalFunctionAndSwizzledBlocks(originalSelector: originalSelector)
+        
+    }
+    
+    @objc func callOriginalFunctionAndSwizzledBlocks(originalSelector: Selector) {
+        if let originalMethod = class_getInstanceMethod(type(of: self), originalSelector),
+            let swizzle = Swizzler.swizzles[originalMethod] {
+            typealias MyCFunction = @convention(c) (AnyObject, Selector) -> Void
+            let curriedImplementation = unsafeBitCast(swizzle.originalMethod, to: MyCFunction.self)
+            curriedImplementation(self, originalSelector)
+            
+            for (_, block) in swizzle.blocks {
+                block(self, swizzle.selector, nil, nil)
+            }
+        }
     }
     
     private func xy_removeNoDataPlacehodlerView() {
@@ -1392,4 +1415,6 @@ fileprivate class NoDataPlaceholderView : UIView {
     }
 
 }
+
+
 
