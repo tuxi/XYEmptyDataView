@@ -12,7 +12,7 @@ class ViewController: UIViewController {
     
     fileprivate lazy var tableView: UITableView = {
        
-        let tableView = UITableView(frame: .zero)
+        let tableView = UITableView(frame: .zero, style: .plain)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
         tableView.delegate = self
@@ -21,7 +21,7 @@ class ViewController: UIViewController {
         return tableView
     }()
     
-    fileprivate lazy var dataArray = [Any]()
+    fileprivate lazy var dataArray = [[Any]]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -75,11 +75,11 @@ class ViewController: UIViewController {
 extension ViewController: UITableViewDataSource, UITableViewDelegate {
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+        return dataArray.count
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return dataArray.count
+        return dataArray[section].count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -107,16 +107,33 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         return cell
     }
     
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return "第" + NSNumber.init(value: section).stringValue + "组"
+    }
+    
+    
 }
 
 extension ViewController: XYEmptyDataDelegate {
     
     func emptyDataView(_ scrollView: UIScrollView, didClickReload button: UIButton) {
-        
-        for i in 0...30 {
-            dataArray.append(i)
+        dataArray.removeAll()
+        for section in 0...3 {
+            var  array = Array<Any>()
+            var count = 0
+            if section % 2 == 0 {
+                count = 3
+            }
+            else {
+               count = 6
+            }
+            for row in 0...count {
+                array.append(row)
+            }
+            dataArray.append(array)
+            
         }
-        self.tableView.reloadData()
+        tableView.reloadData()
     }
     
     func emptyDataView(imageViewSizeforEmptyDataView scrollView: UIScrollView) -> CGSize {

@@ -543,9 +543,12 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             let selName2 = "tableView:numberOfRowsInSection:"
             if dataSource.responds(to: NSSelectorFromString(selName2)) {
                 // 遍历所有组获取每组的行数，就相加得到所有item的数量
-                for section in 0...sections {
-                    itemCount += dataSource.tableView(tableView, numberOfRowsInSection: section)
+                if sections > 0 {
+                    for section in 0...(sections - 1) {
+                        itemCount += dataSource.tableView(tableView, numberOfRowsInSection: section)
+                    }
                 }
+                
             }
         }
         
@@ -564,9 +567,12 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             let selName2 = "collectionView:numberOfItemsInSection:"
             if dataSource.responds(to: NSSelectorFromString(selName2)) {
                 // 遍历所有组获取每组的行数，就相加得到所有item的数量
-                for section in 0...sections {
-                    itemCount += dataSource.collectionView(collectionView, numberOfItemsInSection: section)
+                if sections > 0 {
+                    for section in 0...(sections - 1) {
+                        itemCount += dataSource.collectionView(collectionView, numberOfItemsInSection: section)
+                    }
                 }
+                
             }
         }
         
