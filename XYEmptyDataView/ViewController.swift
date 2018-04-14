@@ -117,36 +117,61 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 extension ViewController: XYEmptyDataDelegate {
     
     func emptyDataView(_ scrollView: UIScrollView, didClickReload button: UIButton) {
-        dataArray.removeAll()
-        for section in 0...3 {
-            var  array = Array<Any>()
-            var count = 0
-            if section % 2 == 0 {
-                count = 3
+        scrollView.xy_loading = true
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
+            self.dataArray.removeAll()
+            for section in 0...3 {
+                var  array = Array<Any>()
+                var count = 0
+                if section % 2 == 0 {
+                    count = 3
+                }
+                else {
+                    count = 6
+                }
+                for row in 0...count {
+                    array.append(row)
+                }
+                self.dataArray.append(array)
+                
             }
-            else {
-               count = 6
-            }
-            for row in 0...count {
-                array.append(row)
-            }
-            dataArray.append(array)
-            
+            self.tableView.xy_loading = false
+            self.tableView.reloadData()
         }
-        tableView.reloadData()
+        
+    }
+    
+    func emptyDataView(didAppear scrollView: UIScrollView) {
+        navigationItem.rightBarButtonItem?.isEnabled = false
+    }
+    
+    func emptyDataView(didDisappear scrollView: UIScrollView) {
+        navigationItem.rightBarButtonItem?.isEnabled = true
     }
     
     func emptyDataView(imageViewSizeforEmptyDataView scrollView: UIScrollView) -> CGSize {
-        
-        return CGSize(width: 280, height: 280)
+         let screenMin = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+        return CGSize(width: screenMin * 0.3, height: screenMin * 0.3)
     }
     
     func emptyDataView(contentOffsetforEmptyDataView scrollView: UIScrollView) -> CGPoint {
+        if scrollView.xy_loading == true {
+            return CGPoint(x: 0, y: -scrollView.frame.size.height*0.5 + 20.0)
+        }
         return CGPoint(x: 0, y: -20)
     }
 
     func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat {
         return 20.0
+    }
+    
+    func customView(forEmptyDataView scrollView: UIScrollView) -> UIView? {
+        if scrollView.xy_loading == true {
+            let indicatorView = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+            indicatorView.startAnimating()
+            return indicatorView
+        }
+        return nil
     }
 }
 
