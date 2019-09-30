@@ -1,8 +1,8 @@
 //
 //  ViewController.swift
 //  XYEmptyDataView
-//
-//  Created by swae on 2018/1/6.
+//  https://github.com/tuxi/XYEmptyDataView
+//  Created by xiaoyuan on 2018/1/6.
 //  Copyright © 2018年 alpface. All rights reserved.
 //
 
@@ -59,8 +59,8 @@ class ViewController: UIViewController {
     private func setupView() {
         view.addSubview(tableView)
         let viewDict = ["tableView": tableView]
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[tableView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewDict))
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewDict))
+        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[tableView]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
+        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(ViewController.clearData))
     }
@@ -95,11 +95,11 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             line.backgroundColor = UIColor.lightGray
             let viewDict = ["line": line]
         NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[line]|",
-                                                                       options: NSLayoutFormatOptions(rawValue: 0),
+                                                                   options: NSLayoutConstraint.FormatOptions(rawValue: 0),
                                                                        metrics: nil,
                                                                        views: viewDict))
         NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:[line(==0.8)]|",
-                                                                       options: NSLayoutFormatOptions(rawValue: 0),
+                                                                   options: NSLayoutConstraint.FormatOptions(rawValue: 0),
                                                                        metrics: nil,
                                                                        views: viewDict))
         }
@@ -167,7 +167,7 @@ extension ViewController: XYEmptyDataDelegate {
     
     func customView(forEmptyDataView scrollView: UIScrollView) -> UIView? {
         if scrollView.xy_loading == true {
-            let indicatorView = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+            let indicatorView = UIActivityIndicatorView(style: .gray)
             indicatorView.startAnimating()
             return indicatorView
         }
