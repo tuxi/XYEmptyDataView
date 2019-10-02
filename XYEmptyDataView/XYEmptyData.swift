@@ -379,6 +379,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             }
             
         }
+
     }
     
     
@@ -646,6 +647,11 @@ extension UIScrollView: UIGestureRecognizerDelegate {
    
     /// 已经显示空数据时调用
     private func xy_emptyDataViewDidAppear() {
+        // 这里以UITableView为例: 当调用原reloadData后，tableView的contentSize会被重置为所有cell的高度，而显示空数据时，tableView并没有数据，所以导致contentSize被重置为zero，导致空视图超出tableView的高度时依旧无法滚动
+        DispatchQueue.main.async {
+            let contentSize = self.contentSize
+            self.contentSize = CGSize(width: contentSize.width == 0 ? self.emptyDataView?.frame.size.width ?? 0 : 0, height: (self.emptyDataView?.frame.size.height ?? 0))
+        }
         guard let del = self.emptyDataDelegate else {
             return
         }
@@ -671,7 +677,6 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(didDisappear:))) {
             del.emptyDataView!(didDisappear: self)
-            
         }
     }
 
@@ -1226,6 +1231,18 @@ fileprivate class XYEmptyDataView : UIView {
         
         
         super.updateConstraints()
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        /*
+         问题：
+         在 `private func show(to view: UIView) `方法中，视图让XYEmptyDataView的约束决定父视图的约束，以让scrollView可以垂直滚动，但是这仅仅在UIScrollView中有效，而在UITableView和UICollectionView中无效，这是因为它们的contentSize总是为0，所以我想在这里确定它们的contentSize，以让父视图scrollView可以滚动
+         */
+        if self.superview is UIScrollView {
+           let  scrollView = self.superview as! UIScrollView
+            scrollView.contentSize = CGSize(width: scrollView.contentSize.width, height: self.frame.size.height)
+        }
     }
     
     fileprivate func removeAllConstraints() {

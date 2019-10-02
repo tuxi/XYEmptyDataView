@@ -39,7 +39,7 @@ class ViewController: UIViewController {
         }
         
         tableView.xy_detailTextLabelBlock = { label in
-            label.text = "测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图"
+            label.text = "客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n"
             label.numberOfLines = 0
         }
         
@@ -58,6 +58,14 @@ class ViewController: UIViewController {
     }
 
     private func setupView() {
+        
+//        let headerView = UILabel(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
+//        headerView.backgroundColor = UIColor(red: 246/255.0, green: 246/255.0, blue: 246/255.0, alpha: 1.0)
+//        headerView.numberOfLines = 0
+//        headerView.textAlignment = .center
+//        headerView.text = "我是headerView"
+//        self.tableView.tableHeaderView = headerView
+        
         view.addSubview(tableView)
         let viewDict = ["tableView": tableView]
         NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[tableView]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
@@ -144,7 +152,7 @@ extension ViewController: XYEmptyDataDelegate {
         if scrollView.xy_loading == true {
             return UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
         }
-        return UIEdgeInsets(top: 80, left: 100, bottom: 0, right: 100)
+        return UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
     }
 
     func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat {
