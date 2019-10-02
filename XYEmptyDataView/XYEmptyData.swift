@@ -898,7 +898,7 @@ fileprivate class XYEmptyDataView : UIView {
     }
     
     /** 点按手势 */
-    var tapGesture: UITapGestureRecognizer = {
+    lazy var tapGesture: UITapGestureRecognizer = {
         let tap = UITapGestureRecognizer(target: self, action: #selector(XYEmptyDataView.tapGestureOnSelf(_:)))
         return tap
     }()
@@ -988,10 +988,7 @@ fileprivate class XYEmptyDataView : UIView {
         
         let viewDict = ["self": self]
         view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[self]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
-        view.addConstraints([
-            NSLayoutConstraint.init(item: self, attribute: .width, relatedBy: .equal, toItem: view, attribute: .width, multiplier: 1.0, constant: CGFloat(-widthConstant)),
-            NSLayoutConstraint.init(item: self, attribute: .height, relatedBy: .equal, toItem: view, attribute: .height, multiplier: 1.0, constant: 0.0)
-            ])
+        view.addConstraint(NSLayoutConstraint.init(item: self, attribute: .width, relatedBy: .equal, toItem: view, attribute: .width, multiplier: 1.0, constant: CGFloat(-widthConstant)))
         view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[self]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
     }
     
@@ -1075,12 +1072,13 @@ fileprivate class XYEmptyDataView : UIView {
         
         removeAllConstraints()
         // contentView 与 父视图 保持一致, 根据子控件的高度而改变
-        let contentViewConstraints: [NSLayoutConstraint] = [
-            NSLayoutConstraint.init(item: contentView, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1.0, constant: 0.0),
-            NSLayoutConstraint.init(item: contentView, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1.0, constant: 0.0)
-            ]
-        addConstraints(contentViewConstraints)
+//        let contentViewConstraints: [NSLayoutConstraint] = [
+//            NSLayoutConstraint.init(item: contentView, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1.0, constant: 0.0),
+//            NSLayoutConstraint.init(item: contentView, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1.0, constant: 0.0)
+//            ]
+//        addConstraints(contentViewConstraints)
         addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(contentViewHorizontalSpace)-[contentView]-(contentViewHorizontalSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["contentViewHorizontalSpace": contentViewHorizontalSpace], views: ["contentView": contentView]))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-(contentViewHorizontalSpace)-[contentView]-(contentViewHorizontalSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["contentViewHorizontalSpace": contentViewHorizontalSpace], views: ["contentView": contentView]))
         
         
         // 需要调整self 相对父控件顶部和左侧 的偏移量

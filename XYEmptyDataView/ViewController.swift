@@ -35,15 +35,16 @@ class ViewController: UIViewController {
 
     private func setupEmptyDataView() {
         tableView.xy_textLabelBlock = { label in
-            label.text = "空数据😁简单展示"
+            label.text = "这是空数据😁视图"
         }
         
         tableView.xy_detailTextLabelBlock = { label in
-            label.text = "这是一个测试\n😝😝😝"
+            label.text = "测试空视图\n😄😺😄😺"
+            label.numberOfLines = 0
         }
         
         tableView.xy_reloadButtonBlock = { button in
-            button.setTitle("刷新吧", for: .normal)
+            button.setTitle("点击重试", for: .normal)
             button.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
             button.layer.cornerRadius = 5.0
             button.layer.masksToBounds = true
@@ -141,6 +142,10 @@ extension ViewController: XYEmptyDataDelegate {
         
     }
     
+    func emptyDataView(_ scrollView: UIScrollView, didTapOnContentView tap: UITapGestureRecognizer) {
+        
+    }
+    
     func emptyDataView(didAppear scrollView: UIScrollView) {
         navigationItem.rightBarButtonItem?.isEnabled = false
     }
@@ -156,9 +161,9 @@ extension ViewController: XYEmptyDataDelegate {
     
     func emptyDataView(contentOffsetforEmptyDataView scrollView: UIScrollView) -> CGPoint {
         if scrollView.xy_loading == true {
-            return CGPoint(x: 0, y: -scrollView.frame.size.height*0.5 + 20.0)
+            return CGPoint(x: 0, y: 20)
         }
-        return CGPoint(x: 0, y: -20)
+        return CGPoint(x: 0, y: 80.0)
     }
 
     func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat {
