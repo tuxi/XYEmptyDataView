@@ -71,18 +71,14 @@ import UIKit
     optional func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat
     
     
-    /// emptyDataView 的 contentView左右距离父控件的间距值
+    /// emptyDataView 的 contentView上下左右间距
     @objc @available(iOS 2.0, *)
-    optional func emptyDataView(contentViewHorizontalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat
-    
-    /// emptyDataView 顶部 和 左侧 相对 父控件scrollView 顶部 的偏移量, default is 0,0
-    @objc @available(iOS 2.0, *)
-    optional func emptyDataView(contentOffsetforEmptyDataView scrollView: UIScrollView) -> CGPoint
+    optional func emptyDataView(contentEdgeInsetsForEmptyDataView scrollView: UIScrollView) -> UIEdgeInsets
     
     
     /// imageView的size, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero
     @objc @available(iOS 2.0, *)
-    optional func emptyDataView(imageViewSizeforEmptyDataView scrollView: UIScrollView) -> CGSize
+    optional func emptyDataView(imageViewSizeForEmptyDataView scrollView: UIScrollView) -> CGSize
     
     /// 自定义空视图view
     @objc @available(iOS 2.0, *)
@@ -441,9 +437,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
                 
             }
             
-            emptyDataView.contentOffsetY = xy_emptyDataViewContentOffset().y
-            emptyDataView.contentOffsetX = xy_emptyDataViewContentOffset().x
-            emptyDataView.contentViewHorizontalSpace = xy_emptyDataViewContenViewHorizontalSpace()
+            emptyDataView.contentEdgeInsets = xy_emptyDataViewContentEdgeInsets()
             emptyDataView.backgroundColor = xy_emptyDataViewBackgroundColor()
             emptyDataView.contentView.backgroundColor = xy_emptyDataViewContentBackgroundColor()
             emptyDataView.isHidden = false;
@@ -589,7 +583,6 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldFadeInOnDisplay:))) {
             return del.emptyDataView!(shouldFadeInOnDisplay: self)
-            
         }
         
         return true
@@ -706,27 +699,16 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         return 10.0;
     }
-    
-    /// 获取contentView水平间距时调用
-    private func xy_emptyDataViewContenViewHorizontalSpace() -> CGFloat {
-        guard let del = self.emptyDataDelegate else {
-            return 0.0
-        }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(contentViewHorizontalSpaceForEmptyDataView:))) {
-            return del.emptyDataView!(contentViewHorizontalSpaceForEmptyDataView: self)
-        }
-        return 0.0
-    }
 
-    /// 空数据contentView偏移量
-    private func xy_emptyDataViewContentOffset() -> CGPoint {
+    /// 空数据contentView间距
+    private func xy_emptyDataViewContentEdgeInsets() -> UIEdgeInsets {
         guard let del = self.emptyDataDelegate else {
-            return CGPoint.zero
+            return UIEdgeInsets.zero
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(contentOffsetforEmptyDataView:))) {
-            return del.emptyDataView!(contentOffsetforEmptyDataView: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(contentEdgeInsetsForEmptyDataView:))) {
+            return del.emptyDataView!(contentEdgeInsetsForEmptyDataView: self)
         }
-        return CGPoint.zero
+        return UIEdgeInsets.zero
     }
     
     /// 获取空数据视图上ImageView的固定尺寸
@@ -734,8 +716,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyDataDelegate else {
             return CGSize.zero
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(imageViewSizeforEmptyDataView:))) {
-            return del.emptyDataView!(imageViewSizeforEmptyDataView: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(imageViewSizeForEmptyDataView:))) {
+            return del.emptyDataView!(imageViewSizeForEmptyDataView: self)
         }
         return CGSize.zero
     }
@@ -903,14 +885,8 @@ fileprivate class XYEmptyDataView : UIView {
         return tap
     }()
     
-    /** self顶部距离父控件scrollView 顶部的偏移量 */
-    var contentOffsetY: CGFloat = 0.0
-    
-    /** self顶部距离父控件scrollView 左侧的偏移量 */
-    var contentOffsetX: CGFloat = 0.0
-    
-    /** contentView 左右距离父控件的间距 */
-    var contentViewHorizontalSpace: CGFloat = 0.0
+    /** self顶部距离父控件scrollView 上下左右的间距 */
+    var contentEdgeInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
     
     /** 所有子控件之间垂直间距 */
     var globalVerticalSpace: CGFloat = 10.0
@@ -958,6 +934,7 @@ fileprivate class XYEmptyDataView : UIView {
     /** tap手势回调block */
     var tapGestureRecognizerBlock: ((UITapGestureRecognizer) -> Swift.Void)?
     
+    
     convenience init(_ view: UIView) {
         self.init(frame: view.bounds)
         show(to: view)
@@ -975,21 +952,16 @@ fileprivate class XYEmptyDataView : UIView {
                 }
             }
         }
-        var widthConstant = 0.0
-        if view is UICollectionView {
-            
-            let collectionView = view as! UICollectionView
-            widthConstant = Double(collectionView.contentInset.left + collectionView.contentInset.right)
-        }
-        else if view is UITableView {
-            let tableView = view as! UITableView
-            widthConstant = Double(tableView.contentInset.left + tableView.contentInset.right)
-        }
         
+        let left = self.getScrollContentInset().left
+        let top = self.getScrollContentInset().top
+        let right = self.getScrollContentInset().right
+        let bottom = self.getScrollContentInset().bottom
         let viewDict = ["self": self]
-        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[self]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
-        view.addConstraint(NSLayoutConstraint.init(item: self, attribute: .width, relatedBy: .equal, toItem: view, attribute: .width, multiplier: 1.0, constant: CGFloat(-widthConstant)))
-        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[self]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(left)-[self]-(right)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["left": left, "right": right], views: viewDict))
+        view.addConstraint(NSLayoutConstraint.init(item: self, attribute: .width, relatedBy: .equal, toItem: view, attribute: .width, multiplier: 1.0, constant: -(left+right)))
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-(top)-[self]-(bottom)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["top": top, "bottom": bottom], views: viewDict))
+
     }
     
     override init(frame: CGRect) {
@@ -1072,26 +1044,13 @@ fileprivate class XYEmptyDataView : UIView {
         
         removeAllConstraints()
         // contentView 与 父视图 保持一致, 根据子控件的高度而改变
-//        let contentViewConstraints: [NSLayoutConstraint] = [
-//            NSLayoutConstraint.init(item: contentView, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1.0, constant: 0.0),
-//            NSLayoutConstraint.init(item: contentView, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1.0, constant: 0.0)
-//            ]
-//        addConstraints(contentViewConstraints)
-        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(contentViewHorizontalSpace)-[contentView]-(contentViewHorizontalSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["contentViewHorizontalSpace": contentViewHorizontalSpace], views: ["contentView": contentView]))
-        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-(contentViewHorizontalSpace)-[contentView]-(contentViewHorizontalSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["contentViewHorizontalSpace": contentViewHorizontalSpace], views: ["contentView": contentView]))
+        let contentLeft = self.contentEdgeInsets.left
+        let contentRight = self.contentEdgeInsets.right
+        let contentTop = self.contentEdgeInsets.top
+        let contentBottom = self.contentEdgeInsets.bottom
         
-        
-        // 需要调整self 相对父控件顶部和左侧 的偏移量
-        if let selfTopConstraint = getSelfTopConstraint(),
-            let selfBottomConstraint = getSelfBottomConstraint(),
-            let selfLeftConstraint = getSelfLeftConstraint(),
-            let selfRightConstraint = getSelfRightConstraint()
-        {
-            selfTopConstraint.constant = contentOffsetY
-            selfBottomConstraint.constant = contentOffsetY
-            selfLeftConstraint.constant = contentOffsetX
-            selfRightConstraint.constant = contentOffsetX
-        }
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(contentLeft)-[contentView]-(contentRight)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["contentRight": contentRight, "contentLeft": contentLeft], views: ["contentView": contentView]))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-(contentTop)-[contentView]-(contentBottom)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["contentTop": contentTop, "contentBottom": contentBottom], views: ["contentView": contentView]))
 
         
         // 若有customView 则 让其与contentView的约束相同
@@ -1275,84 +1234,94 @@ fileprivate class XYEmptyDataView : UIView {
         contentView.removeConstraints(contentView.constraints)
     }
     
-    func getSelfTopConstraint() -> NSLayoutConstraint? {
-        guard let superViewConstraints = superview?.constraints else {
-            return nil
+    func getScrollContentInset() -> UIEdgeInsets {
+        var contentInset: UIEdgeInsets!
+        if self.superview is UIScrollView {
+            let scrollView = self.superview as! UIScrollView
+            contentInset = scrollView.contentInset
+            return contentInset
         }
-        if superViewConstraints.count == 0 {
-            return nil
-        }
-       
-        for constraint in superViewConstraints {
-            guard let item = constraint.firstItem else {
-                continue
-            }
-            if item as! NSObject == self && constraint.firstAttribute == .top {
-                return constraint
-            }
-        }
-        
-        return nil
+        return UIEdgeInsets.zero
     }
     
-    func getSelfBottomConstraint() -> NSLayoutConstraint? {
-        guard let superViewConstraints = superview?.constraints else {
-            return nil
-        }
-        if superViewConstraints.count == 0 {
-            return nil
-        }
-        
-        for constraint in superViewConstraints {
-            guard let item = constraint.secondItem else {
-                continue
-            }
-            if item as! NSObject == self && constraint.firstAttribute == .bottom {
-                return constraint
-            }
-        }
-        
-        return nil
-    }
+//    func getSelfTopConstraint() -> NSLayoutConstraint? {
+//        guard let superViewConstraints = superview?.constraints else {
+//            return nil
+//        }
+//        if superViewConstraints.count == 0 {
+//            return nil
+//        }
+//
+//        for constraint in superViewConstraints {
+//            guard let item = constraint.firstItem else {
+//                continue
+//            }
+//            if item as! NSObject == self && constraint.firstAttribute == .top {
+//                return constraint
+//            }
+//        }
+//
+//        return nil
+//    }
     
-    func getSelfLeftConstraint() -> NSLayoutConstraint? {
-        guard let superViewConstraints = superview?.constraints else {
-            return nil
-        }
-        if superViewConstraints.count == 0 {
-            return nil
-        }
-        for constraint in superViewConstraints {
-            guard let item = constraint.firstItem else {
-                continue
-            }
-            if item as! NSObject == self && constraint.firstAttribute == .leading {
-                return constraint
-            }
-        }
-        
-        return nil
-    }
-    
-    func getSelfRightConstraint() -> NSLayoutConstraint? {
-        guard let superViewConstraints = superview?.constraints else {
-            return nil
-        }
-        if superViewConstraints.count == 0 {
-            return nil
-        }
-        
-        for constraint in superViewConstraints {
-            guard let item = constraint.secondItem else {
-                continue
-            }
-            if item as! NSObject == self && constraint.firstAttribute == .trailing {
-                return constraint
-            }
-        }
-        
-        return nil
-    }
+//    func getSelfBottomConstraint() -> NSLayoutConstraint? {
+//        guard let superViewConstraints = superview?.constraints else {
+//            return nil
+//        }
+//        if superViewConstraints.count == 0 {
+//            return nil
+//        }
+//
+//        for constraint in superViewConstraints {
+//            guard let item = constraint.secondItem else {
+//                continue
+//            }
+//            if item as! NSObject == self && constraint.firstAttribute == .bottom {
+//                return constraint
+//            }
+//        }
+//
+//        return nil
+//    }
+//
+//    func getSelfLeftConstraint() -> NSLayoutConstraint? {
+//        guard let superViewConstraints = superview?.constraints else {
+//            return nil
+//        }
+//        if superViewConstraints.count == 0 {
+//            return nil
+//        }
+//        for constraint in superViewConstraints {
+//            guard let item = constraint.firstItem else {
+//                continue
+//            }
+//            if item as! NSObject == self && constraint.firstAttribute == .leading {
+//                return constraint
+//            }
+//        }
+//
+//        return nil
+//    }
+//
+//    func getSelfRightConstraint() -> NSLayoutConstraint? {
+//        guard let superViewConstraints = superview?.constraints else {
+//            return nil
+//        }
+//        if superViewConstraints.count == 0 {
+//            return nil
+//        }
+//
+//        for constraint in superViewConstraints {
+//            guard let item = constraint.secondItem else {
+//                continue
+//            }
+//            if item as! NSObject == self && constraint.firstAttribute == .trailing {
+//                return constraint
+//            }
+//        }
+//
+//        return nil
+//    }
     
     // MARK: - Others
     func canShowImage() -> Bool {

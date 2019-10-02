@@ -39,7 +39,7 @@ class ViewController: UIViewController {
         }
         
         tableView.xy_detailTextLabelBlock = { label in
-            label.text = "测试空视图\n😄😺😄😺"
+            label.text = "测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图\n😄😺😄😺测试空视图"
             label.numberOfLines = 0
         }
         
@@ -118,7 +118,50 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 extension ViewController: XYEmptyDataDelegate {
     
     func emptyDataView(_ scrollView: UIScrollView, didClickReload button: UIButton) {
-        scrollView.xy_loading = true
+        
+        self.requestData()
+    }
+    
+    func emptyDataView(_ scrollView: UIScrollView, didTapOnContentView tap: UITapGestureRecognizer) {
+        self.requestData()
+    }
+    
+    func emptyDataView(didAppear scrollView: UIScrollView) {
+        navigationItem.rightBarButtonItem?.isEnabled = false
+    }
+    
+    func emptyDataView(didDisappear scrollView: UIScrollView) {
+        navigationItem.rightBarButtonItem?.isEnabled = true
+    }
+    
+    func emptyDataView(imageViewSizeForEmptyDataView scrollView: UIScrollView) -> CGSize {
+         let screenMin = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+        return CGSize(width: screenMin * 0.3, height: screenMin * 0.3)
+    }
+    
+    func emptyDataView(contentEdgeInsetsForEmptyDataView scrollView: UIScrollView) -> UIEdgeInsets {
+        
+        if scrollView.xy_loading == true {
+            return UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
+        }
+        return UIEdgeInsets(top: 80, left: 100, bottom: 0, right: 100)
+    }
+
+    func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat {
+        return 20.0
+    }
+    
+    func customView(forEmptyDataView scrollView: UIScrollView) -> UIView? {
+        if scrollView.xy_loading == true {
+            let indicatorView = UIActivityIndicatorView(style: .gray)
+            indicatorView.startAnimating()
+            return indicatorView
+        }
+        return nil
+    }
+    
+    fileprivate func requestData() {
+        self.tableView.xy_loading = true
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
             self.dataArray.removeAll()
             for section in 0...3 {
@@ -139,44 +182,6 @@ extension ViewController: XYEmptyDataDelegate {
             self.tableView.xy_loading = false
             self.tableView.reloadData()
         }
-        
-    }
-    
-    func emptyDataView(_ scrollView: UIScrollView, didTapOnContentView tap: UITapGestureRecognizer) {
-        
-    }
-    
-    func emptyDataView(didAppear scrollView: UIScrollView) {
-        navigationItem.rightBarButtonItem?.isEnabled = false
-    }
-    
-    func emptyDataView(didDisappear scrollView: UIScrollView) {
-        navigationItem.rightBarButtonItem?.isEnabled = true
-    }
-    
-    func emptyDataView(imageViewSizeforEmptyDataView scrollView: UIScrollView) -> CGSize {
-         let screenMin = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
-        return CGSize(width: screenMin * 0.3, height: screenMin * 0.3)
-    }
-    
-    func emptyDataView(contentOffsetforEmptyDataView scrollView: UIScrollView) -> CGPoint {
-        if scrollView.xy_loading == true {
-            return CGPoint(x: 0, y: 20)
-        }
-        return CGPoint(x: 0, y: 80.0)
-    }
-
-    func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat {
-        return 20.0
-    }
-    
-    func customView(forEmptyDataView scrollView: UIScrollView) -> UIView? {
-        if scrollView.xy_loading == true {
-            let indicatorView = UIActivityIndicatorView(style: .gray)
-            indicatorView.startAnimating()
-            return indicatorView
-        }
-        return nil
     }
 }
 
