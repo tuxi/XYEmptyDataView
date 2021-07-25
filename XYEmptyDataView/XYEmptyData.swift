@@ -91,24 +91,36 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     /// 用于关联对象的keys
     private struct XYEmptyDataKeys {
         static var delegate = "com.alpface.XYEmptyData.delete"
-        static var customEmptyDataView = "com.alpface.XYEmptyData.customEmptyDataView"
-        static var textLabelBlock = "com.alpface.XYEmptyData.TextLabelBlock"
-        static var detailTextLabelBlock = "com.alpface.XYEmptyData.DetailTextLabelBlock"
-        static var imageViewBlock = "com.alpface.XYEmptyData.ImageViewBlock"
-        static var reloadButtonBlock = "com.alpface.XYEmptyData.ReloadButtonBlock"
-        
-        static var textEdgeInsets = "com.alpface.XYEmptyData.TextEdgeInsets"
-        static var imageEdgeInsets = "com.alpface.XYEmptyData.ImageEdgeInsets"
-        static var detailEdgeInsets = "com.alpface.XYEmptyData.DetailEdgeInsets"
-        static var buttonEdgeInsets = "com.alpface.XYEmptyData.ButtonEdgeInsets"
-        
-        static var emptyDataViewBackgroundColor = "com.alpface.XYEmptyData.BackgroundColor"
-        static var contentBackgroundColor = "com.alpface.XYEmptyData.ContentBackgroundColor"
         static var loading = "com.alpface.XYEmptyData.loading"
         
         static var emptyDataView = "com.alpface.XYEmptyData.emptyDataView"
         static var registerEmptyDataView = "com.alpface.XYEmptyData.registerEemptyDataView"
         
+        static var config = "com.alpface.XYEmptyData.config"
+    }
+    
+    /// 存放一些空数据的结果
+    public struct EmptyData {
+        public enum Alignment {
+            case center(offset: CGFloat = 0)
+            case top
+            case bottom
+        }
+        
+        public var alignment: Alignment
+        public var contentEdgeInsets: UIEdgeInsets = .zero
+        public var customEmptyDataView: (() -> UIView)?
+        public var xy_textLabelBlock: ((UILabel) -> Swift.Void)?
+        public var xy_detailTextLabelBlock: ((UILabel) -> Swift.Void)?
+        public var xy_imageViewBlock: ((UIImageView) -> Swift.Void)?
+        public var xy_reloadButtonBlock: ((UIButton) -> Swift.Void)?
+        public var xy_textEdgeInsets: UIEdgeInsets = .zero
+        public var xy_imageEdgeInsets: UIEdgeInsets = .zero
+        public var xy_detailEdgeInsets: UIEdgeInsets = .zero
+        public var xy_buttonEdgeInsets: UIEdgeInsets = .zero
+        public var emptyDataViewBackgroundColor: UIColor?
+        /// emptyDataView中contentView的背景颜色
+        public var emptyDataViewContentBackgroundColor: UIColor?
     }
     
     weak open var emptyDataDelegate: XYEmptyDataDelegate? {
@@ -129,168 +141,20 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             
             if newValue == nil || xy_emptyDataViewCanDisplay() == false {
                 xy_removeEmptyDataView()
+                return
             }
             objc_setAssociatedObject(self, &XYEmptyDataKeys.delegate, _WeakObjectContainer(weakObject: newValue as AnyObject), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             registerEmptyDataView()
         }
     }
     
-    
-    /// use custom view
-    open var customEmptyDataView: (() -> UIView)? {
+    open var emptyData: EmptyData? {
         get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.customEmptyDataView) as? () -> UIView {
-                return callBack
-            }
-            return nil
+            return objc_getAssociatedObject(self, &XYEmptyDataKeys.config) as? EmptyData
         }
         set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.customEmptyDataView, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerEmptyDataView()
-        }
-    }
-    
-    
-    // setup subviews
-    open var xy_textLabelBlock: ((UILabel) -> Swift.Void)? {
-        get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.textLabelBlock) as? (UILabel) -> Swift.Void {
-                return callBack
-            }
-            return nil
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.textLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerEmptyDataView()
-        }
-    }
-    
-    open var xy_detailTextLabelBlock: ((UILabel) -> Swift.Void)? {
-        get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.detailTextLabelBlock) as? (UILabel) -> Swift.Void {
-                return callBack
-            }
-            return nil
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.detailTextLabelBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerEmptyDataView()
-        }
-    }
-    
-    open var xy_imageViewBlock: ((UIImageView) -> Swift.Void)? {
-        get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.imageViewBlock) as? (UIImageView) -> Swift.Void {
-                return callBack
-            }
-            return nil
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.imageViewBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerEmptyDataView()
-        }
-    }
-    
-    open var xy_reloadButtonBlock: ((UIButton) -> Swift.Void)? {
-        get {
-            if let callBack = objc_getAssociatedObject(self, &XYEmptyDataKeys.reloadButtonBlock) as? (UIButton) -> Swift.Void {
-                return callBack
-            }
-            return nil
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.reloadButtonBlock, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            registerEmptyDataView()
-        }
-    }
-    
-    
-    /// titleLabel 的间距
-    open var xy_textEdgeInsets: UIEdgeInsets {
-        get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.textEdgeInsets) as? NSValue {
-                return obj.uiEdgeInsetsValue
-            }
-            return UIEdgeInsets.zero
-        }
-        set {
-            let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
-            
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.textEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
-    
-    /// imageView 的间距
-    open var xy_imageEdgeInsets: UIEdgeInsets {
-        get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.imageEdgeInsets) as? NSValue {
-                return obj.uiEdgeInsetsValue
-            }
-            return UIEdgeInsets.zero
-        }
-        set {
-            let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
-            
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.imageEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
-    
-    /// detaileLable 的间距
-    open var xy_detailEdgeInsets: UIEdgeInsets {
-        get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.detailEdgeInsets) as? NSValue {
-                return obj.uiEdgeInsetsValue
-            }
-            return UIEdgeInsets.zero
-        }
-        set {
-            let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
-            
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.detailEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
-    
-    /// reloadButton 的间距
-    open var xy_buttonEdgeInsets: UIEdgeInsets {
-        get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.buttonEdgeInsets) as? NSValue {
-                return obj.uiEdgeInsetsValue
-            }
-            return UIEdgeInsets.zero
-        }
-        set {
-            let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
-            
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.buttonEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
-    
-    
-    /// emptyDataView 的背景颜色
-    open var emptyDataViewBackgroundColor: UIColor? {
-        get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.emptyDataViewBackgroundColor) as? UIColor {
-                return obj
-            }
-            return nil
-        }
-        set {
-  
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.emptyDataViewBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
-    
-    /// emptyDataView中contentView的背景颜色
-    open var emptyDataViewContentBackgroundColor: UIColor? {
-        get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.contentBackgroundColor) as? UIColor {
-                return obj
-            }
-            return nil
-        }
-        set {
-            
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.contentBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.config, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            xy_reloadEmptyDataView()
         }
     }
     
@@ -326,7 +190,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     fileprivate func setupEmptyDataView() {
         var view = self.emptyDataView
         if view == nil {
-            view = XYEmptyDataView.show(to: self, animated: xy_emptyDataViewShouldFadeInOnDisplay())
+            view = XYEmptyDataView.show(withView: self, animated: xy_emptyDataViewShouldFadeInOnDisplay())
             view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             view?.isHidden = true
             view?.tapGesture.delegate = self
@@ -343,12 +207,6 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     fileprivate func registerEmptyDataView() {
         
         var num = objc_getAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView) as? NSNumber
-        
-//        if (xy_emptyDataViewShouldDisplay() == true &&
-//            xy_itemCount() <= 0) ||
-//            xy_emptyDataViewShouldBeForcedToDisplay() == true {
-//            return
-//        }
         
         if num == nil || num?.boolValue == false {
             if self.xy_emptyDataViewCanDisplay() == false {
@@ -386,11 +244,11 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     /// 刷新emptyDataView, 当执行tableView的readData、endUpdates或者CollectionView的readData时会调用此方法
     ////////////////////////////////////////////////////////////////////////
     @objc open func xy_reloadEmptyDataView() {
-        if (xy_emptyDataViewCanDisplay() == false) {
+        if xy_emptyDataViewCanDisplay() == false {
             return
         }
         
-        if (xy_emptyDataViewShouldDisplay() == true &&
+        if let emptyData = self.emptyData, (xy_emptyDataViewShouldDisplay() == true &&
             xy_itemCount() <= 0) ||
             xy_emptyDataViewShouldBeForcedToDisplay() == true {
             
@@ -408,37 +266,37 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             
             // 重置视图及其约束
             emptyDataView.resetSubviews()
-            
+            emptyDataView.alignment = emptyData.alignment
             
             if let customView = xy_emptyDataViewCustomView() {
                 emptyDataView.customView = customView
             } else {
                 // customView为nil时，则通过block回到获取子控件 设置
-                if let block = self.xy_textLabelBlock  {
+                if let block = emptyData.xy_textLabelBlock  {
                     block(emptyDataView.titleLabel)
                 }
-                if let block = self.xy_detailTextLabelBlock {
+                if let block = emptyData.xy_detailTextLabelBlock {
                     block(emptyDataView.detailLabel)
                 }
                 
-                if let block = self.xy_imageViewBlock {
+                if let block = emptyData.xy_imageViewBlock {
                     block(emptyDataView.imageView)
                 }
-                if let block = self.xy_reloadButtonBlock {
+                if let block = emptyData.xy_reloadButtonBlock {
                     block(emptyDataView.reloadButton)
                 }
                 
                 // 设置子控件之间的边距
-                emptyDataView.titleEdgeInsets = self.xy_textEdgeInsets
-                emptyDataView.detailEdgeInsets = self.xy_detailEdgeInsets
-                emptyDataView.imageEdgeInsets = self.xy_imageEdgeInsets
-                emptyDataView.buttonEdgeInsets = self.xy_buttonEdgeInsets
+                emptyDataView.titleEdgeInsets = emptyData.xy_textEdgeInsets
+                emptyDataView.detailEdgeInsets = emptyData.xy_detailEdgeInsets
+                emptyDataView.imageEdgeInsets = emptyData.xy_imageEdgeInsets
+                emptyDataView.buttonEdgeInsets = emptyData.xy_buttonEdgeInsets
                 // 设置emptyDataView子控件垂直间的间距
                 emptyDataView.globalVerticalSpace = xy_emptyDataViewGlobalVerticalSpace()
                 
             }
             
-            emptyDataView.contentEdgeInsets = xy_emptyDataViewContentEdgeInsets()
+            emptyDataView.contentEdgeInsets = emptyData.contentEdgeInsets
             emptyDataView.backgroundColor = xy_emptyDataViewBackgroundColor()
             emptyDataView.contentView.backgroundColor = xy_emptyDataViewContentBackgroundColor()
             emptyDataView.isHidden = false;
@@ -496,7 +354,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     }
     
     private func xy_emptyDataViewBackgroundColor() -> UIColor {
-        guard let color = emptyDataViewBackgroundColor else {
+        guard let color = self.emptyData?.emptyDataViewBackgroundColor else {
             return UIColor.clear
         }
         return color
@@ -504,7 +362,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     
     
     private func xy_emptyDataViewContentBackgroundColor() -> UIColor {
-        guard let color = emptyDataViewContentBackgroundColor else {
+        guard let color = self.emptyData?.emptyDataViewContentBackgroundColor else {
             return UIColor.clear
         }
         return color
@@ -688,8 +546,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
                 return del.customView!(forEmptyDataView: self)
             }
         }
-        if self.customEmptyDataView != nil {
-            view = self.customEmptyDataView!()
+        if let customEmptyDataView = self.emptyData?.customEmptyDataView {
+            view = customEmptyDataView()
         }
         return view
     }
@@ -703,17 +561,6 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             return del.emptyDataView!(contentSubviewsGlobalVerticalSpaceForEmptyDataView: self)
         }
         return 10.0;
-    }
-
-    /// 空数据contentView间距
-    private func xy_emptyDataViewContentEdgeInsets() -> UIEdgeInsets {
-        guard let del = self.emptyDataDelegate else {
-            return UIEdgeInsets.zero
-        }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(contentEdgeInsetsForEmptyDataView:))) {
-            return del.emptyDataView!(contentEdgeInsetsForEmptyDataView: self)
-        }
-        return UIEdgeInsets.zero
     }
     
     /// 获取空数据视图上ImageView的固定尺寸
@@ -800,8 +647,8 @@ extension UIView {
 fileprivate class XYEmptyDataView : UIView {
     
     
-    // MARK: - Lazy
-    /** 内容视图 */
+    // MARK: - Views
+    /// 内容视图
     lazy var contentView: UIView = {
         let contentView = UIView(frame: .zero)
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -811,7 +658,7 @@ fileprivate class XYEmptyDataView : UIView {
         return contentView
     }()
     
-    /** 标题label */
+    /// 标题`label`
     lazy var titleLabel: UILabel = {
         let label = UILabel.init(frame: .zero)
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -824,7 +671,7 @@ fileprivate class XYEmptyDataView : UIView {
         return label
     }()
     
-    /** 详情label */
+    /// 详情`label`
     lazy var detailLabel: UILabel = {
         let label = UILabel.init(frame: .zero)
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -837,7 +684,7 @@ fileprivate class XYEmptyDataView : UIView {
         return label
     }()
     
-    /** 图片视图 */
+    /// 图片
     lazy var imageView: UIImageView = {
         let imageView = UIImageView.init(frame: .zero)
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -847,7 +694,7 @@ fileprivate class XYEmptyDataView : UIView {
         return imageView
     }()
     
-    /** 刷新按钮 */
+    /// 刷新按钮
     lazy open var reloadButton: UIButton = {
         let button = UIButton(type: UIButton.ButtonType.custom)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -858,7 +705,7 @@ fileprivate class XYEmptyDataView : UIView {
         return button
     }()
     
-    /** 自定义视图 */
+    /// 自定义视图
     var customView: UIView? {
         didSet {
             
@@ -884,14 +731,14 @@ fileprivate class XYEmptyDataView : UIView {
         }
     }
     
-    /** 点按手势 */
+    // MARK: - Properties
+    /// 点按手势
     lazy var tapGesture: UITapGestureRecognizer = {
         let tap = UITapGestureRecognizer(target: self, action: #selector(XYEmptyDataView.tapGestureOnSelf(_:)))
         return tap
     }()
     
-    /** self顶部距离父控件scrollView 上下左右的间距 */
-    var contentEdgeInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+    var contentEdgeInsets: UIEdgeInsets = .zero
     
     /** 所有子控件之间垂直间距 */
     var globalVerticalSpace: CGFloat = 10.0
@@ -933,21 +780,27 @@ fileprivate class XYEmptyDataView : UIView {
         }
     }
     
+    var alignment: UIScrollView.EmptyData.Alignment = .center(offset: 0)
+    
     /** imageView的size, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero */
     var imageViewSize: CGSize = .zero
     
     /** tap手势回调block */
     var tapGestureRecognizerBlock: ((UITapGestureRecognizer) -> Swift.Void)?
     
+    /// 添加在父控件上的约束
+    private var superConstraints = [NSLayoutConstraint]()
+    /// 添加在`contentView`控件上的约束
+    private var contentViewConstraints = [NSLayoutConstraint]()
     
     convenience init(_ view: UIView) {
         self.init(frame: view.bounds)
-        show(to: view)
+        show(withView: view)
     }
     
-    private func show(to view: UIView) {
+    private func show(withView view: UIView) {
         self.translatesAutoresizingMaskIntoConstraints = false
-        if (self.superview == nil) {
+        if self.superview == nil {
             if view is UITableView || view is UICollectionView {
                 if view.subviews.count > 1 {
                     view.insertSubview(self, at: 0)
@@ -957,15 +810,33 @@ fileprivate class XYEmptyDataView : UIView {
                 }
             }
         }
+       
+        let superview: UIView = view
+        superview.removeConstraints(superConstraints)
+        superConstraints.removeAll()
         
-        let left = self.getScrollContentInset().left
-        let top = self.getScrollContentInset().top
-        let right = self.getScrollContentInset().right
-        let bottom = self.getScrollContentInset().bottom
+        let left = scrollViewContentInset.left
+        let top = scrollViewContentInset.top
+        let right = scrollViewContentInset.right
+        let bottom = scrollViewContentInset.bottom
+        let metrics: [String: Any] = ["left": left, "right": right, "top": top, "bottom": bottom]
+        let hFormat = "H:|-(left)-[self]-(right)-|"
+        let vFormat = "V:|-(left)-[self]-(right)-|"
         let viewDict = ["self": self]
-        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(left)-[self]-(right)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["left": left, "right": right], views: viewDict))
-        view.addConstraint(NSLayoutConstraint.init(item: self, attribute: .width, relatedBy: .equal, toItem: view, attribute: .width, multiplier: 1.0, constant: -(left+right)))
-        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-(top)-[self]-(bottom)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["top": top, "bottom": bottom], views: viewDict))
+        
+        superConstraints.append(contentsOf: [
+            hFormat,
+            vFormat
+        ]
+        .flatMap {
+            NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: metrics, views: viewDict)
+        })
+        
+        superConstraints.append(contentsOf: [
+            widthAnchor.constraint(equalTo: superview.widthAnchor, constant: -(left + right)),
+            heightAnchor.constraint(equalTo: superview.heightAnchor, constant: -(top + bottom))
+        ])
+        superview.addConstraints(superConstraints)
 
     }
     
@@ -1008,7 +879,7 @@ fileprivate class XYEmptyDataView : UIView {
     
 
     ////////////////////////////////////////////////////////////////////////
-    class func show(to view: UIView, animated: Bool) -> XYEmptyDataView {
+    class func show(withView view: UIView, animated: Bool) -> XYEmptyDataView {
         let view = XYEmptyDataView.init(view)
         view.showAnimated(animated)
         return view
@@ -1034,8 +905,6 @@ fileprivate class XYEmptyDataView : UIView {
                 superV = superV?.superview
             }
         }
-        
-        
     }
     
     @objc private func tapGestureOnSelf(_ tap: UITapGestureRecognizer) {
@@ -1046,17 +915,9 @@ fileprivate class XYEmptyDataView : UIView {
 
     // MARK: - Constraints
     override func updateConstraints() {
-        
         removeAllConstraints()
-        // contentView 与 父视图 保持一致, 根据子控件的高度而改变
-        let contentLeft = self.contentEdgeInsets.left
-        let contentRight = self.contentEdgeInsets.right
-        let contentTop = self.contentEdgeInsets.top
-        let contentBottom = self.contentEdgeInsets.bottom
-        
-        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(contentLeft)-[contentView]-(contentRight)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["contentRight": contentRight, "contentLeft": contentLeft], views: ["contentView": contentView]))
-        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-(contentTop)-[contentView]-(contentBottom)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: ["contentTop": contentTop, "contentBottom": contentBottom], views: ["contentView": contentView]))
-
+        updateSuperConstraints()
+        updateContentViewConstraints()
         
         // 若有customView 则 让其与contentView的约束相同
         if let customView = customView {
@@ -1233,25 +1094,83 @@ fileprivate class XYEmptyDataView : UIView {
         super.updateConstraints()
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        /*
-         问题：
-         在 `private func show(to view: UIView) `方法中，视图让XYEmptyDataView的约束决定父视图的约束，以让scrollView可以垂直滚动，但是这仅仅在UIScrollView中有效，而在UITableView和UICollectionView中无效，这是因为它们的contentSize总是为0，所以我想在这里确定它们的contentSize，以让父视图scrollView可以滚动
-         */
-        if self.superview is UIScrollView {
-           let  scrollView = self.superview as! UIScrollView
-            scrollView.contentSize = CGSize(width: scrollView.contentSize.width, height: self.frame.size.height)
+    /// 更新自身的约束到父视图
+    private func updateSuperConstraints() {
+        guard superConstraints.count > 0 else {
+            return
+        }
+        
+        superConstraints.forEach {
+            switch $0.firstAttribute {
+            case .top:
+                $0.constant = scrollViewContentInset.top
+            case .bottom:
+                $0.constant = scrollViewContentInset.bottom
+            case .left, .leading:
+                $0.constant = scrollViewContentInset.left
+            case .right, .trailing:
+                $0.constant = scrollViewContentInset.right
+            default:
+                break
+            }
         }
     }
     
+    private func updateContentViewConstraints() {
+        removeConstraints(contentViewConstraints)
+        contentViewConstraints.removeAll()
+        
+        let viewDict = ["contentView": contentView]
+        let metrics: [String: Any] = ["left": contentEdgeInsets.left, "right": contentEdgeInsets.right, "top": contentEdgeInsets.top, "bottom": contentEdgeInsets.bottom]
+        let hFormat = "H:|-(left)-[contentView]-(right)-|"
+        var vFormat = "V:|-(top)-[self]-(bottom)-|"
+
+        switch alignment {
+        case .top:
+            vFormat = "V:|-(top)-[contentView]-(<=bottom)-|"
+        case .bottom:
+            vFormat = "V:|-(>=top)-[contentView]-(bottom)-|"
+        case .center(let offset):
+            vFormat = "V:|-(>=top)-[contentView]-(<=bottom)-|"
+            contentViewConstraints.append(
+                contentView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: offset)
+            )
+        }
+        
+        contentViewConstraints.append(contentsOf: [
+            hFormat,
+            vFormat
+        ]
+        .filter {
+            $0.count > 0
+        }
+        .flatMap {
+            NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: metrics, views: viewDict)
+         })
+        addConstraints(contentViewConstraints
+//                                    .map { $0.with(priority: UILayoutPriority(999)) }
+        )
+    }
+    
+//    override func layoutSubviews() {
+//        super.layoutSubviews()
+//        /*
+//         问题：
+//         在 `private func show(to view: UIView) `方法中，视图让XYEmptyDataView的约束决定父视图的约束，以让scrollView可以垂直滚动，但是这仅仅在UIScrollView中有效，而在UITableView和UICollectionView中无效，这是因为它们的contentSize总是为0，所以我想在这里确定它们的contentSize，以让父视图scrollView可以滚动
+//         */
+//        if self.superview is UIScrollView {
+//           let  scrollView = self.superview as! UIScrollView
+//            scrollView.contentSize = CGSize(width: scrollView.contentSize.width, height: self.frame.size.height)
+//        }
+//    }
+    
     fileprivate func removeAllConstraints() {
-        superview?.removeConstraints(constraints)
+
         removeConstraints(constraints)
         contentView.removeConstraints(contentView.constraints)
     }
     
-    func getScrollContentInset() -> UIEdgeInsets {
+    var scrollViewContentInset: UIEdgeInsets {
         var contentInset: UIEdgeInsets!
         if self.superview is UIScrollView {
             let scrollView = self.superview as! UIScrollView
@@ -1260,85 +1179,6 @@ fileprivate class XYEmptyDataView : UIView {
         }
         return UIEdgeInsets.zero
     }
-    
-//    func getSelfTopConstraint() -> NSLayoutConstraint? {
-//        guard let superViewConstraints = superview?.constraints else {
-//            return nil
-//        }
-//        if superViewConstraints.count == 0 {
-//            return nil
-//        }
-//
-//        for constraint in superViewConstraints {
-//            guard let item = constraint.firstItem else {
-//                continue
-//            }
-//            if item as! NSObject == self && constraint.firstAttribute == .top {
-//                return constraint
-//            }
-//        }
-//
-//        return nil
-//    }
-    
-//    func getSelfBottomConstraint() -> NSLayoutConstraint? {
-//        guard let superViewConstraints = superview?.constraints else {
-//            return nil
-//        }
-//        if superViewConstraints.count == 0 {
-//            return nil
-//        }
-//
-//        for constraint in superViewConstraints {
-//            guard let item = constraint.secondItem else {
-//                continue
-//            }
-//            if item as! NSObject == self && constraint.firstAttribute == .bottom {
-//                return constraint
-//            }
-//        }
-//
-//        return nil
-//    }
-//
-//    func getSelfLeftConstraint() -> NSLayoutConstraint? {
-//        guard let superViewConstraints = superview?.constraints else {
-//            return nil
-//        }
-//        if superViewConstraints.count == 0 {
-//            return nil
-//        }
-//        for constraint in superViewConstraints {
-//            guard let item = constraint.firstItem else {
-//                continue
-//            }
-//            if item as! NSObject == self && constraint.firstAttribute == .leading {
-//                return constraint
-//            }
-//        }
-//
-//        return nil
-//    }
-//
-//    func getSelfRightConstraint() -> NSLayoutConstraint? {
-//        guard let superViewConstraints = superview?.constraints else {
-//            return nil
-//        }
-//        if superViewConstraints.count == 0 {
-//            return nil
-//        }
-//
-//        for constraint in superViewConstraints {
-//            guard let item = constraint.secondItem else {
-//                continue
-//            }
-//            if item as! NSObject == self && constraint.firstAttribute == .trailing {
-//                return constraint
-//            }
-//        }
-//
-//        return nil
-//    }
     
     // MARK: - Others
     func canShowImage() -> Bool {
@@ -1391,5 +1231,9 @@ fileprivate class XYEmptyDataView : UIView {
 
 }
 
-
-
+private extension NSLayoutConstraint {
+    func with(priority: UILayoutPriority) -> NSLayoutConstraint {
+        self.priority = priority
+        return self
+    }
+}

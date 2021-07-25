@@ -10,7 +10,7 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    fileprivate lazy var tableView: UITableView = {
+    private lazy var tableView: UITableView = {
        
         let tableView = UITableView(frame: .zero, style: .plain)
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -21,7 +21,10 @@ class ViewController: UIViewController {
         return tableView
     }()
     
-    fileprivate lazy var dataArray = [[Any]]()
+    private lazy var dataArray = [[Any]]()
+    
+    private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(ViewController.clearData))
+    private lazy var otherButton = UIBarButtonItem(title: "切换位置", style: .plain, target: self, action: #selector(ViewController.otherButtonClick))
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,26 +37,28 @@ class ViewController: UIViewController {
     }
 
     private func setupEmptyDataView() {
-        tableView.xy_textLabelBlock = { label in
+        var emptyData = UIScrollView.EmptyData(alignment: .center(offset: 70))
+        
+        emptyData.xy_textLabelBlock = { label in
             label.text = "这是空数据😁视图"
         }
         
-        tableView.xy_detailTextLabelBlock = { label in
-            label.text = "客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n客官，现在没有数据呢，如果需要请点击重试，这里测试空数据内容超出scrollView后能否滚动，我是测试数据😝😝😋😋😜\n"
+        emptyData.xy_detailTextLabelBlock = { label in
+            label.text = "暂无数据"
             label.numberOfLines = 0
         }
         
-        tableView.xy_reloadButtonBlock = { button in
+        emptyData.xy_reloadButtonBlock = { button in
             button.setTitle("点击重试", for: .normal)
             button.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
             button.layer.cornerRadius = 5.0
             button.layer.masksToBounds = true
         }
         
-        tableView.xy_imageViewBlock = { imageView in
+        emptyData.xy_imageViewBlock = { imageView in
             imageView.image = UIImage.init(named: "wow")
         }
-        
+        tableView.emptyData = emptyData
         tableView.emptyDataDelegate = self
     }
 
@@ -71,12 +76,27 @@ class ViewController: UIViewController {
         NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[tableView]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
         NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(ViewController.clearData))
+        navigationItem.rightBarButtonItems = [otherButton, clearButton]
     }
     
     @objc private func clearData() {
         dataArray.removeAll()
         tableView.reloadData()
+    }
+    
+    @objc private func otherButtonClick() {
+        let value = Int.random(in: 0...10) % 3
+        var emptyData = tableView.emptyData
+        if value == 0 {
+            emptyData?.alignment = .top
+        }
+        else if value == 1 {
+            emptyData?.alignment = .bottom
+        }
+        else {
+            emptyData?.alignment = .center(offset: 0)
+        }
+        tableView.emptyData = emptyData
     }
 
 }
@@ -135,11 +155,11 @@ extension ViewController: XYEmptyDataDelegate {
     }
     
     func emptyDataView(didAppear scrollView: UIScrollView) {
-        navigationItem.rightBarButtonItem?.isEnabled = false
+        clearButton.isEnabled = false
     }
     
     func emptyDataView(didDisappear scrollView: UIScrollView) {
-        navigationItem.rightBarButtonItem?.isEnabled = true
+        clearButton.isEnabled = true
     }
     
     func emptyDataView(imageViewSizeForEmptyDataView scrollView: UIScrollView) -> CGSize {
