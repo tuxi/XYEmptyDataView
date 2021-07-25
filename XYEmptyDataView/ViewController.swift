@@ -37,7 +37,7 @@ class ViewController: UIViewController {
     }
 
     private func setupEmptyDataView() {
-        var emptyData = UIScrollView.EmptyData(alignment: .center(offset: 70))
+        var emptyData = EmptyData(alignment: .center())
         
         emptyData.xy_textLabelBlock = { label in
             label.text = "这是空数据😁视图"
@@ -58,8 +58,8 @@ class ViewController: UIViewController {
         emptyData.xy_imageViewBlock = { imageView in
             imageView.image = UIImage.init(named: "wow")
         }
+        emptyData.delegate = self
         tableView.emptyData = emptyData
-        tableView.emptyDataDelegate = self
     }
 
     private func setupView() {
@@ -72,11 +72,20 @@ class ViewController: UIViewController {
 //        self.tableView.tableHeaderView = headerView
         
         view.addSubview(tableView)
-        let viewDict = ["tableView": tableView]
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[tableView]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: viewDict))
+        NSLayoutConstraint.activate(
+            ["|[tableView]|", "V:|[tableView]|"].flatMap {
+                NSLayoutConstraint.constraints(
+                    withVisualFormat: $0,
+                    options: [],
+                    metrics: nil,
+                    views: ["tableView": tableView]
+                )
+            }
+        )
         
         navigationItem.rightBarButtonItems = [otherButton, clearButton]
+        
+        tableView.contentInsetAdjustmentBehavior = .never
     }
     
     @objc private func clearData() {
@@ -213,3 +222,6 @@ extension ViewController: XYEmptyDataDelegate {
     }
 }
 
+extension ViewController: XYEmptyDataViewAppearable {
+    
+}
