@@ -22,6 +22,11 @@ class ViewController: UIViewController {
     }()
     
     private lazy var dataArray = [[Any]]()
+    private var isLoading = false {
+        didSet {
+            tableView.reloadData()
+        }
+    }
     
     private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(ViewController.clearData))
     private lazy var otherButton = UIBarButtonItem(title: "切换位置", style: .plain, target: self, action: #selector(ViewController.otherButtonClick))
@@ -37,27 +42,42 @@ class ViewController: UIViewController {
     }
 
     private func setupEmptyDataView() {
-        var emptyData = EmptyData(alignment: .center())
+        var emptyData = EmptyData(position: .center())
         
-        emptyData.xy_textLabelBlock = { label in
-            label.text = "这是空数据😁视图"
+        emptyData.view.title {
+            $0.text = "这是空数据😁视图"
+        }
+        .detail {
+            $0.text = "暂无数据"
+            $0.numberOfLines = 0
+        }
+        .image {
+            $0.image = UIImage(named: "wow")
+        }
+        .reload {
+            $0.setTitle("点击重试", for: .normal)
+            $0.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
+            $0.layer.cornerRadius = 5.0
+            $0.layer.masksToBounds = true
+        }
+        .custom { [weak self] in
+            if self?.isLoading == true {
+                let indicatorView = UIActivityIndicatorView(style: .gray)
+                indicatorView.startAnimating()
+                return indicatorView
+            }
+            return nil
+        }
+        .position { [weak self] in
+            if self?.isLoading == true {
+                return .top
+            }
+            return .center(offset: 0)
         }
         
-        emptyData.xy_detailTextLabelBlock = { label in
-            label.text = "暂无数据"
-            label.numberOfLines = 0
-        }
+        emptyData.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
+        emptyData.imageSize = CGSize(width: 180, height: 180)
         
-        emptyData.xy_reloadButtonBlock = { button in
-            button.setTitle("点击重试", for: .normal)
-            button.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
-            button.layer.cornerRadius = 5.0
-            button.layer.masksToBounds = true
-        }
-        
-        emptyData.xy_imageViewBlock = { imageView in
-            imageView.image = UIImage.init(named: "wow")
-        }
         emptyData.delegate = self
         tableView.emptyData = emptyData
     }
@@ -85,7 +105,8 @@ class ViewController: UIViewController {
         
         navigationItem.rightBarButtonItems = [otherButton, clearButton]
         
-        tableView.contentInsetAdjustmentBehavior = .never
+//        tableView.contentInsetAdjustmentBehavior = .never
+//        tableView.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
     }
     
     @objc private func clearData() {
@@ -97,13 +118,13 @@ class ViewController: UIViewController {
         let value = Int.random(in: 0...10) % 3
         var emptyData = tableView.emptyData
         if value == 0 {
-            emptyData?.alignment = .top
+            emptyData?.position = .top
         }
         else if value == 1 {
-            emptyData?.alignment = .bottom
+            emptyData?.position = .bottom
         }
         else {
-            emptyData?.alignment = .center(offset: 0)
+            emptyData?.position = .center(offset: 0)
         }
         tableView.emptyData = emptyData
     }
@@ -154,51 +175,14 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 
 extension ViewController: XYEmptyDataDelegate {
     
-    func emptyDataView(_ scrollView: UIScrollView, didClickReload button: UIButton) {
+    func emptyDataView(_ scrollView: UIScrollView, didTapReloadButton button: UIButton) {
         
         self.requestData()
     }
     
-    func emptyDataView(_ scrollView: UIScrollView, didTapOnContentView tap: UITapGestureRecognizer) {
-        self.requestData()
-    }
-    
-    func emptyDataView(didAppear scrollView: UIScrollView) {
-        clearButton.isEnabled = false
-    }
-    
-    func emptyDataView(didDisappear scrollView: UIScrollView) {
-        clearButton.isEnabled = true
-    }
-    
-    func emptyDataView(imageViewSizeForEmptyDataView scrollView: UIScrollView) -> CGSize {
-         let screenMin = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
-        return CGSize(width: screenMin * 0.3, height: screenMin * 0.3)
-    }
-    
-    func emptyDataView(contentEdgeInsetsForEmptyDataView scrollView: UIScrollView) -> UIEdgeInsets {
-        
-        if scrollView.xy_loading == true {
-            return UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
-        }
-        return UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
-    }
-
-    func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat {
-        return 20.0
-    }
-    
-    func customView(forEmptyDataView scrollView: UIScrollView) -> UIView? {
-        if scrollView.xy_loading == true {
-            let indicatorView = UIActivityIndicatorView(style: .gray)
-            indicatorView.startAnimating()
-            return indicatorView
-        }
-        return nil
-    }
     
     fileprivate func requestData() {
-        self.tableView.xy_loading = true
+        isLoading = true
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
             self.dataArray.removeAll()
             for section in 0...3 {
@@ -216,12 +200,20 @@ extension ViewController: XYEmptyDataDelegate {
                 self.dataArray.append(array)
                 
             }
-            self.tableView.xy_loading = false
+            self.isLoading = false
             self.tableView.reloadData()
         }
     }
 }
 
 extension ViewController: XYEmptyDataViewAppearable {
+    func emptyDataView(didAppear scrollView: UIScrollView) {
+        clearButton.isEnabled = false
+        otherButton.isEnabled = true
+    }
     
+    func emptyDataView(didDisappear scrollView: UIScrollView) {
+        clearButton.isEnabled = true
+        otherButton.isEnabled = false
+    }
 }

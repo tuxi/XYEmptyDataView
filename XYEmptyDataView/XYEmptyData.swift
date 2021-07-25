@@ -26,100 +26,76 @@ public protocol XYEmptyDataViewAppearable {
     
     
     /// 是否应该淡入淡出，default is YES
+    /// - Returns: Bool
     @objc
     optional func emptyDataView(shouldFadeInOnDisplay scrollView: UIScrollView) -> Bool
     
     
     /// 是否应显示emptyDataView, 默认YES
-    /// @return 如果当前无数据则应显示emptyDataView
+    /// - Returns: 如果当前无数据则应显示emptyDataView
     @objc
     optional func emptyDataView(shouldDisplay scrollView: UIScrollView) -> Bool
     
     
     /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return NO
-    /// @return 如果需要强制显示emptyDataView，return YES即可
+    /// - Returns: 如果需要强制显示emptyDataView，return YES即可
     @objc
-    optional func emptyDataView(shouldBeForcedToDisplay scrollView: UIScrollView) -> Bool
-    
+    optional func emptyDataView(shouldForcedDisplay scrollView: UIScrollView) -> Bool
     
     @objc
-    optional func emptyDataView(_ scrollView: UIScrollView, didClickReload button: UIButton)
+    optional func emptyDataView(_ scrollView: UIScrollView, didTapReloadButton button: UIButton)
     
-    
-    /// imageView的size, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero
-    @objc
-    optional func emptyDataView(imageViewSizeForEmptyDataView scrollView: UIScrollView) -> CGSize
-    
-    /// 自定义空视图view
-    @objc
-    optional func customView(forEmptyDataView scrollView: UIScrollView) -> UIView?
-}
-
-/// 来自 `objc.io`> Swift Tip: Weak Arrays
-private class WeakObserverBox<Observer: UIScrollView, Element: Any>: NSObject {
-    public typealias EventHandler = (Element?) -> Void
-    weak var unbox: Observer?
-    var keyPath: String
-    var eventHandler: EventHandler
-    init(_ observer: Observer, keyPath: String, eventHandler: @escaping EventHandler) {
-        self.keyPath = keyPath
-        self.eventHandler = eventHandler
-        super.init()
-        unbox = observer
-        unbox?.addObserver(self, forKeyPath: keyPath, options: [.new, .initial], context: nil)
-        
-    }
-    
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        let value = change?[.newKey]
-        eventHandler(value as? Element)
-    }
-    
-    deinit {
-        unbox?.removeObserver(self, forKeyPath: keyPath, context: nil)
-    }
 }
 
 /// 存放一些空数据的结果
 public struct EmptyData {
     public typealias Delegate = XYEmptyDataDelegate & XYEmptyDataViewAppearable
-    public enum Alignment {
+    public enum Position {
         case center(offset: CGFloat = 0)
         case top
         case bottom
     }
+    public class ViewBinder {
+        fileprivate var xy_textLabelBlock: ((UILabel) -> Void)?
+        fileprivate var xy_detailTextLabelBlock: ((UILabel) -> Void)?
+        fileprivate var xy_imageViewBlock: ((UIImageView) -> Void)?
+        fileprivate var xy_reloadButtonBlock: ((UIButton) -> Void)?
+        
+        fileprivate var customView: (() -> UIView?)?
+        
+        fileprivate var xy_textEdgeInsets: UIEdgeInsets = .zero
+        fileprivate var xy_imageEdgeInsets: UIEdgeInsets = .zero
+        fileprivate var xy_detailEdgeInsets: UIEdgeInsets = .zero
+        fileprivate var xy_buttonEdgeInsets: UIEdgeInsets = .zero
+        
+        fileprivate var position: (() -> Position?)?
+        
+        fileprivate init() {}
+    }
     
-    public var alignment: Alignment
+    /// 对齐方法，分为：上、下、中间
+    public var position: Position
     public var contentEdgeInsets: UIEdgeInsets = .zero
-    public var customEmptyDataView: (() -> UIView)?
-    public var xy_textLabelBlock: ((UILabel) -> Swift.Void)?
-    public var xy_detailTextLabelBlock: ((UILabel) -> Swift.Void)?
-    public var xy_imageViewBlock: ((UIImageView) -> Swift.Void)?
-    public var xy_reloadButtonBlock: ((UIButton) -> Swift.Void)?
-    public var xy_textEdgeInsets: UIEdgeInsets = .zero
-    public var xy_imageEdgeInsets: UIEdgeInsets = .zero
-    public var xy_detailEdgeInsets: UIEdgeInsets = .zero
-    public var xy_buttonEdgeInsets: UIEdgeInsets = .zero
-    public var emptyDataViewBackgroundColor: UIColor?
-    /// emptyDataView中contentView的背景颜色
-    public var emptyDataViewContentBackgroundColor: UIColor?
-    /// emptyDataView各子控件之间垂直的间距，默认为11
-    public var contentSubviewsGlobalVerticalSpace: CGFloat = 11
+    
+    public var backgroundColor: UIColor?
+    /// 空数据`contentView`的背景颜色
+    public var contentBackgroundColor: UIColor?
+    /// 各子控件之间垂直的间距，默认为11
+    public var itemPadding: CGFloat = 11
+    /// `imageView`的宽高，默认为`nil`，让其自适应
+    public var imageSize: CGSize?
     public weak var delegate: Delegate?
+    public let view = ViewBinder()
 }
 
 extension UIScrollView: UIGestureRecognizerDelegate {
     
     /// 用于关联对象的keys
     private struct XYEmptyDataKeys {
-        static var delegate = "com.alpface.XYEmptyData.delete"
-        static var loading = "com.alpface.XYEmptyData.loading"
-        
         static var emptyDataView = "com.alpface.XYEmptyData.emptyDataView"
         static var registerEmptyDataView = "com.alpface.XYEmptyData.registerEemptyDataView"
         
         static var config = "com.alpface.XYEmptyData.config"
-        static var observerObj = "com.alpface.XYEmptyData.observerObj"
     }
     
     open var emptyData: EmptyData? {
@@ -133,32 +109,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
     }
     
-    private var observerObj: WeakObserverBox<UIScrollView, UIEdgeInsets>? {
-        get {
-            return objc_getAssociatedObject(self, &XYEmptyDataKeys.observerObj) as? WeakObserverBox<UIScrollView, UIEdgeInsets>
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.observerObj, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
-    
-    open var xy_loading: Bool {
-        get {
-            if let obj = objc_getAssociatedObject(self, &XYEmptyDataKeys.loading) as? NSNumber {
-                return obj.boolValue
-            }
-            return false
-        }
-        set {
-            if xy_loading == newValue  {
-                return
-            }
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.loading, NSNumber.init(value: newValue), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            xy_reloadEmptyDataView()
-        }
-    }
-    
-    fileprivate var emptyDataView: XYEmptyDataView? {
+    private var emptyDataView: XYEmptyDataView? {
         get {
             if let view = objc_getAssociatedObject(self, &XYEmptyDataKeys.emptyDataView) as? XYEmptyDataView {
                 return view
@@ -171,11 +122,11 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     }
     
     /// 初始化空数据视图
-    fileprivate func setupEmptyDataView() {
+    private func setupEmptyDataView() {
         var view = self.emptyDataView
         if view == nil {
             view = XYEmptyDataView.show(withView: self, animated: xy_emptyDataViewShouldFadeInOnDisplay())
-            view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//            view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             view?.isHidden = true
             
             self.emptyDataView = view
@@ -215,12 +166,6 @@ extension UIScrollView: UIGestureRecognizerDelegate {
                                              block: executeBlock)
                 }
                 objc_setAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView, num, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-                
-//                if self.observerObj == nil {
-//                    self.observerObj = WeakObserverBox(self, keyPath: "adjustedContentInset", eventHandler: { [weak self] value in
-//                        self?.xy_reloadEmptyDataView()
-//                    })
-//                }
             }
             
         }
@@ -253,42 +198,42 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             
             // 重置视图及其约束
             emptyDataView.resetSubviews()
-            emptyDataView.alignment = emptyData.alignment
+            emptyDataView.position = emptyData.view.position?() ?? emptyData.position
             
-            if let customView = xy_emptyDataViewCustomView() {
-                emptyDataView.customView = customView
+            if let closure = emptyData.view.customView, let view = closure() {
+                emptyDataView.customView = view
             } else {
                 // customView为nil时，则通过block回到获取子控件 设置
-                if let block = emptyData.xy_textLabelBlock  {
+                if let block = emptyData.view.xy_textLabelBlock  {
                     block(emptyDataView.titleLabel)
                 }
-                if let block = emptyData.xy_detailTextLabelBlock {
+                if let block = emptyData.view.xy_detailTextLabelBlock {
                     block(emptyDataView.detailLabel)
                 }
                 
-                if let block = emptyData.xy_imageViewBlock {
+                if let block = emptyData.view.xy_imageViewBlock {
                     block(emptyDataView.imageView)
                 }
-                if let block = emptyData.xy_reloadButtonBlock {
+                if let block = emptyData.view.xy_reloadButtonBlock {
                     block(emptyDataView.reloadButton)
                 }
                 
                 // 设置子控件之间的边距
-                emptyDataView.titleEdgeInsets = emptyData.xy_textEdgeInsets
-                emptyDataView.detailEdgeInsets = emptyData.xy_detailEdgeInsets
-                emptyDataView.imageEdgeInsets = emptyData.xy_imageEdgeInsets
-                emptyDataView.buttonEdgeInsets = emptyData.xy_buttonEdgeInsets
+                emptyDataView.titleEdgeInsets = emptyData.view.xy_textEdgeInsets
+                emptyDataView.detailEdgeInsets = emptyData.view.xy_detailEdgeInsets
+                emptyDataView.imageEdgeInsets = emptyData.view.xy_imageEdgeInsets
+                emptyDataView.buttonEdgeInsets = emptyData.view.xy_buttonEdgeInsets
                 // 设置emptyDataView子控件垂直间的间距
-                emptyDataView.globalVerticalSpace = emptyData.contentSubviewsGlobalVerticalSpace
+                emptyDataView.globalVerticalSpace = emptyData.itemPadding
                 
             }
             
             emptyDataView.contentEdgeInsets = emptyData.contentEdgeInsets
-            emptyDataView.backgroundColor = xy_emptyDataViewBackgroundColor()
-            emptyDataView.contentView.backgroundColor = xy_emptyDataViewContentBackgroundColor()
-            emptyDataView.isHidden = false;
+            emptyDataView.backgroundColor = emptyData.backgroundColor
+            emptyDataView.contentView.backgroundColor = emptyData.contentBackgroundColor
+            emptyDataView.isHidden = false
             emptyDataView.clipsToBounds = true
-            emptyDataView.imageViewSize = xy_emptyDataViewImageViewSize()
+            emptyDataView.imageViewSize = emptyData.imageSize ?? .zero
             
             emptyDataView.setNeedsUpdateConstraints()
             
@@ -331,27 +276,11 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             self.emptyDataView = nil
             
         }
-        self.isScrollEnabled = true
-        
-//        self.observerObj = nil
+
         // 通知代理完全消失
         self.xy_emptyDataViewDidDisappear()
     }
     
-    private func xy_emptyDataViewBackgroundColor() -> UIColor {
-        guard let color = self.emptyData?.emptyDataViewBackgroundColor else {
-            return UIColor.clear
-        }
-        return color
-    }
-    
-    
-    private func xy_emptyDataViewContentBackgroundColor() -> UIColor {
-        guard let color = self.emptyData?.emptyDataViewContentBackgroundColor else {
-            return UIColor.clear
-        }
-        return color
-    }
     
     // 是否符合显示
     private func xy_emptyDataViewCanDisplay() -> Bool {
@@ -371,7 +300,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
         
         // UITableView
-        if (self is UITableView) {
+        if self is UITableView {
             let tableView = self as! UITableView
             guard let dataSource = tableView.dataSource else {
                 return itemCount
@@ -448,36 +377,10 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyData?.delegate else {
             return false
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldBeForcedToDisplay:))) {
-            return del.emptyDataView!(shouldBeForcedToDisplay: self)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldForcedDisplay:))) {
+            return del.emptyDataView!(shouldForcedDisplay: self)
         }
         return false
-    }
-
-    /// 当自定义空数据视图时调用
-    private func xy_emptyDataViewCustomView() -> UIView? {
-        var view: UIView?
-        if let del = self.emptyData?.delegate {
-            if del.responds(to: #selector(XYEmptyDataDelegate.customView(forEmptyDataView:))) {
-                return del.customView!(forEmptyDataView: self)
-            }
-        }
-        if let customEmptyDataView = self.emptyData?.customEmptyDataView {
-            view = customEmptyDataView()
-        }
-        return view
-    }
-    
-    
-    /// 获取空数据视图上ImageView的固定尺寸
-    private func xy_emptyDataViewImageViewSize() -> CGSize {
-        guard let del = self.emptyData?.delegate else {
-            return CGSize.zero
-        }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(imageViewSizeForEmptyDataView:))) {
-            return del.emptyDataView!(imageViewSizeForEmptyDataView: self)
-        }
-        return CGSize.zero
     }
     
     /// 点击空数据视图的 reload的回调
@@ -485,8 +388,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         guard let del = self.emptyData?.delegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(_:didClickReload:))) {
-            del.emptyDataView!(self, didClickReload: btn)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(_:didTapReloadButton:))) {
+            del.emptyDataView!(self, didTapReloadButton: btn)
         }
     }
 
@@ -511,10 +414,10 @@ private class _WeakObjectContainer : NSObject {
 
 extension UIView {
     
-    struct XYEmptyDataKeys {
+   private struct XYEmptyDataKeys {
         static var emptyDataViewContentEdgeInsets = "com.alpface.XYEmptyData.emptyDataViewContentEdgeInsets"
     }
-    open var emptyDataViewContentEdgeInsets: UIEdgeInsets {
+    fileprivate var emptyDataViewContentEdgeInsets: UIEdgeInsets {
         get {
             if let obj = objc_getAssociatedObject(self, XYEmptyDataKeys.emptyDataViewContentEdgeInsets) as? NSValue {
                 return obj.uiEdgeInsetsValue
@@ -529,8 +432,7 @@ extension UIView {
     }
 }
 
-fileprivate class XYEmptyDataView : UIView {
-    
+private class XYEmptyDataView : UIView {
     
     // MARK: - Views
     /// 内容视图
@@ -668,7 +570,7 @@ fileprivate class XYEmptyDataView : UIView {
         }
     }
     
-    var alignment: EmptyData.Alignment = .center(offset: 0)
+    var position: EmptyData.Position = .center(offset: 0)
     
     /** imageView的size, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero */
     var imageViewSize: CGSize = .zero
@@ -686,6 +588,7 @@ fileprivate class XYEmptyDataView : UIView {
     }
     
     private func show(withView view: UIView) {
+        clipsToBounds = true
         self.translatesAutoresizingMaskIntoConstraints = false
         if view.subviews.count > 1 {
             view.insertSubview(self, at: 0)
@@ -808,16 +711,21 @@ fileprivate class XYEmptyDataView : UIView {
         }
         
         let inset = scrollViewContentInset
+        /// 修复`contentInst`引发的布局偏移问题，上下左右间距需固定为0
         superConstraints.forEach {
             switch $0.firstAttribute {
             case .top:
-                $0.constant = inset.top
+//                $0.constant = inset.top
+                $0.constant = 0
             case .bottom:
-                $0.constant = inset.bottom
+//                $0.constant = inset.bottom
+                $0.constant = 0
             case .left, .leading:
-                $0.constant = inset.left
+//                $0.constant = inset.left
+                $0.constant = 0
             case .right, .trailing:
-                $0.constant = inset.right
+//                $0.constant = inset.right
+                $0.constant = 0
             case .width:
                 $0.constant = -(inset.left + inset.right)
             case .height:
@@ -837,13 +745,13 @@ fileprivate class XYEmptyDataView : UIView {
         let hFormat = "H:|-(left)-[contentView]-(right)-|"
         var vFormat = "V:|-(top)-[self]-(bottom)-|"
 
-        switch alignment {
+        switch position {
         case .top:
             vFormat = "V:|-(top)-[contentView]-(<=bottom@600)-|"
         case .bottom:
             vFormat = "V:|-(>=top@600)-[contentView]-(bottom)-|"
         case .center(let offset):
-            vFormat = "V:|-(>=top@600)-[contentView]-(<=bottom@600)-|"
+            vFormat = "V:|-(>=top@800)-[contentView]-(<=bottom@800)-|"
             contentViewConstraints.append(
                 contentView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: offset)
             )
@@ -916,10 +824,12 @@ fileprivate class XYEmptyDataView : UIView {
                 }
                 else {
                     subConstraints.append(contentsOf: [
-                        NSLayoutConstraint.init(item: imageView, attribute: .centerX, relatedBy: .equal, toItem: self.contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0)
+                        NSLayoutConstraint.init(item: imageView, attribute: .centerX, relatedBy: .equal, toItem: self.contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0),
+                        imageView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 10),
+                        imageView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -10)
                     ])
                 }
-                if (self.imageViewSize.width > 0.0 && self.imageViewSize.height > 0.0) {
+                if self.imageViewSize.width > 0.0 && self.imageViewSize.height > 0.0 {
                     subConstraints.append(contentsOf: [
                         NSLayoutConstraint.init(item: self.imageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.width),
                         NSLayoutConstraint.init(item: self.imageView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.height)
@@ -1131,10 +1041,10 @@ extension UIScrollView {
     /// 已经显示空数据时调用
     private func xy_emptyDataViewDidAppear() {
         // 这里以UITableView为例: 当调用原reloadData后，tableView的contentSize会被重置为所有cell的高度，而显示空数据时，tableView并没有数据，所以导致contentSize被重置为zero，导致空视图超出tableView的高度时依旧无法滚动
-        DispatchQueue.main.async {
-            let contentSize = self.contentSize
-            self.contentSize = CGSize(width: contentSize.width == 0 ? self.emptyDataView?.frame.size.width ?? 0 : 0, height: (self.emptyDataView?.frame.size.height ?? 0))
-        }
+//        DispatchQueue.main.async {
+//            let contentSize = self.contentSize
+//            self.contentSize = CGSize(width: contentSize.width == 0 ? self.emptyDataView?.frame.size.width ?? 0 : 0, height: (self.emptyDataView?.frame.size.height ?? 0))
+//        }
         emptyData?.delegate?.emptyDataView(didAppear: self)
     }
 
@@ -1155,3 +1065,39 @@ extension XYEmptyDataViewAppearable {
     func emptyDataView(willDisappear scrollView: UIScrollView) {}
     func emptyDataView(didDisappear scrollView: UIScrollView) {}
 }
+
+extension EmptyData.ViewBinder {
+    @discardableResult
+    public func title(_ closure: @escaping (UILabel) -> Void) -> Self {
+        self.xy_textLabelBlock = closure
+        return self
+    }
+    @discardableResult
+    public func detail(_ closure: @escaping (UILabel) -> Void) -> Self {
+        self.xy_detailTextLabelBlock = closure
+        return self
+    }
+    
+    @discardableResult
+    public func reload(_ closure: @escaping (UIButton) -> Void) -> Self {
+        self.xy_reloadButtonBlock = closure
+        return self
+    }
+    @discardableResult
+    public func image(_ closure: @escaping (UIImageView) -> Void) -> Self {
+        self.xy_imageViewBlock = closure
+        return self
+    }
+    
+    @discardableResult
+    public func custom(_ closure: @escaping () -> UIView?) -> Self {
+        self.customView = closure
+        return self
+    }
+    @discardableResult
+    public func position(_ closure: @escaping () -> EmptyData.Position?) -> Self {
+        self.position = closure
+        return self
+    }
+}
+
