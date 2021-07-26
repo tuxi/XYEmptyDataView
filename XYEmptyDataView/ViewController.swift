@@ -176,7 +176,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 
 extension ViewController: XYEmptyDataDelegate {
     
-    func emptyDataView(_ scrollView: UIScrollView, didTapReloadButton button: UIButton) {
+    func emptyDataView(_ scrollView: UIScrollView, didTapButton button: UIButton) {
         
         self.requestData()
     }

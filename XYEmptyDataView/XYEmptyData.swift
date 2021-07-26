@@ -168,8 +168,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
     }
     
-    /// 刷新emptyDataView, 当执行tableView的readData、endUpdates或者CollectionView的readData时会调用此方法
-    ////////////////////////////////////////////////////////////////////////
+    /// 刷新空视图， 当执行`tableView`的`readData`、`endUpdates`或者`CollectionView`的`readData`时会调用此方法，外面无需主动调用
     @objc private func xy_reloadEmptyDataView() {
         if canDisplayEmptyDataView() == false {
             return
@@ -236,9 +235,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             removeEmptyDataView()
         }
         
-        
-        let originalSelector = NSSelectorFromString("reloadData")
-        callOriginalFunctionAndSwizzledBlocks(originalSelector: originalSelector)
+        callOriginalFunctionAndSwizzledBlocks(originalSelector: NSSelectorFromString("reloadData"))
         
     }
     
