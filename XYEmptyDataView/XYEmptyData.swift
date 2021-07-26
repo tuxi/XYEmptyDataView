@@ -447,6 +447,7 @@ private class XYEmptyDataView : UIView {
     }
 
     // MARK: - Touchs
+    /// 重载`hitTest`方法，以防止空数据视图影响`scrollView`的时间传递
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         guard let touchView = super.hitTest(point, with: event) else {
             return nil
@@ -458,11 +459,13 @@ private class XYEmptyDataView : UIView {
         }
         // 如果hitView是contentView或customView, 就返回此实例
         if touchView.isEqual(contentView) {
-            return touchView
+            let pointInContentView = convert(point, to: contentView)
+            return touchView.hitTest(pointInContentView, with: event)
         }
         if let customView = customView {
             if touchView.isEqual(customView) {
-                return touchView
+                let pointInCustomView = convert(point, to: customView)
+                return touchView.hitTest(pointInCustomView, with: event)
             }
         }
         return nil

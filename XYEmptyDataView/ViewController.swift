@@ -86,11 +86,14 @@ class ViewController: UIViewController {
 
     private func setupView() {
         
-        let headerView = UILabel(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
+        let headerView = UIButton(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
         headerView.backgroundColor = UIColor(red: 246/255.0, green: 246/255.0, blue: 246/255.0, alpha: 1.0)
-        headerView.numberOfLines = 0
-        headerView.textAlignment = .center
-        headerView.text = "我是headerView"
+        headerView.titleLabel?.numberOfLines = 0
+        headerView.titleLabel?.textAlignment = .center
+        headerView.contentHorizontalAlignment = .center
+        headerView.setTitle("我是headerView\n\n点我", for: .normal)
+        headerView.setTitleColor(.black, for: .normal)
+        headerView.addTarget(self, action: #selector(headerClick), for: .touchUpInside)
         self.tableView.tableHeaderView = headerView
         
         view.addSubview(tableView)
@@ -116,6 +119,11 @@ class ViewController: UIViewController {
         tableView.reloadData()
     }
 
+    @objc private func headerClick() {
+        let alert = UIAlertController(title: "谢谢🍾️🍾️🍺", message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "好的", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
 }
 
 extension ViewController: UITableViewDataSource, UITableViewDelegate {
