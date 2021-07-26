@@ -34,6 +34,7 @@ public protocol XYEmptyDataViewAppearable {
     @objc
     optional func emptyDataView(shouldForcedDisplay scrollView: UIScrollView) -> Bool
     
+    /// 点击空视图的`button`回调
     @objc
     optional func emptyDataView(_ scrollView: UIScrollView, didTapButton button: UIButton)
     
@@ -82,7 +83,6 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     private struct XYEmptyDataKeys {
         static var emptyDataView = "com.alpface.XYEmptyData.emptyDataView"
         static var registerEmptyDataView = "com.alpface.XYEmptyData.registerEemptyDataView"
-        
         static var config = "com.alpface.XYEmptyData.config"
     }
     
@@ -110,7 +110,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     }
     
     /// 初始化空数据视图
-    private func setupEmptyDataView() {
+    @discardableResult
+    private func setupEmptyDataView() -> XYEmptyDataView {
         var view = self.emptyDataView
         if view == nil {
             view = XYEmptyDataView.show(withView: self, animated: true)
@@ -118,8 +119,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             view?.isHidden = true
             self.emptyDataView = view
         }
+        return view!
     }
-    
     
     private func registerEmptyDataView() {
         
@@ -178,59 +179,12 @@ extension UIScrollView: UIGestureRecognizerDelegate {
            (shouldDisplayEmptyDataView && itemCount <= 0) ||
             shouldForcedDisplayEmptyDataView {
             
-            // 通知代理即将显示
-            xy_emptyDataViewWillAppear()
+            emptyDataViewWillAppear()
             
-            var noDataView = self.emptyDataView
-            if  noDataView == nil {
-                setupEmptyDataView()
-                noDataView = self.emptyDataView
-            }
-            guard let emptyDataView = emptyDataView else {
-                return
-            }
+            let emptyDataView = setupEmptyDataView()
+            emptyDataView.update(withEmptyData: emptyData)
             
-            // 重置视图及其约束
-            emptyDataView.resetSubviews()
-            emptyDataView.position = emptyData.bind.position?() ?? emptyData.position
-            
-            if let closure = emptyData.bind.customView, let view = closure() {
-                emptyDataView.customView = view
-            } else {
-                // customView为nil时，则通过block回到获取子控件 设置
-                if let block = emptyData.bind.titleLabelClosure  {
-                    block(emptyDataView.titleLabel)
-                }
-                if let block = emptyData.bind.detailLabelClosure {
-                    block(emptyDataView.detailLabel)
-                }
-                
-                if let block = emptyData.bind.imageViewClosure {
-                    block(emptyDataView.imageView)
-                }
-                if let block = emptyData.bind.reloadButtonClosure {
-                    block(emptyDataView.reloadButton)
-                }
-                
-                // 设置emptyDataView子控件垂直间的间距
-                emptyDataView.globalVerticalSpace = emptyData.itemPadding
-                
-            }
-            
-            emptyDataView.contentEdgeInsets = emptyData.contentEdgeInsets
-            emptyDataView.backgroundColor = emptyData.backgroundColor
-            emptyDataView.contentView.backgroundColor = emptyData.contentBackgroundColor
-            emptyDataView.isHidden = false
-            emptyDataView.clipsToBounds = true
-            emptyDataView.imageViewSize = emptyData.imageSize ?? .zero
-            
-            emptyDataView.setNeedsUpdateConstraints()
-            
-            // 此方法会先检查动画当前是否启用，然后禁止动画，执行block块语句
-            UIView.performWithoutAnimation {
-                emptyDataView.layoutIfNeeded()
-            }
-            xy_emptyDataViewDidAppear()
+            emptyDataViewDidAppear()
         } else {
             removeEmptyDataView()
         }
@@ -239,7 +193,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         
     }
     
-    @objc func callOriginalFunctionAndSwizzledBlocks(originalSelector: Selector) {
+    private func callOriginalFunctionAndSwizzledBlocks(originalSelector: Selector) {
         if let originalMethod = class_getInstanceMethod(type(of: self), originalSelector),
             let swizzle = Swizzler.swizzles[originalMethod] {
             typealias MyCFunction = @convention(c) (AnyObject, Selector) -> Void
@@ -253,20 +207,17 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     }
     
     private func removeEmptyDataView() {
-        // 通知代理即将消失
-        self.xy_emptyDataViewWillDisappear()
+        emptyDataViewWillDisappear()
         if let nView = self.emptyDataView {
             nView.resetSubviews()
             nView.removeFromSuperview()
             self.emptyDataView = nil
         }
-
-        // 通知代理完全消失
-        self.xy_emptyDataViewDidDisappear()
+        emptyDataViewDidDisappear()
     }
     
     /// 点击空数据视图的 reload的回调
-    fileprivate func xy_clickButton(btn: UIButton) {
+    private func xy_clickButton(btn: UIButton) {
         guard let del = self.emptyData?.delegate else {
             return
         }
@@ -278,17 +229,6 @@ extension UIScrollView: UIGestureRecognizerDelegate {
 }
 
 private let EmptyDataViewHorizontalSpaceRatioValue: CGFloat = 16.0
-
-private class _WeakObjectContainer : NSObject {
-    
-    
-    weak open var weakObject: AnyObject?
-    
-    
-    public init(weakObject: AnyObject) {
-        self.weakObject = weakObject
-    }
-}
 
 private class XYEmptyDataView : UIView {
     
@@ -489,216 +429,6 @@ private class XYEmptyDataView : UIView {
         super.updateConstraints()
     }
     
-    /// 更新自身的约束到父视图
-    private func updateMyConstraints() {
-        guard superConstraints.count > 0 else {
-            return
-        }
-        
-        let inset = scrollViewContentInset
-        /// 修复`contentInst`引发的布局偏移问题，上下左右间距需固定为0
-        superConstraints.forEach {
-            switch $0.firstAttribute {
-            case .top:
-//                $0.constant = inset.top
-                $0.constant = 0
-            case .bottom:
-//                $0.constant = inset.bottom
-                $0.constant = 0
-            case .left, .leading:
-//                $0.constant = inset.left
-                $0.constant = 0
-            case .right, .trailing:
-//                $0.constant = inset.right
-                $0.constant = 0
-            case .width:
-                $0.constant = -(inset.left + inset.right)
-            case .height:
-                $0.constant = -(inset.top + inset.bottom)
-            default:
-                break
-            }
-        }
-    }
-    
-    private func updateContentViewConstraints() {
-        removeConstraints(contentViewConstraints)
-        contentViewConstraints.removeAll()
-        
-        let viewDict = ["contentView": contentView]
-        var metrics: [String: Any] = [:]
-        let hFormat = "H:|-(left)-[contentView]-(right)-|"
-        var vFormat = "V:|-(top)-[self]-(bottom)-|"
-        var top = contentEdgeInsets.top
-        var bottom = contentEdgeInsets.bottom
-        
-        switch position {
-        case .top(let offset):
-            top += offset
-            vFormat = "V:|-(top)-[contentView]-(<=bottom@600)-|"
-        case .bottom(let offset):
-            bottom += offset
-            vFormat = "V:|-(>=top@600)-[contentView]-(bottom)-|"
-        case .center(let offset):
-            vFormat = "V:|-(>=top@800)-[contentView]-(<=bottom@800)-|"
-            contentViewConstraints.append(
-                contentView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: offset)
-            )
-        }
-        metrics = ["left": contentEdgeInsets.left, "right": contentEdgeInsets.right, "top": top, "bottom": bottom]
-        contentViewConstraints.append(contentsOf: [
-            hFormat,
-            vFormat
-        ]
-        .filter {
-            $0.count > 0
-        }
-        .flatMap {
-            NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: metrics, views: viewDict)
-         })
-        addConstraints(contentViewConstraints)
-    }
-    
-    private func updateSubConstraints() {
-        contentView.removeConstraints(subConstraints)
-        subConstraints.removeAll()
-        
-        // 若有customView 则 让其与contentView的约束相同
-        if let customView = customView {
-            self.contentView.addSubview(customView)
-            
-            subConstraints.append(contentsOf: [
-                "H:|[customView]|", "V:|[customView]|"
-            ]
-            .flatMap {
-                NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: nil, views: ["customView": customView])
-            })
-        }
-        else {
-            
-            // 无customView
-            var width : CGFloat = frame.size.width
-            if width == 0 {
-                width = UIScreen.main.bounds.width
-            }
-            
-            // contentView的子控件横向间距  四舍五入
-            let horizontalSpace = CGFloat(roundf(Float(width / EmptyDataViewHorizontalSpaceRatioValue)))
-            // contentView的子控件之间的垂直间距，默认为10.0
-            let globalverticalSpace = self.globalVerticalSpace
-            
-            var subviewKeyArray = [String]()
-            var subviewDict = [String: UIView]()
-            var metrics = ["horizontalSpace": horizontalSpace] as [String : Any]
-            
-            // 设置imageView水平约束
-            if canShowImage {
-                self.contentView.addSubview(self.imageView)
-                subviewKeyArray.append("imageView")
-                subviewDict[subviewKeyArray.last!] = imageView
-                
-                let imageLeftSpace = horizontalSpace
-                let imageRightSpace = horizontalSpace
-                subConstraints.append(contentsOf: [
-                    NSLayoutConstraint.init(item: imageView, attribute: .centerX, relatedBy: .equal, toItem: self.contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0),
-                    imageView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: imageLeftSpace),
-                    imageView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -imageRightSpace)
-                ])
-                if self.imageViewSize.width > 0.0 && self.imageViewSize.height > 0.0 {
-                    subConstraints.append(contentsOf: [
-                        NSLayoutConstraint.init(item: self.imageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.width),
-                        NSLayoutConstraint.init(item: self.imageView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.height)
-                        ])
-                }
-                
-            } else {
-                imageView .removeFromSuperview()
-            }
-            
-            // 根据title是否可以显示，设置titleLable的水平约束
-            if canShowTitle {
-                self.contentView.addSubview(self.titleLabel)
-                let titleLeftSpace = horizontalSpace
-                let titleRightSpace = horizontalSpace
-                let titleMetrics = ["titleLeftSpace": titleLeftSpace, "titleRightSpace": titleRightSpace]
-                for d in titleMetrics {
-                    metrics[d.key] = titleMetrics[d.key]
-                }
-                subviewKeyArray.append("titleLabel")
-                subviewDict[subviewKeyArray.last!] = self.titleLabel
-                
-                subConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-(titleLeftSpace)-[titleLabel(>=0)]-(titleRightSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict))
-                
-            } else {
-                // 不显示就移除
-                titleLabel.removeFromSuperview()
-                
-            }
-            
-            // 根据是否可以显示detail, 设置detailLabel水平约束
-            if canShowDetail {
-                self.contentView.addSubview(self.detailLabel)
-                
-                let detailLeftSpace = horizontalSpace
-                let detailRightSpace = horizontalSpace
-                let detailMetrics = ["detailLeftSpace": detailLeftSpace, "detailRightSpace": detailRightSpace]
-                for d in detailMetrics {
-                    metrics[d.key] = detailMetrics[d.key]
-                }
-                subviewKeyArray.append("detailLabel")
-                subviewDict[subviewKeyArray.last!] = detailLabel
-                subConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "|-(detailLeftSpace)-[detailLabel(>=0)]-(detailRightSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict))
-          
-            } else {
-                // 不显示就移除
-                detailLabel.removeFromSuperview()
-                
-            }
-            
-            // 根据reloadButton是否能显示，设置其水平约束
-            if canShowReloadButton {
-                self.contentView.addSubview(self.reloadButton)
-                let buttonLeftSpace = horizontalSpace
-                let buttonRightSpace = horizontalSpace
-                let buttonMetrics = ["buttonLeftSpace": buttonLeftSpace, "buttonRightSpace": buttonRightSpace]
-                for d in buttonMetrics {
-                    metrics[d.key] = buttonMetrics[d.key]
-                }
-                
-                subviewKeyArray.append("reloadButton")
-                subviewDict[subviewKeyArray.last!] = reloadButton
-                
-                subConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "|-(buttonLeftSpace)-[reloadButton(>=0)]-(buttonRightSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict))
-            } else {
-                // 不显示就移除
-                reloadButton.removeFromSuperview()
-            }
-            
-            // 设置垂直约束
-            var verticalFormat = String()
-            // 拼接字符串，添加每个控件垂直边缘之间的约束值, 默认为globalVerticalSpace 11.0，如果设置了子控件的contentEdgeInsets,则verticalSpace无效
-            let space = globalverticalSpace
-            for viewName in subviewKeyArray {
-                guard subviewDict[viewName] != nil else {
-                    continue
-                }
-                // 拼接间距值
-                verticalFormat += "-(\(space))-[\(viewName)]"
-                
-                if viewName == subviewKeyArray.last {
-                    // 最后一个控件把距离父控件底部的约束值也加上
-                    verticalFormat += "-(\(space))-"
-                }
-            }
-            // 向contentView分配垂直约束
-            if verticalFormat.count > 0 {
-                subConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|\(verticalFormat)|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict))
-            }
-        }
-        
-        contentView.addConstraints(subConstraints)
-    }
-    
     /// 获取安全边距边距
     var scrollViewContentInset: UIEdgeInsets {
         var inset: UIEdgeInsets = .zero
@@ -750,22 +480,22 @@ private extension NSLayoutConstraint {
 /// 扩展显示空数据的回调
 private extension UIScrollView {
     /// 即将显示空数据时调用
-    func xy_emptyDataViewWillAppear() {
+    func emptyDataViewWillAppear() {
         emptyData?.delegate?.emptyDataView(willAppear: self)
     }
    
     /// 已经显示空数据时调用
-    func xy_emptyDataViewDidAppear() {
+    func emptyDataViewDidAppear() {
         emptyData?.delegate?.emptyDataView(didAppear: self)
     }
 
     /// 空数据即将消失时调用
-    func xy_emptyDataViewWillDisappear() {
+    func emptyDataViewWillDisappear() {
         emptyData?.delegate?.emptyDataView(willDisappear: self)
     }
    
     /// 空数据已经消失时调用
-    func xy_emptyDataViewDidDisappear() {
+    func emptyDataViewDidDisappear() {
         emptyData?.delegate?.emptyDataView(didDisappear: self)
     }
 }
@@ -894,6 +624,269 @@ private extension XYEmptyDataView {
     func canChangeInsets(insets: UIEdgeInsets) -> Bool {
         return insets != .zero
     }
+}
+
+/// 更新视图
+private extension XYEmptyDataView {
+    func update(withEmptyData emptyData: EmptyData) {
+        let emptyDataView = self
+        // 重置视图及其约束
+        emptyDataView.resetSubviews()
+        
+        emptyDataView.position = emptyData.bind.position?() ?? emptyData.position
+        
+        if let closure = emptyData.bind.customView, let view = closure() {
+            emptyDataView.customView = view
+        } else {
+            // customView为nil时，则通过block回到获取子控件 设置
+            if let block = emptyData.bind.titleLabelClosure  {
+                block(emptyDataView.titleLabel)
+            }
+            if let block = emptyData.bind.detailLabelClosure {
+                block(emptyDataView.detailLabel)
+            }
+            
+            if let block = emptyData.bind.imageViewClosure {
+                block(emptyDataView.imageView)
+            }
+            if let block = emptyData.bind.reloadButtonClosure {
+                block(emptyDataView.reloadButton)
+            }
+            
+            // 设置emptyDataView子控件垂直间的间距
+            emptyDataView.globalVerticalSpace = emptyData.itemPadding
+            
+        }
+        
+        emptyDataView.contentEdgeInsets = emptyData.contentEdgeInsets
+        emptyDataView.backgroundColor = emptyData.backgroundColor
+        emptyDataView.contentView.backgroundColor = emptyData.contentBackgroundColor
+        emptyDataView.imageViewSize = emptyData.imageSize ?? .zero
+        
+        emptyDataView.isHidden = false
+        emptyDataView.clipsToBounds = true
+        
+        emptyDataView.setNeedsUpdateConstraints()
+        
+        // 此方法会先检查动画当前是否启用，然后禁止动画，执行block块语句
+        UIView.performWithoutAnimation {
+            emptyDataView.layoutIfNeeded()
+        }
+    }
+}
+
+/// Constraints约束相关
+private extension XYEmptyDataView {
+    /// 更新自身的约束到父视图
+    func updateMyConstraints() {
+        guard superConstraints.count > 0 else {
+            return
+        }
+        
+        let inset = scrollViewContentInset
+        /// 修复`contentInst`引发的布局偏移问题，上下左右间距需固定为0
+        superConstraints.forEach {
+            switch $0.firstAttribute {
+            case .top:
+                //                $0.constant = inset.top
+                $0.constant = 0
+            case .bottom:
+                //                $0.constant = inset.bottom
+                $0.constant = 0
+            case .left, .leading:
+                //                $0.constant = inset.left
+                $0.constant = 0
+            case .right, .trailing:
+                //                $0.constant = inset.right
+                $0.constant = 0
+            case .width:
+                $0.constant = -(inset.left + inset.right)
+            case .height:
+                $0.constant = -(inset.top + inset.bottom)
+            default:
+                break
+            }
+        }
+    }
+    
+    func updateContentViewConstraints() {
+        removeConstraints(contentViewConstraints)
+        contentViewConstraints.removeAll()
+        
+        let viewDict = ["contentView": contentView]
+        var metrics: [String: Any] = [:]
+        let hFormat = "H:|-(left)-[contentView]-(right)-|"
+        var vFormat = "V:|-(top)-[self]-(bottom)-|"
+        var top = contentEdgeInsets.top
+        var bottom = contentEdgeInsets.bottom
+        
+        switch position {
+        case .top(let offset):
+            top += offset
+            vFormat = "V:|-(top)-[contentView]-(<=bottom@600)-|"
+        case .bottom(let offset):
+            bottom += offset
+            vFormat = "V:|-(>=top@600)-[contentView]-(bottom)-|"
+        case .center(let offset):
+            vFormat = "V:|-(>=top@800)-[contentView]-(<=bottom@800)-|"
+            contentViewConstraints.append(
+                contentView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: offset)
+            )
+        }
+        metrics = ["left": contentEdgeInsets.left, "right": contentEdgeInsets.right, "top": top, "bottom": bottom]
+        contentViewConstraints.append(contentsOf: [
+            hFormat,
+            vFormat
+        ]
+        .filter {
+            $0.count > 0
+        }
+        .flatMap {
+            NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: metrics, views: viewDict)
+        })
+        addConstraints(contentViewConstraints)
+    }
+    
+    func updateSubConstraints() {
+        contentView.removeConstraints(subConstraints)
+        subConstraints.removeAll()
+        
+        // 若有customView 则 让其与contentView的约束相同
+        if let customView = customView {
+            self.contentView.addSubview(customView)
+            
+            subConstraints.append(contentsOf: [
+                "H:|[customView]|", "V:|[customView]|"
+            ]
+            .flatMap {
+                NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: nil, views: ["customView": customView])
+            })
+        }
+        else {
+            
+            // 无customView
+            var width : CGFloat = frame.size.width
+            if width == 0 {
+                width = UIScreen.main.bounds.width
+            }
+            
+            // contentView的子控件横向间距  四舍五入
+            let horizontalSpace = CGFloat(roundf(Float(width / EmptyDataViewHorizontalSpaceRatioValue)))
+            // contentView的子控件之间的垂直间距，默认为10.0
+            let globalverticalSpace = self.globalVerticalSpace
+            
+            var subviewKeyArray = [String]()
+            var subviewDict = [String: UIView]()
+            var metrics = ["horizontalSpace": horizontalSpace] as [String : Any]
+            
+            // 设置imageView水平约束
+            if canShowImage {
+                self.contentView.addSubview(self.imageView)
+                subviewKeyArray.append("imageView")
+                subviewDict[subviewKeyArray.last!] = imageView
+                
+                let imageLeftSpace = horizontalSpace
+                let imageRightSpace = horizontalSpace
+                subConstraints.append(contentsOf: [
+                    NSLayoutConstraint.init(item: imageView, attribute: .centerX, relatedBy: .equal, toItem: self.contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0),
+                    imageView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: imageLeftSpace),
+                    imageView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -imageRightSpace)
+                ])
+                if self.imageViewSize.width > 0.0 && self.imageViewSize.height > 0.0 {
+                    subConstraints.append(contentsOf: [
+                        NSLayoutConstraint.init(item: self.imageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.width),
+                        NSLayoutConstraint.init(item: self.imageView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.height)
+                    ])
+                }
+                
+            } else {
+                imageView .removeFromSuperview()
+            }
+            
+            // 根据title是否可以显示，设置titleLable的水平约束
+            if canShowTitle {
+                self.contentView.addSubview(self.titleLabel)
+                let titleLeftSpace = horizontalSpace
+                let titleRightSpace = horizontalSpace
+                let titleMetrics = ["titleLeftSpace": titleLeftSpace, "titleRightSpace": titleRightSpace]
+                for d in titleMetrics {
+                    metrics[d.key] = titleMetrics[d.key]
+                }
+                subviewKeyArray.append("titleLabel")
+                subviewDict[subviewKeyArray.last!] = self.titleLabel
+                
+                subConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-(titleLeftSpace)-[titleLabel(>=0)]-(titleRightSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict))
+                
+            } else {
+                // 不显示就移除
+                titleLabel.removeFromSuperview()
+                
+            }
+            
+            // 根据是否可以显示detail, 设置detailLabel水平约束
+            if canShowDetail {
+                self.contentView.addSubview(self.detailLabel)
+                
+                let detailLeftSpace = horizontalSpace
+                let detailRightSpace = horizontalSpace
+                let detailMetrics = ["detailLeftSpace": detailLeftSpace, "detailRightSpace": detailRightSpace]
+                for d in detailMetrics {
+                    metrics[d.key] = detailMetrics[d.key]
+                }
+                subviewKeyArray.append("detailLabel")
+                subviewDict[subviewKeyArray.last!] = detailLabel
+                subConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "|-(detailLeftSpace)-[detailLabel(>=0)]-(detailRightSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict))
+                
+            } else {
+                // 不显示就移除
+                detailLabel.removeFromSuperview()
+                
+            }
+            
+            // 根据reloadButton是否能显示，设置其水平约束
+            if canShowReloadButton {
+                self.contentView.addSubview(self.reloadButton)
+                let buttonLeftSpace = horizontalSpace
+                let buttonRightSpace = horizontalSpace
+                let buttonMetrics = ["buttonLeftSpace": buttonLeftSpace, "buttonRightSpace": buttonRightSpace]
+                for d in buttonMetrics {
+                    metrics[d.key] = buttonMetrics[d.key]
+                }
+                
+                subviewKeyArray.append("reloadButton")
+                subviewDict[subviewKeyArray.last!] = reloadButton
+                
+                subConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "|-(buttonLeftSpace)-[reloadButton(>=0)]-(buttonRightSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict))
+            } else {
+                // 不显示就移除
+                reloadButton.removeFromSuperview()
+            }
+            
+            // 设置垂直约束
+            var verticalFormat = String()
+            // 拼接字符串，添加每个控件垂直边缘之间的约束值, 默认为globalVerticalSpace 11.0，如果设置了子控件的contentEdgeInsets,则verticalSpace无效
+            let space = globalverticalSpace
+            for viewName in subviewKeyArray {
+                guard subviewDict[viewName] != nil else {
+                    continue
+                }
+                // 拼接间距值
+                verticalFormat += "-(\(space))-[\(viewName)]"
+                
+                if viewName == subviewKeyArray.last {
+                    // 最后一个控件把距离父控件底部的约束值也加上
+                    verticalFormat += "-(\(space))-"
+                }
+            }
+            // 向contentView分配垂直约束
+            if verticalFormat.count > 0 {
+                subConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|\(verticalFormat)|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict))
+            }
+        }
+        
+        contentView.addConstraints(subConstraints)
+    }
+    
 }
 
 extension EmptyData.ViewBinder {
