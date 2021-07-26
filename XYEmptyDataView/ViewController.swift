@@ -29,7 +29,6 @@ class ViewController: UIViewController {
     }
     
     private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(ViewController.clearData))
-    private lazy var otherButton = UIBarButtonItem(title: "切换位置", style: .plain, target: self, action: #selector(ViewController.otherButtonClick))
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -70,8 +69,10 @@ class ViewController: UIViewController {
                 return nil
             }
             .position { [weak self] in
-                if self?.isLoading == true {
-                    return .top
+                guard let `self` = self else { return .none}
+                if self.isLoading == true {
+                    let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
+                    return .top(offset: height)
                 }
                 return .center(offset: 0)
             }
@@ -85,12 +86,12 @@ class ViewController: UIViewController {
 
     private func setupView() {
         
-//        let headerView = UILabel(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
-//        headerView.backgroundColor = UIColor(red: 246/255.0, green: 246/255.0, blue: 246/255.0, alpha: 1.0)
-//        headerView.numberOfLines = 0
-//        headerView.textAlignment = .center
-//        headerView.text = "我是headerView"
-//        self.tableView.tableHeaderView = headerView
+        let headerView = UILabel(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
+        headerView.backgroundColor = UIColor(red: 246/255.0, green: 246/255.0, blue: 246/255.0, alpha: 1.0)
+        headerView.numberOfLines = 0
+        headerView.textAlignment = .center
+        headerView.text = "我是headerView"
+        self.tableView.tableHeaderView = headerView
         
         view.addSubview(tableView)
         NSLayoutConstraint.activate(
@@ -104,7 +105,7 @@ class ViewController: UIViewController {
             }
         )
         
-        navigationItem.rightBarButtonItems = [otherButton, clearButton]
+        navigationItem.rightBarButtonItems = [clearButton]
         
         tableView.contentInsetAdjustmentBehavior = .never
         tableView.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
@@ -113,21 +114,6 @@ class ViewController: UIViewController {
     @objc private func clearData() {
         dataArray.removeAll()
         tableView.reloadData()
-    }
-    
-    @objc private func otherButtonClick() {
-        let value = Int.random(in: 0...10) % 3
-        var emptyData = tableView.emptyData
-        if value == 0 {
-            emptyData?.position = .top
-        }
-        else if value == 1 {
-            emptyData?.position = .bottom
-        }
-        else {
-            emptyData?.position = .center(offset: 0)
-        }
-        tableView.emptyData = emptyData
     }
 
 }
@@ -210,11 +196,9 @@ extension ViewController: XYEmptyDataDelegate {
 extension ViewController: XYEmptyDataViewAppearable {
     func emptyDataView(didAppear scrollView: UIScrollView) {
         clearButton.isEnabled = false
-        otherButton.isEnabled = true
     }
     
     func emptyDataView(didDisappear scrollView: UIScrollView) {
         clearButton.isEnabled = true
-        otherButton.isEnabled = false
     }
 }

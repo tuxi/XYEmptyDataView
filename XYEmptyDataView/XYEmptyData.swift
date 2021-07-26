@@ -44,8 +44,8 @@ public struct EmptyData {
     public typealias Delegate = XYEmptyDataDelegate & XYEmptyDataViewAppearable
     public enum Position {
         case center(offset: CGFloat = 0)
-        case top
-        case bottom
+        case top(offset: CGFloat = 0)
+        case bottom(offset: CGFloat = 0)
     }
     /// `ViewBinder`分为两种视图：`default` 和 `custom`
     public class ViewBinder {
@@ -61,8 +61,8 @@ public struct EmptyData {
         fileprivate init() {}
     }
     
-    /// 对齐方法，分为：上、下、中间
-    public var position: Position
+    /// 对齐方法，分为：上、下、中间，修改的话需要调用`.bind.position`
+    public let position: Position
     public var contentEdgeInsets: UIEdgeInsets = .zero
     
     public var backgroundColor: UIColor?
@@ -361,17 +361,18 @@ private class XYEmptyDataView : UIView {
     /// 自定义视图
     var customView: UIView? {
         didSet {
-            if let customV = customView {
-                self.contentView.addSubview(customV)
-                return
-            }
-            
+           // 移除旧的
             if let oldCustomView = oldValue, customView?.isEqual(oldValue) == false {
                 oldCustomView.removeFromSuperview()
             }
+            // 添加新的
+            if let customView = self.customView {
+                customView.translatesAutoresizingMaskIntoConstraints = false
+                self.contentView.addSubview(customView)
+            }
         }
     }
-    
+
     // MARK: - Properties
     
     var contentEdgeInsets: UIEdgeInsets = .zero
@@ -525,14 +526,18 @@ private class XYEmptyDataView : UIView {
         contentViewConstraints.removeAll()
         
         let viewDict = ["contentView": contentView]
-        let metrics: [String: Any] = ["left": contentEdgeInsets.left, "right": contentEdgeInsets.right, "top": contentEdgeInsets.top, "bottom": contentEdgeInsets.bottom]
+        var metrics: [String: Any] = [:]
         let hFormat = "H:|-(left)-[contentView]-(right)-|"
         var vFormat = "V:|-(top)-[self]-(bottom)-|"
-
+        var top = contentEdgeInsets.top
+        var bottom = contentEdgeInsets.bottom
+        
         switch position {
-        case .top:
+        case .top(let offset):
+            top += offset
             vFormat = "V:|-(top)-[contentView]-(<=bottom@600)-|"
-        case .bottom:
+        case .bottom(let offset):
+            bottom += offset
             vFormat = "V:|-(>=top@600)-[contentView]-(bottom)-|"
         case .center(let offset):
             vFormat = "V:|-(>=top@800)-[contentView]-(<=bottom@800)-|"
@@ -540,7 +545,7 @@ private class XYEmptyDataView : UIView {
                 contentView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: offset)
             )
         }
-        
+        metrics = ["left": contentEdgeInsets.left, "right": contentEdgeInsets.right, "top": top, "bottom": bottom]
         contentViewConstraints.append(contentsOf: [
             hFormat,
             vFormat
