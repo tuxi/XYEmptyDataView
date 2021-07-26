@@ -54,7 +54,7 @@ class ViewController: UIViewController {
             .image {
                 $0.image = UIImage(named: "wow")
             }
-            .reload {
+            .button {
                 $0.setTitle("点击重试", for: .normal)
                 $0.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
                 $0.layer.cornerRadius = 5.0

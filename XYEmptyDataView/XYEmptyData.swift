@@ -22,6 +22,10 @@ public protocol XYEmptyDataViewAppearable {
     func emptyDataView(didDisappear scrollView: UIScrollView)
 }
 
+public protocol XYEmptyDataViewable {
+    var emptyData: EmptyData? { get }
+}
+
 @objc public protocol XYEmptyDataDelegate: NSObjectProtocol {
     
     /// 是否应显示`emptyDataView`, 默认`true`。当符合显示空数据，但是不想其显示时，可实现此方法，返回`false`
@@ -53,12 +57,10 @@ public struct EmptyData {
         fileprivate var titleLabelClosure: ((UILabel) -> Void)?
         fileprivate var detailLabelClosure: ((UILabel) -> Void)?
         fileprivate var imageViewClosure: ((UIImageView) -> Void)?
-        fileprivate var reloadButtonClosure: ((UIButton) -> Void)?
+        fileprivate var buttonClosure: ((UIButton) -> Void)?
         
         fileprivate var customView: (() -> UIView?)?
-        
         fileprivate var position: (() -> Position?)?
-        
         fileprivate init() {}
     }
     
@@ -77,25 +79,14 @@ public struct EmptyData {
     public let bind = ViewBinder()
 }
 
-extension UIScrollView: UIGestureRecognizerDelegate {
-    
-    /// 用于关联对象的keys
-    private struct XYEmptyDataKeys {
-        static var emptyDataView = "com.alpface.XYEmptyData.emptyDataView"
-        static var registerEmptyDataView = "com.alpface.XYEmptyData.registerEemptyDataView"
-        static var config = "com.alpface.XYEmptyData.config"
-    }
-    
-    open var emptyData: EmptyData? {
-        get {
-            return objc_getAssociatedObject(self, &XYEmptyDataKeys.config) as? EmptyData
-        }
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.config, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            registerEmptyDataView()
-            xy_reloadEmptyDataView()
-        }
-    }
+/// 用于关联对象的keys
+private struct XYEmptyDataKeys {
+    static var emptyDataView = "com.alpface.XYEmptyData.emptyDataView"
+    static var registerEmptyDataView = "com.alpface.XYEmptyData.registerEemptyDataView"
+    static var config = "com.alpface.XYEmptyData.config"
+}
+
+extension UIScrollView {
     
     private var emptyDataView: XYEmptyDataView? {
         get {
@@ -122,7 +113,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         return view!
     }
     
-    private func registerEmptyDataView() {
+    fileprivate func registerEmptyDataView() {
         
         /// 保证这里只初始化一次
         var num = objc_getAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView) as? NSNumber
@@ -170,7 +161,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     }
     
     /// 刷新空视图， 当执行`tableView`的`readData`、`endUpdates`或者`CollectionView`的`readData`时会调用此方法，外面无需主动调用
-    @objc private func xy_reloadEmptyDataView() {
+    @objc fileprivate func xy_reloadEmptyDataView() {
         if canDisplayEmptyDataView() == false {
             return
         }
@@ -652,7 +643,7 @@ private extension XYEmptyDataView {
             if let block = emptyData.bind.imageViewClosure {
                 block(emptyDataView.imageView)
             }
-            if let block = emptyData.bind.reloadButtonClosure {
+            if let block = emptyData.bind.buttonClosure {
                 block(emptyDataView.reloadButton)
             }
             
@@ -905,8 +896,8 @@ extension EmptyData.ViewBinder {
     }
 
     @discardableResult
-    public func reload(_ closure: @escaping (UIButton) -> Void) -> Self {
-        self.reloadButtonClosure = closure
+    public func button(_ closure: @escaping (UIButton) -> Void) -> Self {
+        self.buttonClosure = closure
         return self
     }
     @discardableResult
@@ -926,3 +917,18 @@ extension EmptyData.ViewBinder {
         return self
     }
 }
+
+extension XYEmptyDataViewable where Self: UIScrollView {
+    public var emptyData: EmptyData? {
+        get {
+            return objc_getAssociatedObject(self, &XYEmptyDataKeys.config) as? EmptyData
+        }
+        set {
+            objc_setAssociatedObject(self, &XYEmptyDataKeys.config, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            registerEmptyDataView()
+            xy_reloadEmptyDataView()
+        }
+    }
+}
+
+extension UIScrollView: XYEmptyDataViewable {}
