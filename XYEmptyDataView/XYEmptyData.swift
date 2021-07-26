@@ -24,18 +24,10 @@ public protocol XYEmptyDataViewAppearable {
 
 @objc public protocol XYEmptyDataDelegate: NSObjectProtocol {
     
-    
-    /// 是否应该淡入淡出，default is YES
-    /// - Returns: Bool
-    @objc
-    optional func emptyDataView(shouldFadeInOnDisplay scrollView: UIScrollView) -> Bool
-    
-    
-    /// 是否应显示emptyDataView, 默认YES
+    /// 是否应显示`emptyDataView`, 默认`true`。当符合显示空数据，但是不想其显示时，可实现此方法，返回`false`
     /// - Returns: 如果当前无数据则应显示emptyDataView
     @objc
     optional func emptyDataView(shouldDisplay scrollView: UIScrollView) -> Bool
-    
     
     /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return NO
     /// - Returns: 如果需要强制显示emptyDataView，return YES即可
@@ -43,11 +35,11 @@ public protocol XYEmptyDataViewAppearable {
     optional func emptyDataView(shouldForcedDisplay scrollView: UIScrollView) -> Bool
     
     @objc
-    optional func emptyDataView(_ scrollView: UIScrollView, didTapReloadButton button: UIButton)
+    optional func emptyDataView(_ scrollView: UIScrollView, didTapButton button: UIButton)
     
 }
 
-/// 存放一些空数据的结果
+/// 空数据模型
 public struct EmptyData {
     public typealias Delegate = XYEmptyDataDelegate & XYEmptyDataViewAppearable
     public enum Position {
@@ -55,18 +47,14 @@ public struct EmptyData {
         case top
         case bottom
     }
+    /// `ViewBinder`分为两种视图：`default` 和 `custom`
     public class ViewBinder {
-        fileprivate var xy_textLabelBlock: ((UILabel) -> Void)?
-        fileprivate var xy_detailTextLabelBlock: ((UILabel) -> Void)?
-        fileprivate var xy_imageViewBlock: ((UIImageView) -> Void)?
-        fileprivate var xy_reloadButtonBlock: ((UIButton) -> Void)?
+        fileprivate var titleLabelClosure: ((UILabel) -> Void)?
+        fileprivate var detailLabelClosure: ((UILabel) -> Void)?
+        fileprivate var imageViewClosure: ((UIImageView) -> Void)?
+        fileprivate var reloadButtonClosure: ((UIButton) -> Void)?
         
         fileprivate var customView: (() -> UIView?)?
-        
-        fileprivate var xy_textEdgeInsets: UIEdgeInsets = .zero
-        fileprivate var xy_imageEdgeInsets: UIEdgeInsets = .zero
-        fileprivate var xy_detailEdgeInsets: UIEdgeInsets = .zero
-        fileprivate var xy_buttonEdgeInsets: UIEdgeInsets = .zero
         
         fileprivate var position: (() -> Position?)?
         
@@ -85,7 +73,7 @@ public struct EmptyData {
     /// `imageView`的宽高，默认为`nil`，让其自适应
     public var imageSize: CGSize?
     public weak var delegate: Delegate?
-    public let view = ViewBinder()
+    public let bind = ViewBinder()
 }
 
 extension UIScrollView: UIGestureRecognizerDelegate {
@@ -125,10 +113,9 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     private func setupEmptyDataView() {
         var view = self.emptyDataView
         if view == nil {
-            view = XYEmptyDataView.show(withView: self, animated: xy_emptyDataViewShouldFadeInOnDisplay())
-//            view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view = XYEmptyDataView.show(withView: self, animated: true)
+            view?.tapButonBlock = xy_clickButton(btn:)
             view?.isHidden = true
-            
             self.emptyDataView = view
         }
     }
@@ -140,8 +127,8 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         var num = objc_getAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView) as? NSNumber
         
         if num == nil || num?.boolValue == false {
-            if self.xy_emptyDataViewCanDisplay() == false {
-                self.xy_removeEmptyDataView()
+            if self.canDisplayEmptyDataView() == false {
+                self.removeEmptyDataView()
                 num = NSNumber(value: false)
             }
             else {
@@ -169,20 +156,28 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             }
             
         }
-
     }
     
+    private func unregisterEmptyDataView() {
+        objc_setAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        if canDisplayEmptyDataView() {
+            Swizzler.unswizzleSelector(NSSelectorFromString("reloadData"), aClass: self.classForCoder)
+            if self is UITableView {
+                Swizzler.unswizzleSelector(NSSelectorFromString("endUpdates"), aClass: self.classForCoder)
+            }
+        }
+    }
     
     /// 刷新emptyDataView, 当执行tableView的readData、endUpdates或者CollectionView的readData时会调用此方法
     ////////////////////////////////////////////////////////////////////////
-    @objc open func xy_reloadEmptyDataView() {
-        if xy_emptyDataViewCanDisplay() == false {
+    @objc private func xy_reloadEmptyDataView() {
+        if canDisplayEmptyDataView() == false {
             return
         }
         
-        if let emptyData = self.emptyData, (xy_emptyDataViewShouldDisplay() == true &&
-            xy_itemCount() <= 0) ||
-            xy_emptyDataViewShouldBeForcedToDisplay() == true {
+        if let emptyData = self.emptyData,
+           (shouldDisplayEmptyDataView && itemCount <= 0) ||
+            shouldForcedDisplayEmptyDataView {
             
             // 通知代理即将显示
             xy_emptyDataViewWillAppear()
@@ -198,31 +193,26 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             
             // 重置视图及其约束
             emptyDataView.resetSubviews()
-            emptyDataView.position = emptyData.view.position?() ?? emptyData.position
+            emptyDataView.position = emptyData.bind.position?() ?? emptyData.position
             
-            if let closure = emptyData.view.customView, let view = closure() {
+            if let closure = emptyData.bind.customView, let view = closure() {
                 emptyDataView.customView = view
             } else {
                 // customView为nil时，则通过block回到获取子控件 设置
-                if let block = emptyData.view.xy_textLabelBlock  {
+                if let block = emptyData.bind.titleLabelClosure  {
                     block(emptyDataView.titleLabel)
                 }
-                if let block = emptyData.view.xy_detailTextLabelBlock {
+                if let block = emptyData.bind.detailLabelClosure {
                     block(emptyDataView.detailLabel)
                 }
                 
-                if let block = emptyData.view.xy_imageViewBlock {
+                if let block = emptyData.bind.imageViewClosure {
                     block(emptyDataView.imageView)
                 }
-                if let block = emptyData.view.xy_reloadButtonBlock {
+                if let block = emptyData.bind.reloadButtonClosure {
                     block(emptyDataView.reloadButton)
                 }
                 
-                // 设置子控件之间的边距
-                emptyDataView.titleEdgeInsets = emptyData.view.xy_textEdgeInsets
-                emptyDataView.detailEdgeInsets = emptyData.view.xy_detailEdgeInsets
-                emptyDataView.imageEdgeInsets = emptyData.view.xy_imageEdgeInsets
-                emptyDataView.buttonEdgeInsets = emptyData.view.xy_buttonEdgeInsets
                 // 设置emptyDataView子控件垂直间的间距
                 emptyDataView.globalVerticalSpace = emptyData.itemPadding
                 
@@ -241,11 +231,9 @@ extension UIScrollView: UIGestureRecognizerDelegate {
             UIView.performWithoutAnimation {
                 emptyDataView.layoutIfNeeded()
             }
-            // 通知代理完全显示
             xy_emptyDataViewDidAppear()
-            
         } else {
-            xy_removeEmptyDataView()
+            removeEmptyDataView()
         }
         
         
@@ -267,136 +255,30 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         }
     }
     
-    private func xy_removeEmptyDataView() {
+    private func removeEmptyDataView() {
         // 通知代理即将消失
         self.xy_emptyDataViewWillDisappear()
         if let nView = self.emptyDataView {
             nView.resetSubviews()
             nView.removeFromSuperview()
             self.emptyDataView = nil
-            
         }
 
         // 通知代理完全消失
         self.xy_emptyDataViewDidDisappear()
     }
     
-    
-    // 是否符合显示
-    private func xy_emptyDataViewCanDisplay() -> Bool {
-        if  self is UITableView || self is UICollectionView {
-            return true
-        }
-        return false
-    }
-    
-    private func xy_itemCount() -> Int {
-        var itemCount = 0
-        
-        let selectorName = "dataSource"
-        
-        if self.responds(to: NSSelectorFromString(selectorName)) == false {
-            return itemCount
-        }
-        
-        // UITableView
-        if self is UITableView {
-            let tableView = self as! UITableView
-            guard let dataSource = tableView.dataSource else {
-                return itemCount
-            }
-            var sections = 1
-            let selName1 = "numberOfSectionsInTableView:"
-            if dataSource.responds(to: NSSelectorFromString(selName1)) {
-                sections = dataSource.numberOfSections!(in: tableView)
-            }
-            let selName2 = "tableView:numberOfRowsInSection:"
-            if dataSource.responds(to: NSSelectorFromString(selName2)) {
-                // 遍历所有组获取每组的行数，就相加得到所有item的数量
-                if sections > 0 {
-                    for section in 0...(sections - 1) {
-                        itemCount += dataSource.tableView(tableView, numberOfRowsInSection: section)
-                    }
-                }
-                
-            }
-        }
-        
-        // UICollectionView
-        if self is UICollectionView {
-            let collectionView = self as! UICollectionView
-            guard let dataSource = collectionView.dataSource else {
-                return itemCount
-            }
-            
-            var sections = 1
-            let selName1 = "numberOfSectionsInCollectionView:"
-            if dataSource.responds(to: NSSelectorFromString(selName1)) {
-                sections = dataSource.numberOfSections!(in: collectionView)
-            }
-            let selName2 = "collectionView:numberOfItemsInSection:"
-            if dataSource.responds(to: NSSelectorFromString(selName2)) {
-                // 遍历所有组获取每组的行数，就相加得到所有item的数量
-                if sections > 0 {
-                    for section in 0...(sections - 1) {
-                        itemCount += dataSource.collectionView(collectionView, numberOfItemsInSection: section)
-                    }
-                }
-                
-            }
-        }
-        
-        return itemCount;
-    }
-    
-    /// 是否需要淡入淡出
-    private func xy_emptyDataViewShouldFadeInOnDisplay() -> Bool {
-        guard let del = self.emptyData?.delegate else {
-            return true
-        }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldFadeInOnDisplay:))) {
-            return del.emptyDataView!(shouldFadeInOnDisplay: self)
-        }
-        
-        return true
-    }
-    
-    /// 是否应该显示
-    private func xy_emptyDataViewShouldDisplay() -> Bool {
-        guard let del = self.emptyData?.delegate else {
-            return true
-        }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldDisplay:))) {
-            return del.emptyDataView!(shouldDisplay: self)
-        }
-        return true
-    }
-    
-    /// 是否应该强制显示,默认不需要的
-    private func xy_emptyDataViewShouldBeForcedToDisplay() -> Bool {
-        guard let del = self.emptyData?.delegate else {
-            return false
-        }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldForcedDisplay:))) {
-            return del.emptyDataView!(shouldForcedDisplay: self)
-        }
-        return false
-    }
-    
     /// 点击空数据视图的 reload的回调
-    @objc fileprivate func xy_clickReloadBtn(btn: UIButton) {
+    fileprivate func xy_clickButton(btn: UIButton) {
         guard let del = self.emptyData?.delegate else {
             return
         }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(_:didTapReloadButton:))) {
-            del.emptyDataView!(self, didTapReloadButton: btn)
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(_:didTapButton:))) {
+            del.emptyDataView!(self, didTapButton: btn)
         }
     }
 
 }
-
-
-
 
 private let EmptyDataViewHorizontalSpaceRatioValue: CGFloat = 16.0
 
@@ -408,27 +290,6 @@ private class _WeakObjectContainer : NSObject {
     
     public init(weakObject: AnyObject) {
         self.weakObject = weakObject
-    }
-}
-
-
-extension UIView {
-    
-   private struct XYEmptyDataKeys {
-        static var emptyDataViewContentEdgeInsets = "com.alpface.XYEmptyData.emptyDataViewContentEdgeInsets"
-    }
-    fileprivate var emptyDataViewContentEdgeInsets: UIEdgeInsets {
-        get {
-            if let obj = objc_getAssociatedObject(self, XYEmptyDataKeys.emptyDataViewContentEdgeInsets) as? NSValue {
-                return obj.uiEdgeInsetsValue
-            }
-            return UIEdgeInsets.zero
-        }
-        set {
-            let value : NSValue = NSValue.init(uiEdgeInsets: newValue)
-            
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.emptyDataViewContentEdgeInsets, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
     }
 }
 
@@ -494,7 +355,7 @@ private class XYEmptyDataView : UIView {
         button.backgroundColor = UIColor.clear
         button.contentVerticalAlignment = .center
         button.contentHorizontalAlignment = .center
-        button.addTarget(self, action: #selector(XYEmptyDataView.clickReloadBtn(_:)), for: .touchUpInside)
+        button.addTarget(self, action: #selector(XYEmptyDataView.clickButton(_:)), for: .touchUpInside)
         button.setContentHuggingPriority(.required, for: .vertical)
         button.setContentCompressionResistancePriority(.required, for: .vertical)
         return button
@@ -503,26 +364,14 @@ private class XYEmptyDataView : UIView {
     /// 自定义视图
     var customView: UIView? {
         didSet {
-            
-            if let customV = self.customView {
-                if customV.isEqual(oldValue) {
-                    if !(customV.superview != nil)  {
-                        self.contentView.addSubview(customV)
-                    }
-                    return;
-                }
+            if let customV = customView {
+                self.contentView.addSubview(customV)
+                return
             }
             
-            if let oldCustomView = oldValue {
+            if let oldCustomView = oldValue, customView?.isEqual(oldValue) == false {
                 oldCustomView.removeFromSuperview()
             }
-            
-            if let customV = self.customView {
-                customV.removeConstraints(customV.constraints)
-                customV.translatesAutoresizingMaskIntoConstraints = false
-                self.contentView.addSubview(customV)
-            }
-            
         }
     }
     
@@ -530,53 +379,16 @@ private class XYEmptyDataView : UIView {
     
     var contentEdgeInsets: UIEdgeInsets = .zero
     
-    /** 所有子控件之间垂直间距 */
+    /// 所有子控件之间垂直间距
     var globalVerticalSpace: CGFloat = 10.0
-    
-    /** 各子控件之间的边距，若设置此边距则 */
-    var titleEdgeInsets: UIEdgeInsets {
-        get {
-            return titleLabel.emptyDataViewContentEdgeInsets
-        }
-        set {
-            self.titleLabel.emptyDataViewContentEdgeInsets = newValue
-        }
-    }
-    
-    var imageEdgeInsets: UIEdgeInsets {
-        get {
-            return imageView.emptyDataViewContentEdgeInsets
-        }
-        set {
-            self.imageView.emptyDataViewContentEdgeInsets = newValue
-        }
-    }
-    
-    var detailEdgeInsets: UIEdgeInsets {
-        get {
-            return detailLabel.emptyDataViewContentEdgeInsets
-        }
-        set {
-            self.detailLabel.emptyDataViewContentEdgeInsets = newValue
-        }
-    }
-    
-    var buttonEdgeInsets: UIEdgeInsets {
-        get {
-            return reloadButton.emptyDataViewContentEdgeInsets
-        }
-        set {
-            self.reloadButton.emptyDataViewContentEdgeInsets = newValue
-        }
-    }
     
     var position: EmptyData.Position = .center(offset: 0)
     
-    /** imageView的size, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero */
+    /// `imageView.size`, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero
     var imageViewSize: CGSize = .zero
     
-    /** tap手势回调block */
-    var tapGestureRecognizerBlock: ((UITapGestureRecognizer) -> Swift.Void)?
+    /// 点击刷新按钮的回调
+    var tapButonBlock: ((UIButton) -> Void)?
     
     private var superConstraints = [NSLayoutConstraint]()
     private var contentViewConstraints = [NSLayoutConstraint]()
@@ -652,16 +464,7 @@ private class XYEmptyDataView : UIView {
         contentView.removeConstraints(subConstraints)
         
     }
-    
-    /// 设置tap手势
-    ////////////////////////////////////////////////////////////////////////
-    func tapGestureRecognizer(_ tapBlock: @escaping (UITapGestureRecognizer) -> Swift.Void) {
-     
-        self.tapGestureRecognizerBlock = tapBlock
-    }
-    
 
-    ////////////////////////////////////////////////////////////////////////
     class func show(withView view: UIView, animated: Bool) -> XYEmptyDataView {
         let view = XYEmptyDataView.init(view)
         view.showAnimated(animated)
@@ -676,24 +479,8 @@ private class XYEmptyDataView : UIView {
     }
     
     /// 点击刷新按钮时处理事件
-    @objc private func clickReloadBtn(_ btn: UIButton) {
-        let sel = #selector(UIScrollView.xy_clickReloadBtn(btn:))
-        var superV = self.superview
-        while superV != nil {
-            if superV is UIScrollView {
-                superV!.perform(sel, with: btn)
-                superV = nil
-            }
-            else {
-                superV = superV?.superview
-            }
-        }
-    }
-    
-    @objc private func tapGestureOnSelf(_ tap: UITapGestureRecognizer) {
-        if self.tapGestureRecognizerBlock != nil {
-            self.tapGestureRecognizerBlock!(tap)
-        }
+    @objc private func clickButton(_ btn: UIButton) {
+        tapButonBlock?(btn)
     }
 
     // MARK: - Constraints
@@ -794,7 +581,7 @@ private class XYEmptyDataView : UIView {
             }
             
             // contentView的子控件横向间距  四舍五入
-            let horizontalSpace = roundf(Float(width / EmptyDataViewHorizontalSpaceRatioValue))
+            let horizontalSpace = CGFloat(roundf(Float(width / EmptyDataViewHorizontalSpaceRatioValue)))
             // contentView的子控件之间的垂直间距，默认为10.0
             let globalverticalSpace = self.globalVerticalSpace
             
@@ -803,32 +590,18 @@ private class XYEmptyDataView : UIView {
             var metrics = ["horizontalSpace": horizontalSpace] as [String : Any]
             
             // 设置imageView水平约束
-            if canShowImage() {
+            if canShowImage {
                 self.contentView.addSubview(self.imageView)
                 subviewKeyArray.append("imageView")
                 subviewDict[subviewKeyArray.last!] = imageView
                 
-                var imageLeftSpace = horizontalSpace
-                var imageRightSpace = horizontalSpace
-                if canChangeInsets(insets: self.imageEdgeInsets) {
-                    
-                    imageLeftSpace = Float(self.imageEdgeInsets.left)
-                    imageRightSpace = Float(self.imageEdgeInsets.right)
-                    let imageMetrics = ["imageLeftSpace": imageLeftSpace, "imageRightSpace": imageRightSpace]
-                    // 合并字典
-                    for d in imageMetrics {
-                        metrics[d.key] = imageMetrics[d.key]
-                    }
-                    subConstraints.append(contentsOf: (NSLayoutConstraint.constraints(withVisualFormat: "H:|-(imageLeftSpace)-[imageView]-(imageRightSpace)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict)))
-                    
-                }
-                else {
-                    subConstraints.append(contentsOf: [
-                        NSLayoutConstraint.init(item: imageView, attribute: .centerX, relatedBy: .equal, toItem: self.contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0),
-                        imageView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 10),
-                        imageView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -10)
-                    ])
-                }
+                let imageLeftSpace = horizontalSpace
+                let imageRightSpace = horizontalSpace
+                subConstraints.append(contentsOf: [
+                    NSLayoutConstraint.init(item: imageView, attribute: .centerX, relatedBy: .equal, toItem: self.contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0),
+                    imageView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: imageLeftSpace),
+                    imageView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -imageRightSpace)
+                ])
                 if self.imageViewSize.width > 0.0 && self.imageViewSize.height > 0.0 {
                     subConstraints.append(contentsOf: [
                         NSLayoutConstraint.init(item: self.imageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: self.imageViewSize.width),
@@ -841,14 +614,10 @@ private class XYEmptyDataView : UIView {
             }
             
             // 根据title是否可以显示，设置titleLable的水平约束
-            if (canShowTitle()) {
+            if canShowTitle {
                 self.contentView.addSubview(self.titleLabel)
-                var titleLeftSpace = horizontalSpace
-                var titleRightSpace = horizontalSpace
-                if (canChangeInsets(insets: self.titleEdgeInsets)) {
-                    titleLeftSpace = Float(self.titleEdgeInsets.left)
-                    titleRightSpace = Float(self.titleEdgeInsets.right)
-                }
+                let titleLeftSpace = horizontalSpace
+                let titleRightSpace = horizontalSpace
                 let titleMetrics = ["titleLeftSpace": titleLeftSpace, "titleRightSpace": titleRightSpace]
                 for d in titleMetrics {
                     metrics[d.key] = titleMetrics[d.key]
@@ -865,15 +634,11 @@ private class XYEmptyDataView : UIView {
             }
             
             // 根据是否可以显示detail, 设置detailLabel水平约束
-            if (self.canShowDetail()) {
+            if canShowDetail {
                 self.contentView.addSubview(self.detailLabel)
                 
-                var detailLeftSpace = horizontalSpace
-                var detailRightSpace = horizontalSpace
-                if (self.canChangeInsets(insets: self.detailEdgeInsets)) {
-                    detailLeftSpace = Float(self.detailEdgeInsets.left)
-                    detailRightSpace = Float(self.detailEdgeInsets.right)
-                }
+                let detailLeftSpace = horizontalSpace
+                let detailRightSpace = horizontalSpace
                 let detailMetrics = ["detailLeftSpace": detailLeftSpace, "detailRightSpace": detailRightSpace]
                 for d in detailMetrics {
                     metrics[d.key] = detailMetrics[d.key]
@@ -889,14 +654,10 @@ private class XYEmptyDataView : UIView {
             }
             
             // 根据reloadButton是否能显示，设置其水平约束
-            if (self.canShowReloadButton()) {
+            if canShowReloadButton {
                 self.contentView.addSubview(self.reloadButton)
-                var buttonLeftSpace = horizontalSpace
-                var buttonRightSpace = horizontalSpace
-                if (self.canChangeInsets(insets: self.buttonEdgeInsets)) {
-                    buttonLeftSpace = Float(self.buttonEdgeInsets.left)
-                    buttonRightSpace = Float(self.buttonEdgeInsets.right)
-                }
+                let buttonLeftSpace = horizontalSpace
+                let buttonRightSpace = horizontalSpace
                 let buttonMetrics = ["buttonLeftSpace": buttonLeftSpace, "buttonRightSpace": buttonRightSpace]
                 for d in buttonMetrics {
                     metrics[d.key] = buttonMetrics[d.key]
@@ -914,35 +675,21 @@ private class XYEmptyDataView : UIView {
             // 设置垂直约束
             var verticalFormat = String()
             // 拼接字符串，添加每个控件垂直边缘之间的约束值, 默认为globalVerticalSpace 11.0，如果设置了子控件的contentEdgeInsets,则verticalSpace无效
-            var previousView : UIView?
+            let space = globalverticalSpace
             for viewName in subviewKeyArray {
-                var topSpace = globalverticalSpace
-                guard let view = subviewDict[viewName] else {
+                guard subviewDict[viewName] != nil else {
                     continue
                 }
                 // 拼接间距值
-                if (self.canChangeInsets(insets: view.emptyDataViewContentEdgeInsets)) {
-                    topSpace = view.emptyDataViewContentEdgeInsets.top
-                }
-                if let previousView = previousView {
-                    if (self.canChangeInsets(insets: previousView.emptyDataViewContentEdgeInsets)) {
-                        topSpace += previousView.emptyDataViewContentEdgeInsets.bottom
-                    }
-                }
+                verticalFormat += "-(\(space))-[\(viewName)]"
                 
-                verticalFormat += "-(\(topSpace))-[\(viewName)]"
-                
-                if (viewName == subviewKeyArray.last) {
+                if viewName == subviewKeyArray.last {
                     // 最后一个控件把距离父控件底部的约束值也加上
-                    verticalFormat += "-(\(view.emptyDataViewContentEdgeInsets.bottom))-"
+                    verticalFormat += "-(\(space))-"
                 }
-                
-                previousView = view;
             }
-            
-            previousView = nil;
             // 向contentView分配垂直约束
-            if (verticalFormat.count > 0) {
+            if verticalFormat.count > 0 {
                 subConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|\(verticalFormat)|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: metrics, views: subviewDict))
             }
         }
@@ -963,41 +710,8 @@ private class XYEmptyDataView : UIView {
             inset.bottom = max(max(safeAreaInsets.bottom, adjustedContentInset.bottom), contentInset.bottom)
             inset.left = max(max(safeAreaInsets.left, adjustedContentInset.left), contentInset.left)
             inset.right = max(max(safeAreaInsets.right, adjustedContentInset.right), contentInset.right)
-//            if scrollView.contentInsetAdjustmentBehavior == .always {
-//                /// 解决`contentInsetAdjustmentBehavior == .always`的偏移问题
-//                inset.top -= adjustedContentInset.top
-//                inset.bottom -= adjustedContentInset.bottom
-//                inset.left -= adjustedContentInset.left
-//                inset.right -= adjustedContentInset.right
-//            }
         }
         return inset
-    }
-    
-    // MARK: - Others
-    func canShowImage() -> Bool {
-        return (imageView.image != nil) //&& (imageView.superview != nil)
-    }
-    
-    func canShowTitle() -> Bool {
-        return (titleLabel.text != nil) //&& (titleLabel.superview != nil)
-    }
-  
-    func canShowDetail() -> Bool {
-        return (detailLabel.text != nil) //&& (detailLabel.superview != nil)
-    }
-    
-    func canShowReloadButton() -> Bool {
-        if (reloadButton.title(for: .normal) != nil) ||
-            (reloadButton.image(for: .normal) != nil) ||
-            (reloadButton.attributedTitle(for: .normal) != nil) {
-            return true//reloadButton.superview != nil
-        }
-        return false
-    }
-    
-    func canChangeInsets(insets: UIEdgeInsets) -> Bool {
-        return insets != .zero
     }
 
     // MARK: - Touchs
@@ -1019,8 +733,7 @@ private class XYEmptyDataView : UIView {
                 return touchView
             }
         }
-        
-        return nil;
+        return nil
     }
 
 }
@@ -1032,63 +745,178 @@ private extension NSLayoutConstraint {
     }
 }
 
-extension UIScrollView {
+/// 扩展显示空数据的回调
+private extension UIScrollView {
     /// 即将显示空数据时调用
-    private func xy_emptyDataViewWillAppear() {
+    func xy_emptyDataViewWillAppear() {
         emptyData?.delegate?.emptyDataView(willAppear: self)
     }
    
     /// 已经显示空数据时调用
-    private func xy_emptyDataViewDidAppear() {
-        // 这里以UITableView为例: 当调用原reloadData后，tableView的contentSize会被重置为所有cell的高度，而显示空数据时，tableView并没有数据，所以导致contentSize被重置为zero，导致空视图超出tableView的高度时依旧无法滚动
-//        DispatchQueue.main.async {
-//            let contentSize = self.contentSize
-//            self.contentSize = CGSize(width: contentSize.width == 0 ? self.emptyDataView?.frame.size.width ?? 0 : 0, height: (self.emptyDataView?.frame.size.height ?? 0))
-//        }
+    func xy_emptyDataViewDidAppear() {
         emptyData?.delegate?.emptyDataView(didAppear: self)
     }
 
     /// 空数据即将消失时调用
-    private func xy_emptyDataViewWillDisappear() {
+    func xy_emptyDataViewWillDisappear() {
         emptyData?.delegate?.emptyDataView(willDisappear: self)
     }
    
     /// 空数据已经消失时调用
-    private func xy_emptyDataViewDidDisappear() {
+    func xy_emptyDataViewDidDisappear() {
         emptyData?.delegate?.emptyDataView(didDisappear: self)
     }
 }
 
-extension XYEmptyDataViewAppearable {
+/// 扩展显示空数据的条件
+private extension UIScrollView {
+    /// 是否应该显示
+    private var shouldDisplayEmptyDataView: Bool {
+        guard let del = self.emptyData?.delegate else {
+            return true
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldDisplay:))) {
+            return del.emptyDataView!(shouldDisplay: self)
+        }
+        return true
+    }
+    
+    /// 是否应该强制显示,默认不需要的
+    private var shouldForcedDisplayEmptyDataView: Bool {
+        guard let del = self.emptyData?.delegate else {
+            return false
+        }
+        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldForcedDisplay:))) {
+            return del.emptyDataView!(shouldForcedDisplay: self)
+        }
+        return false
+    }
+    
+    // 是否符合显示
+    private func canDisplayEmptyDataView() -> Bool {
+        if  self is UITableView || self is UICollectionView {
+            return true
+        }
+        return false
+    }
+    
+    private var itemCount: Int {
+        var itemCount = 0
+        
+        let selectorName = "dataSource"
+        
+        if self.responds(to: NSSelectorFromString(selectorName)) == false {
+            return itemCount
+        }
+        
+        // UITableView
+        if self is UITableView {
+            let tableView = self as! UITableView
+            guard let dataSource = tableView.dataSource else {
+                return itemCount
+            }
+            var sections = 1
+            let selName1 = "numberOfSectionsInTableView:"
+            if dataSource.responds(to: NSSelectorFromString(selName1)) {
+                sections = dataSource.numberOfSections!(in: tableView)
+            }
+            let selName2 = "tableView:numberOfRowsInSection:"
+            if dataSource.responds(to: NSSelectorFromString(selName2)) {
+                // 遍历所有组获取每组的行数，就相加得到所有item的数量
+                if sections > 0 {
+                    for section in 0...(sections - 1) {
+                        itemCount += dataSource.tableView(tableView, numberOfRowsInSection: section)
+                    }
+                }
+                
+            }
+        }
+        
+        // UICollectionView
+        if self is UICollectionView {
+            let collectionView = self as! UICollectionView
+            guard let dataSource = collectionView.dataSource else {
+                return itemCount
+            }
+            
+            var sections = 1
+            let selName1 = "numberOfSectionsInCollectionView:"
+            if dataSource.responds(to: NSSelectorFromString(selName1)) {
+                sections = dataSource.numberOfSections!(in: collectionView)
+            }
+            let selName2 = "collectionView:numberOfItemsInSection:"
+            if dataSource.responds(to: NSSelectorFromString(selName2)) {
+                // 遍历所有组获取每组的行数，就相加得到所有item的数量
+                if sections > 0 {
+                    for section in 0...(sections - 1) {
+                        itemCount += dataSource.collectionView(collectionView, numberOfItemsInSection: section)
+                    }
+                }
+                
+            }
+        }
+        return itemCount
+    }
+}
+
+public extension XYEmptyDataViewAppearable {
     func emptyDataView(willAppear scrollView: UIScrollView) {}
     func emptyDataView(didAppear scrollView: UIScrollView) {}
     func emptyDataView(willDisappear scrollView: UIScrollView) {}
     func emptyDataView(didDisappear scrollView: UIScrollView) {}
 }
 
+private extension XYEmptyDataView {
+    // MARK: - Others
+    var canShowImage: Bool {
+        return imageView.image != nil //&& imageView.superview != nil
+    }
+    
+    var canShowTitle: Bool {
+        return titleLabel.text != nil //&& titleLabel.superview != nil
+    }
+  
+    var canShowDetail: Bool {
+        return detailLabel.text != nil // && detailLabel.superview != nil
+    }
+    
+    var canShowReloadButton: Bool {
+        if (reloadButton.title(for: .normal) != nil) ||
+            (reloadButton.image(for: .normal) != nil) ||
+            (reloadButton.attributedTitle(for: .normal) != nil) {
+            return true//reloadButton.superview != nil
+        }
+        return false
+    }
+    
+    func canChangeInsets(insets: UIEdgeInsets) -> Bool {
+        return insets != .zero
+    }
+}
+
 extension EmptyData.ViewBinder {
     @discardableResult
     public func title(_ closure: @escaping (UILabel) -> Void) -> Self {
-        self.xy_textLabelBlock = closure
+        self.titleLabelClosure = closure
         return self
     }
     @discardableResult
     public func detail(_ closure: @escaping (UILabel) -> Void) -> Self {
-        self.xy_detailTextLabelBlock = closure
+        self.detailLabelClosure = closure
         return self
     }
-    
+
     @discardableResult
     public func reload(_ closure: @escaping (UIButton) -> Void) -> Self {
-        self.xy_reloadButtonBlock = closure
+        self.reloadButtonClosure = closure
         return self
     }
     @discardableResult
     public func image(_ closure: @escaping (UIImageView) -> Void) -> Self {
-        self.xy_imageViewBlock = closure
+        self.imageViewClosure = closure
         return self
     }
-    
+
     @discardableResult
     public func custom(_ closure: @escaping () -> UIView?) -> Self {
         self.customView = closure
@@ -1100,4 +928,3 @@ extension EmptyData.ViewBinder {
         return self
     }
 }
-
