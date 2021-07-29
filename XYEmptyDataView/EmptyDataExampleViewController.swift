@@ -1,14 +1,14 @@
 //
-//  ViewController.swift
+//  EmptyDataExampleViewController.swift
 //  XYEmptyDataView
-//  
-//  Created by xiaoyuan on 2018/1/6.
-//  Copyright © 2018年 alpface. All rights reserved.
+//
+//  Created by xiaoyuan on 2021/7/30.
+//  Copyright © 2021 alpface. All rights reserved.
 //
 
 import UIKit
 
-class ViewController: UIViewController {
+class EmptyDataExampleViewController: UIViewController {
     
     private lazy var tableView: UITableView = {
        
@@ -28,7 +28,7 @@ class ViewController: UIViewController {
         }
     }
     
-    private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(ViewController.clearData))
+    private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(EmptyDataExampleViewController.clearData))
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -120,13 +120,13 @@ class ViewController: UIViewController {
     }
 
     @objc private func headerClick() {
-        
-        let vc = EmptyDataExampleViewController()
-        self.navigationController?.pushViewController(vc, animated: true)
+        let alert = UIAlertController(title: "谢谢🍾️🍾️🍺", message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "好的", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
 }
 
-extension ViewController: UITableViewDataSource, UITableViewDelegate {
+extension EmptyDataExampleViewController: UITableViewDataSource, UITableViewDelegate {
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return dataArray.count
@@ -168,7 +168,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     
 }
 
-extension ViewController: XYEmptyDataDelegate {
+extension EmptyDataExampleViewController: XYEmptyDataDelegate {
     
     func emptyDataView(_ scrollView: UIScrollView, didTapButton button: UIButton) {
         
@@ -201,7 +201,7 @@ extension ViewController: XYEmptyDataDelegate {
     }
 }
 
-extension ViewController: XYEmptyDataViewAppearable {
+extension EmptyDataExampleViewController: XYEmptyDataViewAppearable {
     func emptyDataView(didAppear scrollView: UIScrollView) {
         clearButton.isEnabled = false
     }

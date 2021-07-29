@@ -57,6 +57,12 @@ public struct XYEmptyData {
         fileprivate var customView: (() -> UIView?)?
         fileprivate var position: (() -> Position?)?
         fileprivate init() {}
+        
+        fileprivate var destoryClosure: (() -> Void)?
+        
+        deinit {
+            destoryClosure?()
+        }
     }
     
     /// 对齐方法，分为：上、下、中间，修改的话需要调用`.bind.position`
@@ -107,7 +113,9 @@ extension UIScrollView {
         var view = self.emptyDataView
         if view == nil {
             view = XYEmptyDataView.show(withView: self, animated: true)
-            view?.tapButonBlock = xy_clickButton(btn:)
+            view?.tapButonBlock = { [weak self] btn in
+                self?.xy_clickButton(btn: btn)
+            }
             view?.isHidden = true
             self.emptyDataView = view
         }
@@ -128,39 +136,41 @@ extension UIScrollView {
             else {
                 num = NSNumber(value: true)
                 setupEmptyDataView()
-                let executeBlock = { (view: AnyObject?, command: Selector, param1: AnyObject?, param2: AnyObject?) in
-                    
-                }
                 
                 // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
-                Swizzler.swizzleSelector(NSSelectorFromString("reloadData"),
-                                         withSelector: #selector(self.xy_reloadEmptyDataView),
-                                         for: self.classForCoder,
-                                         name: "reloadData",
-                                         block: executeBlock)
+                try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
+                    .replace(with: #selector(xy_reloadEmptyDataView))
                 
                 if self is UITableView {
-                    Swizzler.swizzleSelector(NSSelectorFromString("endUpdates"),
-                                             withSelector: #selector(self.xy_reloadEmptyDataView),
-                                             for: self.classForCoder,
-                                             name: "endUpdates",
-                                             block: executeBlock)
+                    
+                    try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("endUpdates"))
+                        .replace(with: #selector(xy_reloadEmptyDataView))
                 }
                 objc_setAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView, num, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
                 self.emptyData?.sizeObserver = SizeObserver(target: self, eventHandler: { [weak self] size in
                     self?.xy_reloadEmptyDataView()
                 })
+                
+                self.emptyData?.bind.destoryClosure = { [weak self] in
+//                    guard let `self` = self else {
+//                        return
+//                    }
+//                    self?.unregisterEmptyDataView()
+                }
             }
             
         }
     }
     
+    /// 最好不要移除，交换方法是针对所有实例
     private func unregisterEmptyDataView() {
         objc_setAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         if canDisplayEmptyDataView {
-            Swizzler.unswizzleSelector(NSSelectorFromString("reloadData"), aClass: self.classForCoder)
+            try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
+                .reset()
             if self is UITableView {
-                Swizzler.unswizzleSelector(NSSelectorFromString("endUpdates"), aClass: self.classForCoder)
+                try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("endUpdates"))
+                    .reset()
             }
         }
     }
@@ -183,21 +193,9 @@ extension UIScrollView {
             removeEmptyDataView()
         }
         
-        callOriginalFunctionAndSwizzledBlocks(originalSelector: NSSelectorFromString("reloadData"))
+        try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
+            .callFunction(withInsatnce: self)
         
-    }
-    
-    private func callOriginalFunctionAndSwizzledBlocks(originalSelector: Selector) {
-        if let originalMethod = class_getInstanceMethod(type(of: self), originalSelector),
-            let swizzle = Swizzler.swizzles[originalMethod] {
-            typealias MyCFunction = @convention(c) (AnyObject, Selector) -> Void
-            let curriedImplementation = unsafeBitCast(swizzle.originalMethod, to: MyCFunction.self)
-            curriedImplementation(self, originalSelector)
-            
-            for (_, block) in swizzle.blocks {
-                block(self, swizzle.selector, nil, nil)
-            }
-        }
     }
     
     private func removeEmptyDataView() {
@@ -325,6 +323,10 @@ private class XYEmptyDataView : UIView {
     private var superConstraints = [NSLayoutConstraint]()
     private var contentViewConstraints = [NSLayoutConstraint]()
     private var subConstraints = [NSLayoutConstraint]()
+    
+    deinit {
+        print(String(describing: self) + #function)
+    }
     
     convenience init(_ view: UIView) {
         self.init(frame: view.bounds)
