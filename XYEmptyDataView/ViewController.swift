@@ -1,7 +1,7 @@
 //
 //  ViewController.swift
 //  XYEmptyDataView
-//  https://github.com/tuxi/XYEmptyDataView
+//  
 //  Created by xiaoyuan on 2018/1/6.
 //  Copyright © 2018年 alpface. All rights reserved.
 //
@@ -41,7 +41,7 @@ class ViewController: UIViewController {
     }
 
     private func setupEmptyDataView() {
-        var emptyData = EmptyData(position: .center())
+        var emptyData = XYEmptyData(position: .center())
         
         emptyData.bind
             .title {

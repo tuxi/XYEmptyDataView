@@ -1,14 +1,14 @@
 //
 //  XYEmptyData.swift
 //  XYEmptyDataView
-//  https://github.com/tuxi/XYEmptyDataView
+//
 //  Created by xiaoyuan on 2018/1/6.
 //  Copyright © 2018年 alpface. All rights reserved.
 //
 
 import UIKit
 
-public protocol XYEmptyDataViewAppearable {
+public protocol XYEmptyDataViewAppearable: XYEmptyDataDelegate {
     /// 当emptyDataView即将显示的回调
     func emptyDataView(willAppear scrollView: UIScrollView)
     
@@ -23,15 +23,10 @@ public protocol XYEmptyDataViewAppearable {
 }
 
 public protocol XYEmptyDataViewable {
-    var emptyData: EmptyData? { get }
+    var emptyData: XYEmptyData? { get }
 }
 
 @objc public protocol XYEmptyDataDelegate: NSObjectProtocol {
-    
-    /// 是否应显示`emptyDataView`, 默认`true`。当符合显示空数据，但是不想其显示时，可实现此方法，返回`false`
-    /// - Returns: 如果当前无数据则应显示emptyDataView
-    @objc
-    optional func emptyDataView(shouldDisplay scrollView: UIScrollView) -> Bool
     
     /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return NO
     /// - Returns: 如果需要强制显示emptyDataView，return YES即可
@@ -45,8 +40,8 @@ public protocol XYEmptyDataViewable {
 }
 
 /// 空数据模型
-public struct EmptyData {
-    public typealias Delegate = XYEmptyDataDelegate & XYEmptyDataViewAppearable
+public struct XYEmptyData {
+    public typealias Delegate = XYEmptyDataDelegate
     public enum Position {
         case center(offset: CGFloat = 0)
         case top(offset: CGFloat = 0)
@@ -77,6 +72,12 @@ public struct EmptyData {
     public var imageSize: CGSize?
     public weak var delegate: Delegate?
     public let bind = ViewBinder()
+    /// 由于`XYEmptyDataView`是在`scrollView.frame.size！= .zero`时才显示，当scrollView的宽高发生改变时，导致空视图没机会显示
+    /// `sizeObserver`就是解决这个问题
+    fileprivate var sizeObserver: SizeObserver?
+    public init(position: Position) {
+        self.position = position
+    }
 }
 
 /// 用于关联对象的keys
@@ -119,8 +120,9 @@ extension UIScrollView {
         var num = objc_getAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView) as? NSNumber
         
         if num == nil || num?.boolValue == false {
-            if self.canDisplayEmptyDataView() == false {
+            if !canDisplayEmptyDataView {
                 self.removeEmptyDataView()
+                self.emptyData?.sizeObserver = nil
                 num = NSNumber(value: false)
             }
             else {
@@ -145,6 +147,9 @@ extension UIScrollView {
                                              block: executeBlock)
                 }
                 objc_setAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView, num, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                self.emptyData?.sizeObserver = SizeObserver(target: self, eventHandler: { [weak self] size in
+                    self?.xy_reloadEmptyDataView()
+                })
             }
             
         }
@@ -152,7 +157,7 @@ extension UIScrollView {
     
     private func unregisterEmptyDataView() {
         objc_setAssociatedObject(self, &XYEmptyDataKeys.registerEmptyDataView, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        if canDisplayEmptyDataView() {
+        if canDisplayEmptyDataView {
             Swizzler.unswizzleSelector(NSSelectorFromString("reloadData"), aClass: self.classForCoder)
             if self is UITableView {
                 Swizzler.unswizzleSelector(NSSelectorFromString("endUpdates"), aClass: self.classForCoder)
@@ -162,13 +167,11 @@ extension UIScrollView {
     
     /// 刷新空视图， 当执行`tableView`的`readData`、`endUpdates`或者`CollectionView`的`readData`时会调用此方法，外面无需主动调用
     @objc fileprivate func xy_reloadEmptyDataView() {
-        if canDisplayEmptyDataView() == false {
+        if !canDisplayEmptyDataView {
             return
         }
         
-        if let emptyData = self.emptyData,
-           (shouldDisplayEmptyDataView && itemCount <= 0) ||
-            shouldForcedDisplayEmptyDataView {
+        if let emptyData = self.emptyData, shouldDisplayEmptyDataView {
             
             emptyDataViewWillAppear()
             
@@ -277,7 +280,7 @@ private class XYEmptyDataView : UIView {
     }()
     
     /// 刷新按钮
-    lazy open var reloadButton: UIButton = {
+    lazy var reloadButton: UIButton = {
         let button = UIButton(type: UIButton.ButtonType.custom)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = UIColor.clear
@@ -311,7 +314,7 @@ private class XYEmptyDataView : UIView {
     /// 所有子控件之间垂直间距
     var globalVerticalSpace: CGFloat = 10.0
     
-    var position: EmptyData.Position = .center(offset: 0)
+    var position: XYEmptyData.Position = .center(offset: 0)
     
     /// `imageView.size`, 有的时候图片本身太大，导致imageView的尺寸并不是我们想要的，可以通过此方法设置, 当为CGSizeZero时不设置,默认为CGSizeZero
     var imageViewSize: CGSize = .zero
@@ -425,8 +428,12 @@ private class XYEmptyDataView : UIView {
         var inset: UIEdgeInsets = .zero
         if self.superview is UIScrollView {
             let scrollView = self.superview as! UIScrollView
-            let safeAreaInsets = scrollView.safeAreaInsets
-            let adjustedContentInset = scrollView.adjustedContentInset
+            var safeAreaInsets = UIEdgeInsets.zero
+            var adjustedContentInset = UIEdgeInsets.zero
+            if #available(iOS 11.0, *) {
+                safeAreaInsets = scrollView.safeAreaInsets
+                adjustedContentInset = scrollView.adjustedContentInset
+            }
             let contentInset = scrollView.contentInset
             
             inset.top = max(max(safeAreaInsets.top, adjustedContentInset.top), contentInset.top)
@@ -464,33 +471,26 @@ private class XYEmptyDataView : UIView {
 
 }
 
-private extension NSLayoutConstraint {
-    func with(priority: UILayoutPriority) -> NSLayoutConstraint {
-        self.priority = priority
-        return self
-    }
-}
-
 /// 扩展显示空数据的回调
 private extension UIScrollView {
     /// 即将显示空数据时调用
     func emptyDataViewWillAppear() {
-        emptyData?.delegate?.emptyDataView(willAppear: self)
+        (emptyData?.delegate as? XYEmptyDataViewAppearable)?.emptyDataView(willAppear: self)
     }
    
     /// 已经显示空数据时调用
     func emptyDataViewDidAppear() {
-        emptyData?.delegate?.emptyDataView(didAppear: self)
+        (emptyData?.delegate as? XYEmptyDataViewAppearable)?.emptyDataView(didAppear: self)
     }
 
     /// 空数据即将消失时调用
     func emptyDataViewWillDisappear() {
-        emptyData?.delegate?.emptyDataView(willDisappear: self)
+        (emptyData?.delegate as? XYEmptyDataViewAppearable)?.emptyDataView(willDisappear: self)
     }
    
     /// 空数据已经消失时调用
     func emptyDataViewDidDisappear() {
-        emptyData?.delegate?.emptyDataView(didDisappear: self)
+        (emptyData?.delegate as? XYEmptyDataViewAppearable)?.emptyDataView(didDisappear: self)
     }
 }
 
@@ -498,13 +498,9 @@ private extension UIScrollView {
 private extension UIScrollView {
     /// 是否应该显示
     private var shouldDisplayEmptyDataView: Bool {
-        guard let del = self.emptyData?.delegate else {
-            return true
-        }
-        if del.responds(to: #selector(XYEmptyDataDelegate.emptyDataView(shouldDisplay:))) {
-            return del.emptyDataView!(shouldDisplay: self)
-        }
-        return true
+        return emptyData != nil &&
+            !frame.size.equalTo(.zero) &&
+            (itemCount <= 0 || shouldForcedDisplayEmptyDataView)
     }
     
     /// 是否应该强制显示,默认不需要的
@@ -519,7 +515,7 @@ private extension UIScrollView {
     }
     
     // 是否符合显示
-    private func canDisplayEmptyDataView() -> Bool {
+    private var canDisplayEmptyDataView: Bool {
         if  self is UITableView || self is UICollectionView {
             return true
         }
@@ -622,7 +618,7 @@ private extension XYEmptyDataView {
 
 /// 更新视图
 private extension XYEmptyDataView {
-    func update(withEmptyData emptyData: EmptyData) {
+    func update(withEmptyData emptyData: XYEmptyData) {
         let emptyDataView = self
         // 重置视图及其约束
         emptyDataView.resetSubviews()
@@ -883,7 +879,7 @@ private extension XYEmptyDataView {
     
 }
 
-extension EmptyData.ViewBinder {
+extension XYEmptyData.ViewBinder {
     @discardableResult
     public func title(_ closure: @escaping (UILabel) -> Void) -> Self {
         self.titleLabelClosure = closure
@@ -912,16 +908,16 @@ extension EmptyData.ViewBinder {
         return self
     }
     @discardableResult
-    public func position(_ closure: @escaping () -> EmptyData.Position?) -> Self {
+    public func position(_ closure: @escaping () -> XYEmptyData.Position?) -> Self {
         self.position = closure
         return self
     }
 }
 
 extension XYEmptyDataViewable where Self: UIScrollView {
-    public var emptyData: EmptyData? {
+    public var emptyData: XYEmptyData? {
         get {
-            return objc_getAssociatedObject(self, &XYEmptyDataKeys.config) as? EmptyData
+            return objc_getAssociatedObject(self, &XYEmptyDataKeys.config) as? XYEmptyData
         }
         set {
             objc_setAssociatedObject(self, &XYEmptyDataKeys.config, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
@@ -932,3 +928,27 @@ extension XYEmptyDataViewable where Self: UIScrollView {
 }
 
 extension UIScrollView: XYEmptyDataViewable {}
+
+private class SizeObserver: NSObject {
+    private weak var target: UIView?
+    private var eventHandler: (_ size: CGSize) -> Void
+    private let keyPath = "bounds"
+    init(target: UIView, eventHandler: @escaping (_ size: CGSize) -> Void) {
+        self.eventHandler = eventHandler
+        super.init()
+        self.target = target
+        target.addObserver(self, forKeyPath: keyPath, options: [.old, .new, .initial], context: nil)
+    }
+    
+    deinit {
+        target?.removeObserver(self, forKeyPath: keyPath)
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        let new = change?[.newKey] as? CGRect ?? .zero
+        let old = change?[.oldKey] as? CGRect ?? .zero
+        if keyPath == self.keyPath, !old.size.equalTo(new.size) {
+            eventHandler(new.size)
+        }
+    }
+}
