@@ -113,7 +113,7 @@ extension XYEmptyData.ViewBinder {
         self.detailLabelClosure = closure
         return self
     }
-
+    
     @discardableResult
     public func button(_ closure: @escaping (UIButton) -> Void) -> Self {
         self.buttonClosure = closure
@@ -124,7 +124,7 @@ extension XYEmptyData.ViewBinder {
         self.imageViewClosure = closure
         return self
     }
-
+    
     @discardableResult
     public func custom(_ closure: @escaping () -> UIView?) -> Self {
         self.customView = closure
@@ -168,7 +168,7 @@ extension XYEmptyDataDelegate {
 }
 
 /// 扩展显示空数据的回调
-extension XYEmptyData {
+internal extension XYEmptyData {
     /// 即将显示空数据时调用
     func emptyDataViewWillAppear() {
         (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, onApperStatus: .willAppear)
@@ -191,7 +191,7 @@ extension XYEmptyData {
 }
 
 
-extension XYEmptyData {
+public extension XYEmptyData {
     /// 显示空视图
     func show(on view: UIView, animated: Bool) {
         emptyDataViewWillAppear()

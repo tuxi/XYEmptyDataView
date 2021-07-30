@@ -10,7 +10,6 @@ import Foundation
 
  public protocol XYEmptyDataViewable {
     var emptyData: XYEmptyData? { get }
-
 }
 
 @objc

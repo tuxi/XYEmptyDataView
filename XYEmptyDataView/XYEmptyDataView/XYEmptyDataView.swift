@@ -187,12 +187,6 @@ class XYEmptyDataView : UIView {
         contentView.removeConstraints(subConstraints)
         
     }
-
-//    class func show(withView view: UIView, animated: Bool) -> XYEmptyDataView {
-//        let view = XYEmptyDataView.init(view)
-//        view.showAnimated(animated)
-//        return view
-//    }
     
     private func showAnimated(_ animated: Bool) {
         

@@ -10,7 +10,6 @@ import UIKit
 
 /// 用于关联对象的keys
 private struct XYEmptyDataKeys {
-    static var isRegisterEmptyDataView = "com.alpface.XYEmptyData.registerEemptyDataView"
     static var config = "com.alpface.XYEmptyData.config"
 }
 
@@ -22,22 +21,12 @@ extension UIView {
         }
         set {
             objc_setAssociatedObject(self, &XYEmptyDataKeys.config, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            isRegisterEmptyDataView = registerEmptyDataView()
+            noticeEmptyDataDidChanged()
         }
     }
     
-    private var isRegisterEmptyDataView: Bool {
-        set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.isRegisterEmptyDataView, newValue, .OBJC_ASSOCIATION_ASSIGN)
-        }
-        get {
-            return objc_getAssociatedObject(self, &XYEmptyDataKeys.isRegisterEmptyDataView) as? Bool ?? false
-        }
-    }
-    
-    @objc public func registerEmptyDataView() -> Bool {
+    @objc public func noticeEmptyDataDidChanged() {
         setupEmptyDataView()
-        return isRegisterEmptyDataView
     }
     
     @objc public func reloadEmptyDataView() {
@@ -67,21 +56,9 @@ extension UIView {
         }
         emptyData.view.isHidden = true
         
-        emptyData.bind.destoryClosure = { [weak self] in
-            //                    guard let `self` = self else {
-            //                        return
-            //                    }
-            //                    self?.unregisterEmptyDataView()
-        }
-        
         emptyData.bind.sizeObserver = SizeObserver(target: self, eventHandler: { [weak self] size in
             self?.reloadEmptyDataView()
         })
-    }
-    
-    /// 点击空数据视图的 reload的回调
-    private func xy_clickButton(btn: UIButton) {
-        
     }
 }
 

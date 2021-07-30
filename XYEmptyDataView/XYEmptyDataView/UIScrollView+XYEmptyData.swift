@@ -8,7 +8,7 @@
 
 import UIKit
 
-
+private var isRegisterEmptyDataViewKey = "com.alpface.XYEmptyData.registerEemptyDataView"
 
 extension UIScrollView {
     
@@ -22,6 +22,23 @@ extension UIScrollView {
         
         try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
             .callFunction(withInsatnce: self)
+    }
+    
+    fileprivate var isRegisterEmptyDataView: Bool {
+        set {
+            objc_setAssociatedObject(self, &isRegisterEmptyDataViewKey, newValue, .OBJC_ASSOCIATION_ASSIGN)
+        }
+        get {
+            return objc_getAssociatedObject(self, &isRegisterEmptyDataViewKey) as? Bool ?? false
+        }
+    }
+    override public func noticeEmptyDataDidChanged() {
+        if let tableView = self as? UITableView {
+            tableView.registerEmptyDataView()
+        }
+        if let collectionView = self as? UICollectionView {
+            collectionView.registerEmptyDataView()
+        }
     }
 }
 
@@ -113,12 +130,14 @@ private extension UIScrollView {
 }
 
 extension UITableView {
-    override public func registerEmptyDataView() -> Bool {
-        if super.registerEmptyDataView() {
-            return true
+    
+    fileprivate func registerEmptyDataView() {
+        if self.isRegisterEmptyDataView {
+            return
         }
+        isRegisterEmptyDataView = true
         guard let emptyData = self.emptyData else {
-            return false
+            return
         }
         if !self.canDisplayEmptyDataView {
             self.emptyData?.hide()
@@ -134,7 +153,6 @@ extension UITableView {
             try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("endUpdates"))
                 .replace(with: #selector(reloadEmptyDataView))
         }
-        return true
     }
     
     /// 最好不要移除，交换方法是针对所有实例
@@ -148,12 +166,13 @@ extension UITableView {
     }
 }
 extension UICollectionView {
-    public override func registerEmptyDataView() -> Bool {
-        if super.registerEmptyDataView() {
-            return true
+    fileprivate func registerEmptyDataView() {
+        if self.isRegisterEmptyDataView {
+            return
         }
+        isRegisterEmptyDataView = true
         guard let emptyData = self.emptyData else {
-            return false
+            return
         }
         if !self.canDisplayEmptyDataView {
             self.emptyData?.hide()
@@ -166,7 +185,6 @@ extension UICollectionView {
             try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
                 .replace(with: #selector(reloadEmptyDataView))
         }
-        return true
     }
     
     /// 最好不要移除，交换方法是针对所有实例

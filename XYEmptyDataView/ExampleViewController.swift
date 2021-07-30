@@ -74,7 +74,6 @@ class ExampleViewController: UIViewController {
     @objc private func clearData() {
         dataArray.removeAll()
         view.emptyData?.show(on: self.view, animated: true)
-        view.reloadEmptyDataView()
     }
 }
 
