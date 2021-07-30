@@ -8,8 +8,12 @@
 
 import Foundation
 
-public protocol XYEmptyDataViewable {
+ public protocol XYEmptyDataViewable {
     var emptyData: XYEmptyData? { get }
-    
-//    func reloadEmptyDataView()
+
+}
+
+@objc
+public protocol XYEmptyDataRegistrable: NSObjectProtocol {
+    @objc func registerEmptyDataView()
 }

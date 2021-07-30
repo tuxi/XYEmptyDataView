@@ -14,6 +14,7 @@
 		D04B4F9126B4209F00CF7550 /* XYEmptyDataViewable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F9026B4209F00CF7550 /* XYEmptyDataViewable.swift */; };
 		D04B4F9326B4246E00CF7550 /* XYEmptyDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F9226B4246E00CF7550 /* XYEmptyDataView.swift */; };
 		D04B4F9526B424FD00CF7550 /* UIScrollView+XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F9426B424FD00CF7550 /* UIScrollView+XYEmptyData.swift */; };
+		D04B4F9726B438E600CF7550 /* ExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F9626B438E600CF7550 /* ExampleViewController.swift */; };
 		D2B23E7420007F9C00329C6C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B23E7320007F9C00329C6C /* AppDelegate.swift */; };
 		D2B23E7620007F9C00329C6C /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B23E7520007F9C00329C6C /* ViewController.swift */; };
 		D2B23E7920007F9C00329C6C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D2B23E7720007F9C00329C6C /* Main.storyboard */; };
@@ -31,6 +32,7 @@
 		D04B4F9026B4209F00CF7550 /* XYEmptyDataViewable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XYEmptyDataViewable.swift; sourceTree = "<group>"; };
 		D04B4F9226B4246E00CF7550 /* XYEmptyDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XYEmptyDataView.swift; sourceTree = "<group>"; };
 		D04B4F9426B424FD00CF7550 /* UIScrollView+XYEmptyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIScrollView+XYEmptyData.swift"; sourceTree = "<group>"; };
+		D04B4F9626B438E600CF7550 /* ExampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleViewController.swift; sourceTree = "<group>"; };
 		D2B23E7020007F9C00329C6C /* XYEmptyDataView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XYEmptyDataView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2B23E7320007F9C00329C6C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D2B23E7520007F9C00329C6C /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -90,6 +92,7 @@
 				D2B23E7320007F9C00329C6C /* AppDelegate.swift */,
 				D2B23E7520007F9C00329C6C /* ViewController.swift */,
 				D04B4F5B26B30B9200CF7550 /* EmptyDataExampleTableViewController.swift */,
+				D04B4F9626B438E600CF7550 /* ExampleViewController.swift */,
 				D2B23E7720007F9C00329C6C /* Main.storyboard */,
 				D2B23E7A20007F9C00329C6C /* Assets.xcassets */,
 				D2B23E7C20007F9C00329C6C /* LaunchScreen.storyboard */,
@@ -182,6 +185,7 @@
 				D04B4F8F26B4200F00CF7550 /* UIView+XYEmptyData.swift in Sources */,
 				D04B4F9526B424FD00CF7550 /* UIScrollView+XYEmptyData.swift in Sources */,
 				D04B4F5A26B307D900CF7550 /* Swizzler.swift in Sources */,
+				D04B4F9726B438E600CF7550 /* ExampleViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

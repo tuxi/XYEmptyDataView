@@ -10,6 +10,7 @@ import UIKit
 
 class ViewController: UIViewController {
     
+    
     private lazy var tableView: UITableView = {
        
         let tableView = UITableView(frame: .zero, style: .plain)
@@ -170,11 +171,9 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 
 extension ViewController: XYEmptyDataDelegate {
     
-    func emptyDataView(_ scrollView: UIScrollView, didTapButton button: UIButton) {
-        
+    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
         self.requestData()
     }
-    
     
     fileprivate func requestData() {
         isLoading = true
@@ -202,11 +201,14 @@ extension ViewController: XYEmptyDataDelegate {
 }
 
 extension ViewController: XYEmptyDataViewAppearable {
-    func emptyDataView(didAppear scrollView: UIScrollView) {
-        clearButton.isEnabled = false
-    }
-    
-    func emptyDataView(didDisappear scrollView: UIScrollView) {
-        clearButton.isEnabled = true
+    func emptyData(_ emptyData: XYEmptyData, onApperStatus status: XYEmptyDataAppearStatus) {
+        switch status {
+        case .didAppear:
+            clearButton.isEnabled = false
+        case .didDisappear:
+            clearButton.isEnabled = true
+        default:
+            break
+        }
     }
 }

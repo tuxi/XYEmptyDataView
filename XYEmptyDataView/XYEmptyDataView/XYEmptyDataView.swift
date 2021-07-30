@@ -93,6 +93,8 @@ class XYEmptyDataView : UIView {
 
     // MARK: - Properties
     
+    var status: XYEmptyData.Status = .hide
+    
     var contentEdgeInsets: UIEdgeInsets = .zero
     
     /// 所有子控件之间垂直间距

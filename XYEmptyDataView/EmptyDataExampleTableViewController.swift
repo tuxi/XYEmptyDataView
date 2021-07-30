@@ -120,9 +120,11 @@ class EmptyDataExampleTableViewController: UIViewController {
     }
 
     @objc private func headerClick() {
-        let alert = UIAlertController(title: "谢谢🍾️🍾️🍺", message: nil, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "好的", style: .default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
+//        let alert = UIAlertController(title: "谢谢🍾️🍾️🍺", message: nil, preferredStyle: .alert)
+//        alert.addAction(UIAlertAction(title: "好的", style: .default, handler: nil))
+//        self.present(alert, animated: true, completion: nil)
+        
+        self.navigationController?.pushViewController(ExampleViewController(), animated: true) 
     }
 }
 
@@ -170,12 +172,10 @@ extension EmptyDataExampleTableViewController: UITableViewDataSource, UITableVie
 
 extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
     
-    func emptyDataView(_ scrollView: UIScrollView, didTapButton button: UIButton) {
-        
-        self.requestData()
+    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
+        requestData()
     }
-    
-    
+   
     fileprivate func requestData() {
         isLoading = true
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
@@ -202,11 +202,14 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
 }
 
 extension EmptyDataExampleTableViewController: XYEmptyDataViewAppearable {
-    func emptyDataView(didAppear scrollView: UIScrollView) {
-        clearButton.isEnabled = false
-    }
-    
-    func emptyDataView(didDisappear scrollView: UIScrollView) {
-        clearButton.isEnabled = true
+    func emptyData(_ emptyData: XYEmptyData, onApperStatus status: XYEmptyDataAppearStatus) {
+        switch status {
+        case .didAppear:
+            clearButton.isEnabled = false
+        case .didDisappear:
+            clearButton.isEnabled = true
+        default:
+            break
+        }
     }
 }

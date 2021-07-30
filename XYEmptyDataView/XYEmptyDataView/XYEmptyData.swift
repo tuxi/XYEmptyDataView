@@ -8,31 +8,30 @@
 
 import UIKit
 
-public protocol XYEmptyDataViewAppearable: XYEmptyDataDelegate {
-    /// 当emptyDataView即将显示的回调
-    func emptyDataView(willAppear scrollView: UIScrollView)
-    
-    /// 当emptyDataView完全显示的回调
-    func emptyDataView(didAppear scrollView: UIScrollView)
-    
-    /// 当emptyDataView即将消失的回调
-    func emptyDataView(willDisappear scrollView: UIScrollView)
-    
-    /// 当emptyDataView完全消失的回调
-    func emptyDataView(didDisappear scrollView: UIScrollView)
+public enum XYEmptyDataAppearStatus {
+    /// emptyDataView即将显示
+    case willAppear
+    /// emptyDataView完全显示
+    case didAppear
+    /// emptyDataView即将消失
+    case willDisappear
+    /// emptyDataView完全消失
+    case didDisappear
 }
 
-@objc public protocol XYEmptyDataDelegate: NSObjectProtocol {
+public protocol XYEmptyDataViewAppearable: XYEmptyDataDelegate {
+    /// 当emptyDataView即将显示的回调
+    func emptyData(_ emptyData: XYEmptyData, onApperStatus status: XYEmptyDataAppearStatus)
+}
+
+public protocol XYEmptyDataDelegate: AnyObject {
     
     /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return NO
     /// - Returns: 如果需要强制显示emptyDataView，return YES即可
-    @objc
-    optional func emptyDataView(shouldForcedDisplay scrollView: UIScrollView) -> Bool
+    func shouldForcedDisplay(inEmptyData emptyData: XYEmptyData) -> Bool
     
     /// 点击空视图的`button`回调
-    @objc
-    optional func emptyDataView(_ scrollView: UIScrollView, didTapButton button: UIButton)
-    
+    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton)
 }
 
 /// 空数据模型
@@ -42,6 +41,10 @@ public struct XYEmptyData {
         case center(offset: CGFloat = 0)
         case top(offset: CGFloat = 0)
         case bottom(offset: CGFloat = 0)
+    }
+    /// 内部状态
+    internal enum Status {
+        case show, hide
     }
     /// `ViewBinder`分为两种视图：`default` 和 `custom`
     public class ViewBinder {
@@ -155,5 +158,56 @@ internal class SizeObserver: NSObject {
         if keyPath == self.keyPath, !old.size.equalTo(new.size) {
             eventHandler(new.size)
         }
+    }
+}
+
+extension XYEmptyDataDelegate {
+    func shouldForcedDisplay(inEmptyData emptyData: XYEmptyData) -> Bool {
+        return false
+    }
+}
+
+/// 扩展显示空数据的回调
+extension XYEmptyData {
+    /// 即将显示空数据时调用
+    func emptyDataViewWillAppear() {
+        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, onApperStatus: .willAppear)
+    }
+    
+    /// 已经显示空数据时调用
+    func emptyDataViewDidAppear() {
+        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, onApperStatus: .didAppear)
+    }
+    
+    /// 空数据即将消失时调用
+    func emptyDataViewWillDisappear() {
+        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, onApperStatus: .willDisappear)
+    }
+    
+    /// 空数据已经消失时调用
+    func emptyDataViewDidDisappear() {
+        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, onApperStatus: .didDisappear)
+    }
+}
+
+
+extension XYEmptyData {
+    /// 显示空视图
+    func show(on view: UIView, animated: Bool) {
+        emptyDataViewWillAppear()
+        self.view.show(withView: view, animated: animated)
+        self.updateView()
+        emptyDataViewDidAppear()
+        self.view.status = .show
+    }
+    
+    /// 隐藏空视图
+    func hide() {
+        emptyDataViewWillDisappear()
+        self.view.resetSubviews()
+        self.view.removeFromSuperview()
+        self.view.contentView.alpha = 0
+        emptyDataViewDidDisappear()
+        self.view.status = .hide
     }
 }
