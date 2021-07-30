@@ -1,5 +1,5 @@
 //
-//  EmptyDataExampleViewController.swift
+//  EmptyDataExampleTableViewController.swift
 //  XYEmptyDataView
 //
 //  Created by xiaoyuan on 2021/7/30.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class EmptyDataExampleViewController: UIViewController {
+class EmptyDataExampleTableViewController: UIViewController {
     
     private lazy var tableView: UITableView = {
        
@@ -28,7 +28,7 @@ class EmptyDataExampleViewController: UIViewController {
         }
     }
     
-    private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(EmptyDataExampleViewController.clearData))
+    private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(EmptyDataExampleTableViewController.clearData))
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -126,7 +126,7 @@ class EmptyDataExampleViewController: UIViewController {
     }
 }
 
-extension EmptyDataExampleViewController: UITableViewDataSource, UITableViewDelegate {
+extension EmptyDataExampleTableViewController: UITableViewDataSource, UITableViewDelegate {
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return dataArray.count
@@ -168,7 +168,7 @@ extension EmptyDataExampleViewController: UITableViewDataSource, UITableViewDele
     
 }
 
-extension EmptyDataExampleViewController: XYEmptyDataDelegate {
+extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
     
     func emptyDataView(_ scrollView: UIScrollView, didTapButton button: UIButton) {
         
@@ -201,7 +201,7 @@ extension EmptyDataExampleViewController: XYEmptyDataDelegate {
     }
 }
 
-extension EmptyDataExampleViewController: XYEmptyDataViewAppearable {
+extension EmptyDataExampleTableViewController: XYEmptyDataViewAppearable {
     func emptyDataView(didAppear scrollView: UIScrollView) {
         clearButton.isEnabled = false
     }

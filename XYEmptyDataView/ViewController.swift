@@ -121,7 +121,7 @@ class ViewController: UIViewController {
 
     @objc private func headerClick() {
         
-        let vc = EmptyDataExampleViewController()
+        let vc = EmptyDataExampleTableViewController()
         self.navigationController?.pushViewController(vc, animated: true)
     }
 }
