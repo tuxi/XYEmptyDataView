@@ -1,7 +1,7 @@
 # XYEmptyDataView
 为`UIView`扩展的`emptyData`属性，用于展示空数据视图，
 
-#### 使用说明
+### 使用说明
 
 - 空数据一般是展示在一个`UIview`上面，在`UIview`上显示或隐藏时，我们需要手动的触发它，比如：
 ```
@@ -26,8 +26,10 @@ private var isLoading = false {
 
 
 - 空数据视图，基本会展示2种状态的视图：1.无数据、2.网络异常，其他的可通过自定义，而基于不同的页面大致可能是文案或图片展示不同。
-基于以上，我们将不同的状态定义为枚举的一个case，当显示空数据时，展示不同的信息即可。
 
+
+### 示例
+基于以上，我们将不同的状态定义为枚举的一个case，当显示空数据时，展示不同的信息即可。
 定义一个空数据状态的枚举，让实现`XYEmptyDataState`协议，以规范行为
 ```swift
 enum ExampleEmptyDataState: XYEmptyDataState {
