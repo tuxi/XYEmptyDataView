@@ -10,9 +10,8 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    
     private lazy var tableView: UITableView = {
-       
+        
         let tableView = UITableView(frame: .zero, style: .plain)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
@@ -30,7 +29,7 @@ class ViewController: UIViewController {
     }
     
     private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(ViewController.clearData))
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -42,36 +41,16 @@ class ViewController: UIViewController {
         requestData()
         
     }
-
+    
     private func setupEmptyDataView() {
         var emptyData = XYEmptyData()
         
-        emptyData.bind
-            .title {
-                $0.text = "这是空数据😁视图"
-            }
-            .detail {
-                $0.text = "暂无数据"
-                $0.numberOfLines = 0
-            }
-            .image {
-                $0.image = UIImage(named: "wow")
-            }
-            .button {
-                $0.setTitle("点击重试", for: .normal)
-                $0.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
-                $0.layer.cornerRadius = 5.0
-                $0.layer.masksToBounds = true
-            }
-        
-        emptyData.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
-        emptyData.imageSize = CGSize(width: 180, height: 180)
-        
+        emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
+        emptyData.format.imageSize = CGSize(width: 180, height: 180)
         emptyData.delegate = self
-        emptyData.dataSource = self
         tableView.emptyData = emptyData
     }
-
+    
     private func setupView() {
         
         let headerView = UIButton(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
@@ -98,19 +77,43 @@ class ViewController: UIViewController {
         
         navigationItem.rightBarButtonItems = [clearButton]
         
-//        tableView.contentInsetAdjustmentBehavior = .never
-//        tableView.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
+        //        tableView.contentInsetAdjustmentBehavior = .never
+        //        tableView.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
     }
     
     @objc private func clearData() {
         dataArray.removeAll()
         tableView.reloadData()
     }
-
+    
     @objc private func headerClick() {
         
         let vc = EmptyDataExampleTableViewController()
         self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    private func requestData() {
+        isLoading = true
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
+            self.dataArray.removeAll()
+            for section in 0...3 {
+                var  array = Array<Any>()
+                var count = 0
+                if section % 2 == 0 {
+                    count = 3
+                }
+                else {
+                    count = 6
+                }
+                for row in 0...count {
+                    array.append(row)
+                }
+                self.dataArray.append(array)
+                
+            }
+            self.isLoading = false
+            self.tableView.reloadData()
+        }
     }
 }
 
@@ -136,12 +139,12 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             cell.addSubview(line)
             line.backgroundColor = UIColor.lightGray
             let viewDict = ["line": line]
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[line]|",
-                                                                   options: NSLayoutConstraint.FormatOptions(rawValue: 0),
+            NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[line]|",
+                                                                       options: NSLayoutConstraint.FormatOptions(rawValue: 0),
                                                                        metrics: nil,
                                                                        views: viewDict))
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:[line(==0.8)]|",
-                                                                   options: NSLayoutConstraint.FormatOptions(rawValue: 0),
+            NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:[line(==0.8)]|",
+                                                                       options: NSLayoutConstraint.FormatOptions(rawValue: 0),
                                                                        metrics: nil,
                                                                        views: viewDict))
         }
@@ -155,38 +158,32 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 }
 
 extension ViewController: XYEmptyDataDelegate {
-    
-    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
-        self.requestData()
+    func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl) {
+        requestData()
     }
     
-    fileprivate func requestData() {
-        isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
-            self.dataArray.removeAll()
-            for section in 0...3 {
-                var  array = Array<Any>()
-                var count = 0
-                if section % 2 == 0 {
-                    count = 3
-                }
-                else {
-                    count = 6
-                }
-                for row in 0...count {
-                    array.append(row)
-                }
-                self.dataArray.append(array)
-                
-            }
-            self.isLoading = false
-            self.tableView.reloadData()
+    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
+        requestData()
+    }
+    
+    func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
+        if self.isLoading == true {
+            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
+            return .top(offset: height)
         }
+        return .center(offset: 0)
+    }
+    
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
+        if self.isLoading == true {
+            return ExampleEmptyDataState.loading
+        }
+        return ExampleEmptyDataState.noLocalLife
     }
 }
 
-extension ViewController: XYEmptyDataViewAppearable {
-    func emptyData(_ emptyData: XYEmptyData, didChangedApperStatus status: XYEmptyDataAppearStatus) {
+extension ViewController: XYEmptyDataAppearable {
+    func emptyData(_ emptyData: XYEmptyData, didChangedAppearStatus status: XYEmptyData.AppearStatus) {
         switch status {
         case .didAppear:
             clearButton.isEnabled = false
@@ -195,39 +192,5 @@ extension ViewController: XYEmptyDataViewAppearable {
         default:
             break
         }
-    }
-}
-extension ViewController: XYEmptyDataDataSource {
-    func image(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIImage? {
-        return UIImage(named: "wow")
-    }
-    
-    func title(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String? {
-        return "这是空数据视图"
-    }
-    
-    func detail(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String? {
-        return "暂无数据"
-    }
-    
-    func button(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String? {
-        return "点击重试"
-    }
-    
-    func customView(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIView? {
-        if self.isLoading == true {
-            let indicatorView = UIActivityIndicatorView(style: .gray)
-            indicatorView.startAnimating()
-            return indicatorView
-        }
-        return nil
-    }
-    
-    func position(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> XYEmptyData.Position {
-        if self.isLoading == true {
-            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
-            return .top(offset: height)
-        }
-        return .center(offset: 0)
     }
 }

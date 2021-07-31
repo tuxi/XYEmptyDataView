@@ -8,20 +8,29 @@
 
 import UIKit
 
-class XYEmptyDataView : UIView {
+internal class XYEmptyDataView : UIView {
+    
+    struct ViewModel {
+        var image: UIImage?
+        var title: String?
+        var detail: String?
+        var titleButton: String?
+        var customView: UIView?
+    }
     
     // MARK: - Views
-    lazy var contentView: UIView = {
-        let contentView = UIView(frame: .zero)
+    lazy var contentView: UIControl = {
+        let contentView = UIControl()
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.backgroundColor = UIColor.clear
         contentView.isUserInteractionEnabled = true
         contentView.alpha = 0.0
+        contentView.addTarget(self, action: #selector(clickContentButton(_:)), for: .touchUpInside)
         return contentView
     }()
     
     lazy var titleLabel: UILabel = {
-        let label = UILabel.init(frame: .zero)
+        let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.backgroundColor = UIColor.clear
         label.font = UIFont.systemFont(ofSize: 27.0)
@@ -35,7 +44,7 @@ class XYEmptyDataView : UIView {
     }()
     
     lazy var detailLabel: UILabel = {
-        let label = UILabel.init(frame: .zero)
+        let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.backgroundColor = UIColor.clear
         label.font = UIFont.systemFont(ofSize: 17.0)
@@ -49,7 +58,7 @@ class XYEmptyDataView : UIView {
     }()
     
     lazy var imageView: UIImageView = {
-        let imageView = UIImageView.init(frame: .zero)
+        let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.backgroundColor = UIColor.clear
         imageView.contentMode = .scaleAspectFit
@@ -60,7 +69,7 @@ class XYEmptyDataView : UIView {
     }()
     
     lazy var reloadButton: UIButton = {
-        let button = UIButton(type: UIButton.ButtonType.custom)
+        let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = UIColor.clear
         button.contentVerticalAlignment = .center
@@ -97,6 +106,8 @@ class XYEmptyDataView : UIView {
     
     /// 点击刷新按钮的回调
     var tapButonBlock: ((UIButton) -> Void)?
+    /// 点击contentView的回调
+    var tapContentViewBlock: ((UIControl) -> Void)?
     
     private var superConstraints = [NSLayoutConstraint]()
     private var contentViewConstraints = [NSLayoutConstraint]()
@@ -141,12 +152,21 @@ class XYEmptyDataView : UIView {
             ])
         }
         else {
-            superConstraints.append(contentsOf: [
-                self.leadingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.leadingAnchor, constant: left),
-                superview.safeAreaLayoutGuide.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: right),
-                self.topAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.topAnchor, constant: top),
-                superview.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: bottom)
-            ])
+            if #available(iOS 11.0, *) {
+                superConstraints.append(contentsOf: [
+                    self.leadingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.leadingAnchor, constant: left),
+                    superview.safeAreaLayoutGuide.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: right),
+                    self.topAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.topAnchor, constant: top),
+                    superview.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: bottom)
+                ])
+            } else {
+                superConstraints.append(contentsOf: [
+                    self.leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: left),
+                    superview.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: right),
+                    self.topAnchor.constraint(equalTo: superview.topAnchor, constant: top),
+                    superview.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: bottom)
+                ])
+            }
         }
         superview.addConstraints(superConstraints)
         
@@ -192,6 +212,11 @@ class XYEmptyDataView : UIView {
     /// 点击刷新按钮时处理事件
     @objc private func clickButton(_ btn: UIButton) {
         tapButonBlock?(btn)
+    }
+    
+    /// 点击整个content时处理事件
+    @objc private func clickContentButton(_ btn: UIControl) {
+        tapContentViewBlock?(btn)
     }
     
     // MARK: - Constraints
@@ -280,59 +305,25 @@ extension XYEmptyDataView {
         let emptyDataView = self
         // 重置视图及其约束
         emptyDataView.resetSubviews()
-        
-        var viewModel = XYEmptyData.ViewModel()
-        var position = XYEmptyData.Position.center(offset: 0)
-        if let dataSource = emptyData.dataSource {
-            viewModel.customView = dataSource.customView(forEmptyData: emptyData, inState: state)
-            viewModel.title = dataSource.title(forEmptyData: emptyData, inState: state)
-            viewModel.detail = dataSource.detail(forEmptyData: emptyData, inState: state)
-            viewModel.titleButton = dataSource.button(forEmptyData: emptyData, inState: state)
-            viewModel.image = dataSource.image(forEmptyData: emptyData, inState: state)
-            position = dataSource.position(forEmptyData: emptyData, inState: state)
-        }
-        else {
-            viewModel.customView = state.customView
-            viewModel.title = state.title
-            viewModel.detail = state.detail
-            viewModel.titleButton = state.titleButton
-            viewModel.image = state.image
-            position = state.position
-        }
-        
-        if viewModel.customView != nil {
-            emptyDataView.customView = viewModel.customView
+    
+        if let customView = state.customView {
+            emptyDataView.customView = customView
         } else {
-            emptyDataView.titleLabel.text = viewModel.title
-            emptyDataView.detailLabel.text = viewModel.detail
-            emptyDataView.reloadButton.setTitle(viewModel.titleButton, for: .normal)
-            emptyDataView.imageView.image = viewModel.image
-            
             // customView为nil时，则通过block配置子控件
-            if let block = emptyData.bind.titleLabelClosure  {
-                block(emptyDataView.titleLabel)
-            }
-            
-            if let block = emptyData.bind.detailLabelClosure {
-                block(emptyDataView.detailLabel)
-            }
-            
-            if let block = emptyData.bind.imageViewClosure {
-                block(emptyDataView.imageView)
-            }
-            if let block = emptyData.bind.buttonClosure {
-                block(emptyDataView.reloadButton)
-            }
+            state.title?(emptyDataView.titleLabel)
+            state.detail?(emptyDataView.detailLabel)
+            state.image?(emptyDataView.imageView)
+            state.button?(emptyDataView.reloadButton)
             
             // 设置emptyDataView子控件垂直间的间距
-            emptyDataView.globalVerticalSpace = emptyData.itemPadding
-            
+            emptyDataView.globalVerticalSpace = emptyData.format.itemPadding
         }
+        let position = emptyData.delegate?.position(forState: state, inEmptyData: emptyData) ?? .center(offset: 0)
         emptyDataView.position = position
-        emptyDataView.contentEdgeInsets = emptyData.contentEdgeInsets
-        emptyDataView.backgroundColor = emptyData.backgroundColor
-        emptyDataView.contentView.backgroundColor = emptyData.contentBackgroundColor
-        emptyDataView.imageViewSize = emptyData.imageSize ?? .zero
+        emptyDataView.contentEdgeInsets = emptyData.format.contentEdgeInsets
+        emptyDataView.backgroundColor = emptyData.format.backgroundColor
+        emptyDataView.contentView.backgroundColor = emptyData.format.contentBackgroundColor
+        emptyDataView.imageViewSize = emptyData.format.imageSize ?? .zero
         
         emptyDataView.isHidden = false
         emptyDataView.clipsToBounds = true

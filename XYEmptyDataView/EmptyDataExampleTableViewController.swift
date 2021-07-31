@@ -8,84 +8,6 @@
 
 import UIKit
 
-enum EmptyTableExampleDataState: XYEmptyDataState {
-    case noData
-    case noInternet
-    case error(error: EmptyExampleError)
-    case loading
-    
-    var title: String? {
-        switch self {
-        case .noData:
-            return "这是空数据视图"
-        case .loading:
-            return nil
-        case .noInternet:
-            return nil
-        case .error:
-            return "请求失败"
-        }
-    }
-    
-    var detail: String? {
-        switch self {
-        case .noData:
-            return "暂无数据"
-        case .loading:
-            return nil
-        case .noInternet:
-            return "暂无网络"
-        case let .error(error):
-            return error.description
-        }
-    }
-    
-    var titleButton: String? {
-        switch self {
-        case .noData:
-            return "刷新"
-        case .loading:
-            return nil
-        case .noInternet:
-            return "设置"
-        case .error:
-            return "重新请求"
-        }
-    }
-    
-    var image: UIImage? {
-        switch self {
-        case .noData:
-            return UIImage(named: "icon_default_empty")
-        case .loading:
-            return nil
-        case .noInternet, .error:
-            return UIImage(named: "wow")
-        }
-    }
-    
-    var customView: UIView? {
-        switch self {
-        case .loading:
-            let indicatorView = UIActivityIndicatorView(style: .gray)
-            indicatorView.startAnimating()
-            return indicatorView
-        default:
-            return nil
-        }
-    }
-    
-    var position: XYEmptyData.Position {
-        switch self {
-        case .loading:
-            return .top(offset: 100)
-        default:
-            return .center(offset: -30)
-        }
-    }
-}
-
-
 class EmptyDataExampleTableViewController: UIViewController {
     
     private lazy var tableView: UITableView = {
@@ -121,19 +43,8 @@ class EmptyDataExampleTableViewController: UIViewController {
 
     private func setupEmptyDataView() {
         var emptyData = XYEmptyData()
-        emptyData.bind.state { [weak self] in
-            if self?.isLoading == true {
-                return EmptyTableExampleDataState.loading
-            }
-            else if let error = self?.error {
-                return EmptyTableExampleDataState.error(error: error)
-            }
-            else {
-                return EmptyTableExampleDataState.noData
-            }
-        }
-        emptyData.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
-        emptyData.imageSize = CGSize(width: 180, height: 180)
+        emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
+        emptyData.format.imageSize = CGSize(width: 180, height: 180)
         
         emptyData.delegate = self
         tableView.emptyData = emptyData
@@ -170,7 +81,7 @@ class EmptyDataExampleTableViewController: UIViewController {
     }
     
     @objc private func clearData() {
-        self.tableView.emptyData?.state = EmptyTableExampleDataState.noData
+        self.tableView.emptyData?.state = ExampleEmptyDataState.noBinddate
         dataArray.removeAll()
         tableView.reloadData()
     }
@@ -181,6 +92,16 @@ class EmptyDataExampleTableViewController: UIViewController {
 //        self.present(alert, animated: true, completion: nil)
         
         self.navigationController?.pushViewController(ExampleViewController(), animated: true) 
+    }
+    
+    fileprivate func requestData() {
+        isLoading = true
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
+            self.dataArray.removeAll()
+            self.isLoading = false
+            self.error = .serverNotConnect
+            self.tableView.reloadData()
+        }
     }
 }
 
@@ -227,39 +148,37 @@ extension EmptyDataExampleTableViewController: UITableViewDataSource, UITableVie
 }
 
 extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
+    func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl) {
+        requestData()
+    }
     
     func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
         requestData()
     }
-   
-    fileprivate func requestData() {
-        isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
-            self.dataArray.removeAll()
-//            for section in 0...3 {
-//                var  array = Array<Any>()
-//                var count = 0
-//                if section % 2 == 0 {
-//                    count = 3
-//                }
-//                else {
-//                    count = 6
-//                }
-//                for row in 0...count {
-//                    array.append(row)
-//                }
-//                self.dataArray.append(array)
-//
-//            }
-            self.isLoading = false
-            self.error = .serverNotConnect
-            self.tableView.reloadData()
+    
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
+        if self.isLoading == true {
+            return ExampleEmptyDataState.loading
         }
+        else if let error = self.error {
+            return ExampleEmptyDataState.error(error)
+        }
+        else {
+            return ExampleEmptyDataState.noBinddate
+        }
+    }
+    
+    func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
+        if self.isLoading == true {
+            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
+            return .top(offset: height)
+        }
+        return .center(offset: 0)
     }
 }
 
-extension EmptyDataExampleTableViewController: XYEmptyDataViewAppearable {
-    func emptyData(_ emptyData: XYEmptyData, didChangedApperStatus status: XYEmptyDataAppearStatus) {
+extension EmptyDataExampleTableViewController: XYEmptyDataAppearable {
+    func emptyData(_ emptyData: XYEmptyData, didChangedAppearStatus status: XYEmptyData.AppearStatus) {
         switch status {
         case .didAppear:
             clearButton.isEnabled = false

@@ -8,80 +8,145 @@
 
 import UIKit
 
-public enum XYEmptyDataAppearStatus {
-    /// emptyDataView即将显示
-    case willAppear
-    /// emptyDataView完全显示
-    case didAppear
-    /// emptyDataView即将消失
-    case willDisappear
-    /// emptyDataView完全消失
-    case didDisappear
-}
-
 public protocol XYEmptyDataState {
-    var image: UIImage? { get }
-    var title: String? { get }
-    var detail: String? { get }
-    var titleButton: String? { get }
+    var title: ((UILabel) -> Void)? { get }
+    var button: ((UIButton) -> Void)? { get }
+    var detail: ((UILabel) -> Void)? { get }
+    var image: ((UIImageView) -> Void)? { get }
     var customView: UIView? { get }
-    
-    var position: XYEmptyData.Position { get }
 }
-
-public protocol XYEmptyDataViewAppearable: XYEmptyDataDelegate {
-    /// 当emptyDataView即将显示的回调
-    func emptyData(_ emptyData: XYEmptyData, didChangedApperStatus status: XYEmptyDataAppearStatus)
-}
-
 public protocol XYEmptyDataDelegate: AnyObject {
     
-    /// 点击空视图的`button`回调
+    /// 点击空视图的`button`按钮的回调
     func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton)
+    
+    /// 点击空视图的`contentView`回调
+    func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl)
     
     /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return `false`
     /// - Returns: 如果需要强制显示`emptyDataView`，return `true`即可
     func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool
+    
+    /// 返回空数据显示的位置
+    func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position
+    
+    /// 返回一个空数据的状态，比如在网络不好时返回无网络，或者某个特定的页面的状态
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState
 }
 
-public protocol XYEmptyDataDataSource: AnyObject {
-    func image(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIImage?
-    func title(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String?
-    func detail(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String?
-    func button(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String?
-    func customView(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIView?
-    func position(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> XYEmptyData.Position
+public protocol XYEmptyDataAppearable: XYEmptyDataDelegate {
+    /// 当空数据视图在显示或消失时回调
+    func emptyData(_ emptyData: XYEmptyData, didChangedAppearStatus status: XYEmptyData.AppearStatus)
 }
 
 public struct XYEmptyData {
     public typealias Delegate = XYEmptyDataDelegate
-    public typealias DataSource = XYEmptyDataDataSource
+    
+    public var format = Format()
+    public weak var delegate: Delegate?
+    
+    internal let config = ViewConfig()
+    internal var view = XYEmptyDataView()
+    
+    public init() { }
+    
+    func updateView(for state: XYEmptyDataState) {
+        let emptyData = self
+        self.view.update(withEmptyData: emptyData, for: state)
+    }
+}
+
+/// 扩展显示空数据的回调
+internal extension XYEmptyData {
+    /// 即将显示空数据时调用
+    func viewWillAppear() {
+        (self.delegate as? XYEmptyDataAppearable)?.emptyData(self, didChangedAppearStatus: .willAppear)
+    }
+    
+    /// 已经显示空数据时调用
+    func viewDidAppear() {
+        (self.delegate as? XYEmptyDataAppearable)?.emptyData(self, didChangedAppearStatus: .didAppear)
+    }
+    
+    /// 空数据即将消失时调用
+    func viewWillDisappear() {
+        (self.delegate as? XYEmptyDataAppearable)?.emptyData(self, didChangedAppearStatus: .willDisappear)
+    }
+    
+    /// 空数据已经消失时调用
+    func viewDidDisappear() {
+        (self.delegate as? XYEmptyDataAppearable)?.emptyData(self, didChangedAppearStatus: .didDisappear)
+    }
+}
+
+public extension XYEmptyData {
+    /// 显示空视图
+    func show(with state: XYEmptyDataState) {
+        guard let showView = self.config.showView else {
+            return
+        }
+        self.config.state = state
+        viewWillAppear()
+        self.view.show(on: showView, animated: true)
+        self.updateView(for: state)
+        viewDidAppear()
+    }
+    
+    /// 隐藏空视图
+    func hide() {
+        viewWillDisappear()
+        self.view.resetSubviews()
+        self.view.contentView.alpha = 0
+        viewDidDisappear()
+        self.view.removeFromSuperview()
+    }
+}
+
+internal extension XYEmptyData {
+    var state: XYEmptyDataState? {
+        set {
+            config.state = newValue
+        }
+        get {
+            return config.state
+        }
+    }
+}
+
+extension XYEmptyData {
     public enum Position {
         case center(offset: CGFloat = 0)
         case top(offset: CGFloat = 0)
         case bottom(offset: CGFloat = 0)
     }
-    struct ViewModel {
-        var image: UIImage?
-        var title: String?
-        var detail: String?
-        var titleButton: String?
-        var customView: UIView?
+    public enum AppearStatus {
+        case willAppear
+        case didAppear
+        case willDisappear
+        case didDisappear
+    }
+    public struct Format {
+        /// 内边距
+        public var contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
+        /// view的背景颜色
+        public var backgroundColor: UIColor?
+        /// 空数据`contentView`的背景颜色
+        public var contentBackgroundColor: UIColor?
+        /// 各子控件之间垂直的间距，默认为11
+        public var itemPadding: CGFloat = 11
+        /// `imageView`的宽高，默认为`nil`，让其自适应
+        public var imageSize: CGSize?
+        
+        public init() {}
     }
 
-    public class ViewBinder {
-        internal var titleLabelClosure: ((UILabel) -> Void)?
-        internal var detailLabelClosure: ((UILabel) -> Void)?
-        internal var imageViewClosure: ((UIImageView) -> Void)?
-        internal var buttonClosure: ((UIButton) -> Void)?
-        
-        internal var stateClosure: (() -> XYEmptyDataState)?
-        
+    internal class ViewConfig {
         internal init() {}
         
         internal var destoryClosure: (() -> Void)?
         
-        /// 由于`XYEmptyDataView`是在`scrollView.frame.size！= .zero`时才显示，当scrollView的宽高发生改变时，导致空视图没机会显示
+        /// 由于`XYEmptyDataView`是在`scrollView.frame.size！= .zero`时才显示，
+        /// 当scrollView的宽高发生改变时，导致空视图没机会显示
         /// `sizeObserver`就是解决这个问题
         internal var sizeObserver: SizeObserver?
         
@@ -92,68 +157,48 @@ public struct XYEmptyData {
             destoryClosure?()
         }
     }
-    /// 内边距
-    public var contentEdgeInsets: UIEdgeInsets = .zero
-    /// view的背景颜色
-    public var backgroundColor: UIColor?
-    /// 空数据`contentView`的背景颜色
-    public var contentBackgroundColor: UIColor?
-    /// 各子控件之间垂直的间距，默认为11
-    public var itemPadding: CGFloat = 11
-    /// `imageView`的宽高，默认为`nil`，让其自适应
-    public var imageSize: CGSize?
-    public weak var delegate: Delegate?
-    public weak var dataSource: DataSource?
-    public let bind = ViewBinder()
-    internal var view = XYEmptyDataView()
-    
-    internal var state: XYEmptyDataState? {
-        set {
-            bind.state = newValue
-        }
-        get {
-            return bind.state
-        }
+}
+
+public extension XYEmptyDataAppearable {
+    func emptyData(_ emptyData: XYEmptyData, didChangedAppearStatus status: XYEmptyData.AppearStatus) {}
+}
+
+public extension XYEmptyDataDelegate {
+    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool {
+        return false
     }
     
-    func updateView(for state: XYEmptyDataState) {
-        let emptyData = self
-        self.view.update(withEmptyData: emptyData, for: state)
+    func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
+        return .center(offset: 0)
+    }
+    
+    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
+        
+    }
+    
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
+        return XYEmptyData.DefaultState.empty
+    }
+}
+public extension XYEmptyDataState {
+    var customView: UIView? {
+        return nil
+    }
+    var image: ((UIImageView) -> Void)? {
+        return nil
+    }
+    var detail: ((UILabel) -> Void)? {
+        return nil
+    }
+    
+    var title: ((UILabel) -> Void)? {
+        return nil
+    }
+    var button: ((UIButton) -> Void)? {
+        return nil
     }
 }
 
-public extension XYEmptyDataViewAppearable {
-    func emptyData(_ emptyData: XYEmptyData, didChangedApperStatus status: XYEmptyDataAppearStatus) {}
-}
-
-extension XYEmptyData.ViewBinder {
-    @discardableResult
-    public func title(_ closure: @escaping (UILabel) -> Void) -> Self {
-        self.titleLabelClosure = closure
-        return self
-    }
-    @discardableResult
-    public func detail(_ closure: @escaping (UILabel) -> Void) -> Self {
-        self.detailLabelClosure = closure
-        return self
-    }
-    
-    @discardableResult
-    public func button(_ closure: @escaping (UIButton) -> Void) -> Self {
-        self.buttonClosure = closure
-        return self
-    }
-    @discardableResult
-    public func image(_ closure: @escaping (UIImageView) -> Void) -> Self {
-        self.imageViewClosure = closure
-        return self
-    }
-    @discardableResult
-    public func state(_ closure: @escaping () -> XYEmptyDataState) -> Self {
-        self.stateClosure = closure
-        return self
-    }
-}
 
 internal class SizeObserver: NSObject {
     private weak var target: UIView?
@@ -176,87 +221,5 @@ internal class SizeObserver: NSObject {
         if keyPath == self.keyPath, !old.size.equalTo(new.size) {
             eventHandler(new.size)
         }
-    }
-}
-
-extension XYEmptyDataDelegate {
-    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool {
-        return false
-    }
-}
-
-/// 扩展显示空数据的回调
-internal extension XYEmptyData {
-    /// 即将显示空数据时调用
-    func emptyDataViewWillAppear() {
-        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, didChangedApperStatus: .willAppear)
-    }
-    
-    /// 已经显示空数据时调用
-    func emptyDataViewDidAppear() {
-        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, didChangedApperStatus: .didAppear)
-    }
-    
-    /// 空数据即将消失时调用
-    func emptyDataViewWillDisappear() {
-        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, didChangedApperStatus: .willDisappear)
-    }
-    
-    /// 空数据已经消失时调用
-    func emptyDataViewDidDisappear() {
-        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, didChangedApperStatus: .didDisappear)
-    }
-}
-
-
-public extension XYEmptyData {
-    /// 显示空视图
-    func show(with state: XYEmptyDataState) {
-        guard let showView = self.bind.showView else {
-            return
-        }
-        self.bind.state = state
-        emptyDataViewWillAppear()
-        self.view.show(on: showView, animated: true)
-        self.updateView(for: state)
-        emptyDataViewDidAppear()
-    }
-    
-    /// 隐藏空视图
-    func hide() {
-        emptyDataViewWillDisappear()
-        self.view.resetSubviews()
-        self.view.contentView.alpha = 0
-        emptyDataViewDidDisappear()
-        self.view.removeFromSuperview()
-    }
-}
-
-public extension XYEmptyDataState {
-    var image: UIImage? {
-        return nil
-    }
-    var title: String? {
-        return nil
-    }
-    var detail: String? {
-        return nil
-    }
-    var titleButton: String? {
-        return nil
-    }
-    var customView: UIView? {
-        return nil
-    }
-    
-    var position: XYEmptyData.Position {
-        return .center(offset: 0)
-    }
-    
-}
-
-extension XYEmptyDataDataSource {
-    func position(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> XYEmptyData.Position {
-        return .center(offset: 0)
     }
 }

@@ -18,12 +18,12 @@ extension UIView {
         }
         set {
             objc_setAssociatedObject(self, &emptyDataKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            newValue?.bind.showView = self
+            newValue?.config.showView = self
             noticeEmptyDataDidChanged()
         }
     }
     
-    @objc public func noticeEmptyDataDidChanged() {
+    @objc func noticeEmptyDataDidChanged() {
         setupEmptyDataView()
     }
     
@@ -44,13 +44,19 @@ extension UIView {
         guard let emptyData = self.emptyData else {
             return
         }
-        
         emptyData.view.tapButonBlock = { [weak self] btn in
             guard let `self` = self,
                   let del = self.emptyData?.delegate else {
                 return
             }
             del.emptyData(self.emptyData!, didTapButton: btn)
+        }
+        emptyData.view.tapContentViewBlock = { [weak self] contentView in
+            guard let `self` = self,
+                  let del = self.emptyData?.delegate else {
+                return
+            }
+            del.emptyData(self.emptyData!, didTapContentView: contentView)
         }
         emptyData.view.isHidden = true
     }
