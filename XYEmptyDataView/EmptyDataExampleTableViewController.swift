@@ -8,6 +8,84 @@
 
 import UIKit
 
+enum EmptyTableExampleDataState: XYEmptyDataState {
+    case noData
+    case noInternet
+    case error(error: EmptyExampleError)
+    case loading
+    
+    var title: String? {
+        switch self {
+        case .noData:
+            return "这是空数据视图"
+        case .loading:
+            return nil
+        case .noInternet:
+            return nil
+        case .error:
+            return "请求失败"
+        }
+    }
+    
+    var detail: String? {
+        switch self {
+        case .noData:
+            return "暂无数据"
+        case .loading:
+            return nil
+        case .noInternet:
+            return "暂无网络"
+        case let .error(error):
+            return error.description
+        }
+    }
+    
+    var titleButton: String? {
+        switch self {
+        case .noData:
+            return "刷新"
+        case .loading:
+            return nil
+        case .noInternet:
+            return "设置"
+        case .error:
+            return "重新请求"
+        }
+    }
+    
+    var image: UIImage? {
+        switch self {
+        case .noData:
+            return UIImage(named: "icon_default_empty")
+        case .loading:
+            return nil
+        case .noInternet, .error:
+            return UIImage(named: "wow")
+        }
+    }
+    
+    var customView: UIView? {
+        switch self {
+        case .loading:
+            let indicatorView = UIActivityIndicatorView(style: .gray)
+            indicatorView.startAnimating()
+            return indicatorView
+        default:
+            return nil
+        }
+    }
+    
+    var position: XYEmptyData.Position {
+        switch self {
+        case .loading:
+            return .top(offset: 100)
+        default:
+            return .center(offset: -30)
+        }
+    }
+}
+
+
 class EmptyDataExampleTableViewController: UIViewController {
     
     private lazy var tableView: UITableView = {
@@ -27,7 +105,7 @@ class EmptyDataExampleTableViewController: UIViewController {
             tableView.reloadData()
         }
     }
-    
+    private var error: EmptyExampleError?
     private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(EmptyDataExampleTableViewController.clearData))
 
     override func viewDidLoad() {
@@ -38,34 +116,26 @@ class EmptyDataExampleTableViewController: UIViewController {
         setupEmptyDataView()
         
         tableView.reloadData()
+        requestData()
     }
 
     private func setupEmptyDataView() {
         var emptyData = XYEmptyData()
-        
-        emptyData.bind
-            .title {
-                $0.text = "这是空数据😁视图"
+        emptyData.bind.state { [weak self] in
+            if self?.isLoading == true {
+                return EmptyTableExampleDataState.loading
             }
-            .detail {
-                $0.text = "暂无数据"
-                $0.numberOfLines = 0
+            else if let error = self?.error {
+                return EmptyTableExampleDataState.error(error: error)
             }
-            .image {
-                $0.image = UIImage(named: "wow")
+            else {
+                return EmptyTableExampleDataState.noData
             }
-            .button {
-                $0.setTitle("点击重试", for: .normal)
-                $0.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
-                $0.layer.cornerRadius = 5.0
-                $0.layer.masksToBounds = true
-            }
-        
+        }
         emptyData.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
         emptyData.imageSize = CGSize(width: 180, height: 180)
         
         emptyData.delegate = self
-        emptyData.dataSource = self
         tableView.emptyData = emptyData
     }
 
@@ -100,6 +170,7 @@ class EmptyDataExampleTableViewController: UIViewController {
     }
     
     @objc private func clearData() {
+        self.tableView.emptyData?.state = EmptyTableExampleDataState.noData
         dataArray.removeAll()
         tableView.reloadData()
     }
@@ -165,22 +236,23 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
         isLoading = true
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
             self.dataArray.removeAll()
-            for section in 0...3 {
-                var  array = Array<Any>()
-                var count = 0
-                if section % 2 == 0 {
-                    count = 3
-                }
-                else {
-                    count = 6
-                }
-                for row in 0...count {
-                    array.append(row)
-                }
-                self.dataArray.append(array)
-                
-            }
+//            for section in 0...3 {
+//                var  array = Array<Any>()
+//                var count = 0
+//                if section % 2 == 0 {
+//                    count = 3
+//                }
+//                else {
+//                    count = 6
+//                }
+//                for row in 0...count {
+//                    array.append(row)
+//                }
+//                self.dataArray.append(array)
+//
+//            }
             self.isLoading = false
+            self.error = .serverNotConnect
             self.tableView.reloadData()
         }
     }
@@ -198,37 +270,14 @@ extension EmptyDataExampleTableViewController: XYEmptyDataViewAppearable {
         }
     }
 }
-extension EmptyDataExampleTableViewController: XYEmptyDataDataSource {
-    func image(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIImage? {
-        return UIImage(named: "wow")
-    }
+
+enum EmptyExampleError: Error, CustomStringConvertible {
+    case serverNotConnect
     
-    func title(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String? {
-        return "这是空数据视图"
-    }
-    
-    func detail(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String? {
-        return "暂无数据"
-    }
-    
-    func button(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String? {
-        return "点击重试"
-    }
-    
-    func customView(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIView? {
-        if self.isLoading == true {
-            let indicatorView = UIActivityIndicatorView(style: .gray)
-            indicatorView.startAnimating()
-            return indicatorView
+    var description: String {
+        switch self {
+        case .serverNotConnect:
+            return "服务器无法连接"
         }
-        return nil
-    }
-    
-    func position(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> XYEmptyData.Position {
-        if self.isLoading == true {
-            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
-            return .top(offset: height)
-        }
-        return .center(offset: 0)
     }
 }

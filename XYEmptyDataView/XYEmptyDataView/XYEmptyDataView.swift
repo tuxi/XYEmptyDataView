@@ -282,7 +282,7 @@ extension XYEmptyDataView {
         emptyDataView.resetSubviews()
         
         var viewModel = XYEmptyData.ViewModel()
-        var position = state.position
+        var position = XYEmptyData.Position.center(offset: 0)
         if let dataSource = emptyData.dataSource {
             viewModel.customView = dataSource.customView(forEmptyData: emptyData, inState: state)
             viewModel.title = dataSource.title(forEmptyData: emptyData, inState: state)
@@ -297,6 +297,7 @@ extension XYEmptyDataView {
             viewModel.detail = state.detail
             viewModel.titleButton = state.titleButton
             viewModel.image = state.image
+            position = state.position
         }
         
         if viewModel.customView != nil {

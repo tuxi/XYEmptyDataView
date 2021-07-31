@@ -39,6 +39,8 @@ class ViewController: UIViewController {
         setupEmptyDataView()
         
         tableView.reloadData()
+        requestData()
+        
     }
 
     private func setupEmptyDataView() {
@@ -150,8 +152,6 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return "第" + NSNumber.init(value: section).stringValue + "组"
     }
-    
-    
 }
 
 extension ViewController: XYEmptyDataDelegate {

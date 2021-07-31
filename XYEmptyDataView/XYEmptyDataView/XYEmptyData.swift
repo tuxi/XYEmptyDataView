@@ -75,6 +75,8 @@ public struct XYEmptyData {
         internal var imageViewClosure: ((UIImageView) -> Void)?
         internal var buttonClosure: ((UIButton) -> Void)?
         
+        internal var stateClosure: (() -> XYEmptyDataState)?
+        
         internal init() {}
         
         internal var destoryClosure: (() -> Void)?
@@ -114,10 +116,6 @@ public struct XYEmptyData {
         }
     }
     
-    public init(state: XYEmptyDataState?) {
-        self.state = state
-    }
-    
     func updateView(for state: XYEmptyDataState) {
         let emptyData = self
         self.view.update(withEmptyData: emptyData, for: state)
@@ -148,6 +146,11 @@ extension XYEmptyData.ViewBinder {
     @discardableResult
     public func image(_ closure: @escaping (UIImageView) -> Void) -> Self {
         self.imageViewClosure = closure
+        return self
+    }
+    @discardableResult
+    public func state(_ closure: @escaping () -> XYEmptyDataState) -> Self {
+        self.stateClosure = closure
         return self
     }
 }
@@ -229,7 +232,7 @@ public extension XYEmptyData {
     }
 }
 
-extension XYEmptyDataState {
+public extension XYEmptyDataState {
     var image: UIImage? {
         return nil
     }

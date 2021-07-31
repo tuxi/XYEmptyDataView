@@ -10,12 +10,22 @@ import UIKit
 
 private var isRegisterEmptyDataViewKey = "com.alpface.XYEmptyData.registerEemptyDataView"
 
+extension XYEmptyData {
+    enum DefaultState: XYEmptyDataState {
+        case empty
+    }
+}
+
 extension UIScrollView {
     
     /// 刷新空视图， 当执行`tableView`的`readData`、`endUpdates`或者`CollectionView`的`readData`时会调用此方法，外面无需主动调用
     public override func reloadEmptyDataView() {
-        if let state = emptyData?.state, shouldDisplayEmptyDataView {
-            self.emptyData?.show(with: state)
+        if shouldDisplayEmptyDataView {
+            var state = emptyData!.state
+            if let stateClosure = emptyData!.bind.stateClosure {
+                state = stateClosure()
+            }
+            self.emptyData?.show(with: state ?? XYEmptyData.DefaultState.empty)
         } else {
             self.emptyData?.hide()
         }
