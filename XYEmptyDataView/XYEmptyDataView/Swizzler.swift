@@ -7,12 +7,12 @@
 
 import Foundation
 
-public struct Swizzle: CustomStringConvertible {
-    public let original: Item
-    public var new: Item
+public struct Swizzler {
+    public let original: Func
+    public var new: Func
     
-    init(original: Item,
-         new: Item) {
+    init(original: Func,
+         new: Func) {
         self.new = new
         self.original = original
     }
@@ -23,7 +23,7 @@ public struct Swizzle: CustomStringConvertible {
         return retValue + "]"
     }
     
-    public struct Item {
+    public struct Func {
         public let aClass: AnyClass
         public let selector: Selector
         public let methodImp: IMP
@@ -45,46 +45,47 @@ public struct Swizzle: CustomStringConvertible {
                 return
             }
             
-            guard let swizzle = Swizzle.getSwizzle(with: method) else {
+            guard let swizzle = Swizzler.getSwizzle(with: method) else {
                 return
             }
             /// 恢复原方法的调用，必须用`swizzle.original`去还原
             method_setImplementation(swizzle.original.method, swizzle.original.methodImp)
-            Swizzle.removeSwizzle(for: method)
+            Swizzler.removeSwizzle(for: method)
         }
         
         /// 替换方法实现
-        public func replace(with new: Swizzle.Item) {
+        public func replace(with new: Swizzler.Func) {
             
             let method = self.method
-            var temSwizzle: Swizzle
-            if let swizzle = Swizzle.getSwizzle(with: method) {
-                temSwizzle = swizzle
-            }
-            else {
-                temSwizzle = Swizzle(original: self, new: new)
-            }
             
-            let didAddMethod = class_addMethod(new.aClass,
+            if Swizzler.getSwizzle(with: method) != nil {
+                // 已经交换过，防止被重复交换
+                return
+            }
+            let swizzle = Swizzler(original: self, new: new)
+            
+            let isAddSuccess = class_addMethod(new.aClass,
                                                self.selector,
                                                new.methodImp,
                                                method_getTypeEncoding(new.method))
-            if !didAddMethod {
-                method_setImplementation(method, new.methodImp)
+            if isAddSuccess {
+                // 方法添加成功，意味着当前类在添加之前并没有origin的方法
+                // 添加成功后，就可以进行方法替换了，将原方法替换为新的方法实现即可
+                class_replaceMethod(self.aClass, self.selector, new.methodImp, method_getTypeEncoding(new.method))
+                   
             }
-            Swizzle.setSwizzle(temSwizzle, for: method)
-        }
-        
-        public func replace(with selector: Selector) throws {
-            
-            let new = try Item(aClass: self.aClass, selector: selector)
-            self.replace(with: new)
+            else {
+                // 方法添加失败，说明当前类已经存在该方法，直接替换实现
+                method_setImplementation(method, new.methodImp)
+                method_setImplementation(new.method, methodImp)
+            }
+            Swizzler.setSwizzle(swizzle, for: method)
         }
         
         /// 调用原方法实现，只能响应没有参数的方法，有参数的由于类型不确定，在调用时传递的都是空，所以需要自己重写
         func callFunction(withInsatnce ins: NSObject) {
             guard let method = class_getInstanceMethod(aClass, selector),
-                  let swizzler = Swizzle.getSwizzle(with: method) else {
+                  let swizzler = Swizzler.getSwizzle(with: method) else {
                 return
             }
             typealias CFunction = @convention(c) (AnyObject, Selector) -> Void
@@ -109,16 +110,24 @@ enum SwizzleError: Error, CustomStringConvertible {
     }
 }
 
-extension Swizzle.Item: Equatable {
-    public static func == (lhs: Swizzle.Item, rhs: Swizzle.Item) -> Bool {
+extension Swizzler.Func: Equatable {
+    public static func == (lhs: Swizzler.Func, rhs: Swizzler.Func) -> Bool {
         lhs.aClass == rhs.aClass && lhs.selector == rhs.selector
     }
 }
 
-extension Swizzle {
-    public static var swizzles = [Method: Swizzle]()
+extension Swizzler.Func: CustomStringConvertible {
+    public var description: String {
+        return "Func [\(String(describing: self.aClass))::\(NSStringFromSelector(self.selector))]"
+        
+    }
+}
+
+/// 扩展缓存，避免重复
+extension Swizzler {
+    public static var swizzles = [Method: Swizzler]()
     
-    public static func getSwizzle(with method: Method) -> Swizzle? {
+    public static func getSwizzle(with method: Method) -> Swizzler? {
         return swizzles[method]
     }
     
@@ -126,7 +135,7 @@ extension Swizzle {
         swizzles.removeValue(forKey: method)
     }
     
-    fileprivate static func setSwizzle(_ swizzle: Swizzle, for method: Method) {
+    fileprivate static func setSwizzle(_ swizzle: Swizzler, for method: Method) {
         swizzles[method] = swizzle
     }
     
@@ -135,8 +144,9 @@ extension Swizzle {
                                aClass: AnyClass,
                                newClass: AnyClass? = nil) throws {
         
-        let origin = try Swizzle.Item(aClass: aClass, selector: selector)
-        let new = try Swizzle.Item(aClass: newClass ?? aClass, selector: newSelector)
+        let origin = try Swizzler.Func(aClass: aClass, selector: selector)
+        let new = try Swizzler.Func(aClass: newClass ?? aClass,
+                                    selector: newSelector)
         origin.replace(with: new)
         
     }
@@ -154,36 +164,3 @@ extension Swizzle {
         swizzle.original.reset()
     }
 }
-
-//protocol Swizzler: NSObject {
-//    associatedtype CFunction: NSObject
-//    func originalSel() -> Selector
-//    func newSel() -> Selector
-//
-//    func replace()
-//    func reset()
-//    func calloriginalFunc()
-//}
-
-//extension Swizzler {
-//    func replace() {
-//        let old = try! Swizzle.Item(aClass: self.classForCoder, selector: self.originalSel())
-//        let new = try! Swizzle.Item(aClass: self.classForCoder, selector: self.newSel())
-//        old.replace(with: new)
-//    }
-//    func reset() {
-//        let old = try! Swizzle.Item(aClass: self.classForCoder, selector: self.originalSel())
-//        old.reset()
-//    }
-//
-//    func calloriginalFunc(parameter: Any) {
-//        guard let method = class_getInstanceMethod(self.classForCoder, self.originalSel()),
-//              let swizzler = Swizzle.getSwizzle(with: method) else {
-//            return
-//        }
-//        let curriedImplementation = unsafeBitCast(swizzler.original.methodImp, to: CFunction.self)
-////        curriedImplementation(ins, selector)
-//        curriedImplementation(self, self.originalSel(), parameter)
-//
-//    }
-//}

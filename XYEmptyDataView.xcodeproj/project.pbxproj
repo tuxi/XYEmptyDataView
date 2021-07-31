@@ -11,7 +11,6 @@
 		D04B4F5A26B307D900CF7550 /* Swizzler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F5926B307D900CF7550 /* Swizzler.swift */; };
 		D04B4F5C26B30B9200CF7550 /* EmptyDataExampleTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F5B26B30B9200CF7550 /* EmptyDataExampleTableViewController.swift */; };
 		D04B4F8F26B4200F00CF7550 /* UIView+XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F8E26B4200F00CF7550 /* UIView+XYEmptyData.swift */; };
-		D04B4F9126B4209F00CF7550 /* XYEmptyDataViewable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F9026B4209F00CF7550 /* XYEmptyDataViewable.swift */; };
 		D04B4F9326B4246E00CF7550 /* XYEmptyDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F9226B4246E00CF7550 /* XYEmptyDataView.swift */; };
 		D04B4F9526B424FD00CF7550 /* UIScrollView+XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F9426B424FD00CF7550 /* UIScrollView+XYEmptyData.swift */; };
 		D04B4F9726B438E600CF7550 /* ExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B4F9626B438E600CF7550 /* ExampleViewController.swift */; };
@@ -29,7 +28,6 @@
 		D04B4F5926B307D900CF7550 /* Swizzler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Swizzler.swift; sourceTree = "<group>"; };
 		D04B4F5B26B30B9200CF7550 /* EmptyDataExampleTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyDataExampleTableViewController.swift; sourceTree = "<group>"; };
 		D04B4F8E26B4200F00CF7550 /* UIView+XYEmptyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+XYEmptyData.swift"; sourceTree = "<group>"; };
-		D04B4F9026B4209F00CF7550 /* XYEmptyDataViewable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XYEmptyDataViewable.swift; sourceTree = "<group>"; };
 		D04B4F9226B4246E00CF7550 /* XYEmptyDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XYEmptyDataView.swift; sourceTree = "<group>"; };
 		D04B4F9426B424FD00CF7550 /* UIScrollView+XYEmptyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIScrollView+XYEmptyData.swift"; sourceTree = "<group>"; };
 		D04B4F9626B438E600CF7550 /* ExampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleViewController.swift; sourceTree = "<group>"; };
@@ -58,12 +56,11 @@
 		D04B4F2D26B240D300CF7550 /* XYEmptyDataView */ = {
 			isa = PBXGroup;
 			children = (
-				D04B4F5926B307D900CF7550 /* Swizzler.swift */,
 				D04B4F2F26B240D300CF7550 /* XYEmptyData.swift */,
 				D04B4F8E26B4200F00CF7550 /* UIView+XYEmptyData.swift */,
-				D04B4F9026B4209F00CF7550 /* XYEmptyDataViewable.swift */,
 				D04B4F9226B4246E00CF7550 /* XYEmptyDataView.swift */,
 				D04B4F9426B424FD00CF7550 /* UIScrollView+XYEmptyData.swift */,
+				D04B4F5926B307D900CF7550 /* Swizzler.swift */,
 			);
 			path = XYEmptyDataView;
 			sourceTree = "<group>";
@@ -180,7 +177,6 @@
 				D04B4F3126B240D300CF7550 /* XYEmptyData.swift in Sources */,
 				D2B23E7420007F9C00329C6C /* AppDelegate.swift in Sources */,
 				D04B4F5C26B30B9200CF7550 /* EmptyDataExampleTableViewController.swift in Sources */,
-				D04B4F9126B4209F00CF7550 /* XYEmptyDataViewable.swift in Sources */,
 				D04B4F9326B4246E00CF7550 /* XYEmptyDataView.swift in Sources */,
 				D04B4F8F26B4200F00CF7550 /* UIView+XYEmptyData.swift in Sources */,
 				D04B4F9526B424FD00CF7550 /* UIScrollView+XYEmptyData.swift in Sources */,

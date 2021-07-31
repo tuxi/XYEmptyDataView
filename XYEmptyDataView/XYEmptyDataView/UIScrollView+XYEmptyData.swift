@@ -13,15 +13,12 @@ private var isRegisterEmptyDataViewKey = "com.alpface.XYEmptyData.registerEempty
 extension UIScrollView {
     
     /// 刷新空视图， 当执行`tableView`的`readData`、`endUpdates`或者`CollectionView`的`readData`时会调用此方法，外面无需主动调用
-    @objc public override func reloadEmptyDataView() {
-        if shouldDisplayEmptyDataView {
-            self.emptyData?.show(on: self, animated: true)
+    public override func reloadEmptyDataView() {
+        if let state = emptyData?.state, shouldDisplayEmptyDataView {
+            self.emptyData?.show(with: state)
         } else {
             self.emptyData?.hide()
         }
-        
-        try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
-            .callFunction(withInsatnce: self)
     }
     
     fileprivate var isRegisterEmptyDataView: Bool {
@@ -39,6 +36,10 @@ extension UIScrollView {
         if let collectionView = self as? UICollectionView {
             collectionView.registerEmptyDataView()
         }
+        
+        emptyData?.bind.sizeObserver = SizeObserver(target: self, eventHandler: { [weak self] size in
+            self?.reloadEmptyDataView()
+        })
     }
 }
 
@@ -46,28 +47,17 @@ extension UIScrollView {
 private extension UIScrollView {
     /// 是否应该显示
     private var shouldDisplayEmptyDataView: Bool {
-        if !canDisplayEmptyDataView {
-            return false
-        }
         return emptyData != nil &&
             !frame.size.equalTo(.zero) &&
             (itemCount <= 0 || shouldForcedDisplayEmptyDataView)
     }
     
-    /// 是否应该强制显示,默认不需要的
+    /// 是否应该强制显示，即使有数据时，默认不需要的
     private var shouldForcedDisplayEmptyDataView: Bool {
         guard let del = self.emptyData?.delegate else {
             return false
         }
-        return del.shouldForcedDisplay(inEmptyData: self.emptyData!)
-    }
-    
-    // 是否符合显示
-    var canDisplayEmptyDataView: Bool {
-        if  self is UITableView || self is UICollectionView {
-            return true
-        }
-        return false
+        return del.shouldForcedDisplay(forEmptyData: self.emptyData!)
     }
     
     private var itemCount: Int {
@@ -135,34 +125,38 @@ extension UITableView {
         if self.isRegisterEmptyDataView {
             return
         }
-        isRegisterEmptyDataView = true
-        guard let emptyData = self.emptyData else {
+        
+        guard self.emptyData != nil else {
             return
         }
-        if !self.canDisplayEmptyDataView {
-            self.emptyData?.hide()
-            emptyData.bind.sizeObserver = nil
-        }
-        else {
-            self.setupEmptyDataView()
-            
-            // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
-            try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
-                .replace(with: #selector(reloadEmptyDataView))
-            
-            try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("endUpdates"))
-                .replace(with: #selector(reloadEmptyDataView))
-        }
+        isRegisterEmptyDataView = true
+        self.setupEmptyDataView()
+        
+        // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
+        try! Swizzler.swizzle(selector: #selector(reloadData),
+                              newSelector: #selector(swizzleReloadData),
+                              aClass: self.classForCoder)
+        
+        try! Swizzler.swizzle(selector: #selector(endUpdates),
+                              newSelector: #selector(swizzleEndUpdates),
+                              aClass: self.classForCoder)
     }
     
-    /// 最好不要移除，交换方法是针对所有实例
-    func unregisterEmptyDataView() {
-        if self.canDisplayEmptyDataView {
-            try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
-                .reset()
-            try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("endUpdates"))
-                .reset()
-        }
+    @objc private func swizzleReloadData() {
+        //        swizzleReloadData()
+        let origin = try! Swizzler.Func(aClass: self.classForCoder,
+                                        selector: #selector(reloadData))
+        origin.callFunction(withInsatnce: self)
+        reloadEmptyDataView()
+    }
+    
+    @objc private func swizzleEndUpdates() {
+        //        swizzleEndUpdates()
+        try! Swizzler.Func(aClass: self.classForCoder,
+                           selector: #selector(endUpdates))
+            .callFunction(withInsatnce: self)
+        
+        reloadEmptyDataView()
     }
 }
 extension UICollectionView {
@@ -170,28 +164,27 @@ extension UICollectionView {
         if self.isRegisterEmptyDataView {
             return
         }
-        isRegisterEmptyDataView = true
-        guard let emptyData = self.emptyData else {
+        
+        guard self.emptyData != nil else {
             return
         }
-        if !self.canDisplayEmptyDataView {
-            self.emptyData?.hide()
-            emptyData.bind.sizeObserver = nil
-        }
-        else {
-            self.setupEmptyDataView()
-            
-            // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
-            try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
-                .replace(with: #selector(reloadEmptyDataView))
-        }
+        
+        isRegisterEmptyDataView = true
+        
+        self.setupEmptyDataView()
+        
+        // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
+        try! Swizzler.swizzle(selector: #selector(reloadData),
+                              newSelector: #selector(swizzleReloadData),
+                              aClass: self.classForCoder)
     }
     
-    /// 最好不要移除，交换方法是针对所有实例
-    func unregisterEmptyDataView() {
-        if self.canDisplayEmptyDataView {
-            try! Swizzle.Item(aClass: self.classForCoder, selector: NSSelectorFromString("reloadData"))
-                .reset()
-        }
+    @objc private func swizzleReloadData() {
+        //        swizzleReloadData()
+        try! Swizzler.Func(aClass: self.classForCoder,
+                           selector: #selector(reloadData))
+            .callFunction(withInsatnce: self)
+        
+        reloadEmptyDataView()
     }
 }

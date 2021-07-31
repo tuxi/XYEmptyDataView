@@ -42,7 +42,7 @@ class ViewController: UIViewController {
     }
 
     private func setupEmptyDataView() {
-        var emptyData = XYEmptyData(position: .center())
+        var emptyData = XYEmptyData()
         
         emptyData.bind
             .title {
@@ -61,27 +61,12 @@ class ViewController: UIViewController {
                 $0.layer.cornerRadius = 5.0
                 $0.layer.masksToBounds = true
             }
-            .custom { [weak self] in
-                if self?.isLoading == true {
-                    let indicatorView = UIActivityIndicatorView(style: .gray)
-                    indicatorView.startAnimating()
-                    return indicatorView
-                }
-                return nil
-            }
-            .position { [weak self] in
-                guard let `self` = self else { return .none}
-                if self.isLoading == true {
-                    let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
-                    return .top(offset: height)
-                }
-                return .center(offset: 0)
-            }
         
         emptyData.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
         emptyData.imageSize = CGSize(width: 180, height: 180)
         
         emptyData.delegate = self
+        emptyData.dataSource = self
         tableView.emptyData = emptyData
     }
 
@@ -201,7 +186,7 @@ extension ViewController: XYEmptyDataDelegate {
 }
 
 extension ViewController: XYEmptyDataViewAppearable {
-    func emptyData(_ emptyData: XYEmptyData, onApperStatus status: XYEmptyDataAppearStatus) {
+    func emptyData(_ emptyData: XYEmptyData, didChangedApperStatus status: XYEmptyDataAppearStatus) {
         switch status {
         case .didAppear:
             clearButton.isEnabled = false
@@ -210,5 +195,39 @@ extension ViewController: XYEmptyDataViewAppearable {
         default:
             break
         }
+    }
+}
+extension ViewController: XYEmptyDataDataSource {
+    func image(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIImage? {
+        return UIImage(named: "wow")
+    }
+    
+    func title(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String? {
+        return "这是空数据视图"
+    }
+    
+    func detail(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String? {
+        return "暂无数据"
+    }
+    
+    func button(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String? {
+        return "点击重试"
+    }
+    
+    func customView(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIView? {
+        if self.isLoading == true {
+            let indicatorView = UIActivityIndicatorView(style: .gray)
+            indicatorView.startAnimating()
+            return indicatorView
+        }
+        return nil
+    }
+    
+    func position(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> XYEmptyData.Position {
+        if self.isLoading == true {
+            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
+            return .top(offset: height)
+        }
+        return .center(offset: 0)
     }
 }

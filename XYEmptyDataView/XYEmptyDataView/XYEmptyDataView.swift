@@ -11,7 +11,6 @@ import UIKit
 class XYEmptyDataView : UIView {
     
     // MARK: - Views
-    /// 内容视图
     lazy var contentView: UIView = {
         let contentView = UIView(frame: .zero)
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -21,7 +20,6 @@ class XYEmptyDataView : UIView {
         return contentView
     }()
     
-    /// 标题`label`
     lazy var titleLabel: UILabel = {
         let label = UILabel.init(frame: .zero)
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -36,7 +34,6 @@ class XYEmptyDataView : UIView {
         return label
     }()
     
-    /// 详情`label`
     lazy var detailLabel: UILabel = {
         let label = UILabel.init(frame: .zero)
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -51,7 +48,6 @@ class XYEmptyDataView : UIView {
         return label
     }()
     
-    /// 图片
     lazy var imageView: UIImageView = {
         let imageView = UIImageView.init(frame: .zero)
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -63,7 +59,6 @@ class XYEmptyDataView : UIView {
         return imageView
     }()
     
-    /// 刷新按钮
     lazy var reloadButton: UIButton = {
         let button = UIButton(type: UIButton.ButtonType.custom)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -76,24 +71,19 @@ class XYEmptyDataView : UIView {
         return button
     }()
     
-    /// 自定义视图
     var customView: UIView? {
+        willSet {
+            customView?.removeFromSuperview()
+        }
         didSet {
-           // 移除旧的
-            if let oldCustomView = oldValue, customView?.isEqual(oldValue) == false {
-                oldCustomView.removeFromSuperview()
-            }
-            // 添加新的
             if let customView = self.customView {
                 customView.translatesAutoresizingMaskIntoConstraints = false
                 self.contentView.addSubview(customView)
             }
         }
     }
-
-    // MARK: - Properties
     
-    var status: XYEmptyData.Status = .hide
+    // MARK: - Properties
     
     var contentEdgeInsets: UIEdgeInsets = .zero
     
@@ -116,12 +106,7 @@ class XYEmptyDataView : UIView {
         print(String(describing: self) + #function)
     }
     
-//    convenience init(_ view: UIView) {
-//        self.init(frame: view.bounds)
-//        show(withView: view)
-//    }
-    
-    func show(withView view: UIView, animated: Bool) {
+    func show(on view: UIView, animated: Bool) {
         clipsToBounds = true
         self.translatesAutoresizingMaskIntoConstraints = false
         if view.subviews.count > 1 {
@@ -130,7 +115,7 @@ class XYEmptyDataView : UIView {
         else {
             view.addSubview(self)
         }
-       
+        
         let superview: UIView = view
         superview.removeConstraints(superConstraints)
         superConstraints.removeAll()
@@ -141,21 +126,31 @@ class XYEmptyDataView : UIView {
         let bottom = scrollViewContentInset.bottom
         let metrics: [String: Any] = ["left": left, "right": right, "top": top, "bottom": bottom]
         
-        superConstraints.append(contentsOf: [
-            "H:|-(left)-[self]-(right)-|",
-            "V:|-(top)-[self]-(bottom)-|"
-        ]
-        .flatMap {
-            NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: metrics, views: ["self": self])
-        })
-        
-        superConstraints.append(contentsOf: [
-            widthAnchor.constraint(equalTo: superview.widthAnchor, constant: -(left + right)),
-            heightAnchor.constraint(equalTo: superview.heightAnchor, constant: -(top + bottom))
-        ])
+        if superview is UIScrollView {
+            superConstraints.append(contentsOf: [
+                "H:|-(left)-[self]-(right)-|",
+                "V:|-(top)-[self]-(bottom)-|"
+            ]
+            .flatMap {
+                NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: metrics, views: ["self": self])
+            })
+            
+            superConstraints.append(contentsOf: [
+                widthAnchor.constraint(equalTo: superview.widthAnchor, constant: -(left + right)),
+                heightAnchor.constraint(equalTo: superview.heightAnchor, constant: -(top + bottom))
+            ])
+        }
+        else {
+            superConstraints.append(contentsOf: [
+                self.leadingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.leadingAnchor, constant: left),
+                superview.safeAreaLayoutGuide.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: right),
+                self.topAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.topAnchor, constant: top),
+                superview.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: bottom)
+            ])
+        }
         superview.addConstraints(superConstraints)
-
-        showAnimated(true)
+        
+        showAnimated(animated)
     }
     
     override init(frame: CGRect) {
@@ -185,7 +180,6 @@ class XYEmptyDataView : UIView {
         reloadButton.removeFromSuperview()
         
         contentView.removeConstraints(subConstraints)
-        
     }
     
     private func showAnimated(_ animated: Bool) {
@@ -199,7 +193,7 @@ class XYEmptyDataView : UIView {
     @objc private func clickButton(_ btn: UIButton) {
         tapButonBlock?(btn)
     }
-
+    
     // MARK: - Constraints
     override func updateConstraints() {
         updateMyConstraints()
@@ -228,7 +222,7 @@ class XYEmptyDataView : UIView {
         }
         return inset
     }
-
+    
     // MARK: - Touchs
     /// 重载`hitTest`方法，以防止空数据视图影响`scrollView`的时间传递
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -253,7 +247,7 @@ class XYEmptyDataView : UIView {
         }
         return nil
     }
-
+    
 }
 
 private extension XYEmptyDataView {
@@ -265,7 +259,7 @@ private extension XYEmptyDataView {
     var canShowTitle: Bool {
         return titleLabel.text != nil //&& titleLabel.superview != nil
     }
-  
+    
     var canShowDetail: Bool {
         return detailLabel.text != nil // && detailLabel.superview != nil
     }
@@ -278,28 +272,46 @@ private extension XYEmptyDataView {
         }
         return false
     }
-    
-    func canChangeInsets(insets: UIEdgeInsets) -> Bool {
-        return insets != .zero
-    }
 }
 
 /// 更新视图
 extension XYEmptyDataView {
-    func update(withEmptyData emptyData: XYEmptyData) {
+    func update(withEmptyData emptyData: XYEmptyData, for state: XYEmptyDataState) {
         let emptyDataView = self
         // 重置视图及其约束
         emptyDataView.resetSubviews()
         
-        emptyDataView.position = emptyData.bind.position?() ?? emptyData.position
+        var viewModel = XYEmptyData.ViewModel()
+        var position = state.position
+        if let dataSource = emptyData.dataSource {
+            viewModel.customView = dataSource.customView(forEmptyData: emptyData, inState: state)
+            viewModel.title = dataSource.title(forEmptyData: emptyData, inState: state)
+            viewModel.detail = dataSource.detail(forEmptyData: emptyData, inState: state)
+            viewModel.titleButton = dataSource.button(forEmptyData: emptyData, inState: state)
+            viewModel.image = dataSource.image(forEmptyData: emptyData, inState: state)
+            position = dataSource.position(forEmptyData: emptyData, inState: state)
+        }
+        else {
+            viewModel.customView = state.customView
+            viewModel.title = state.title
+            viewModel.detail = state.detail
+            viewModel.titleButton = state.titleButton
+            viewModel.image = state.image
+        }
         
-        if let closure = emptyData.bind.customView, let view = closure() {
-            emptyDataView.customView = view
+        if viewModel.customView != nil {
+            emptyDataView.customView = viewModel.customView
         } else {
-            // customView为nil时，则通过block回到获取子控件 设置
+            emptyDataView.titleLabel.text = viewModel.title
+            emptyDataView.detailLabel.text = viewModel.detail
+            emptyDataView.reloadButton.setTitle(viewModel.titleButton, for: .normal)
+            emptyDataView.imageView.image = viewModel.image
+            
+            // customView为nil时，则通过block配置子控件
             if let block = emptyData.bind.titleLabelClosure  {
                 block(emptyDataView.titleLabel)
             }
+            
             if let block = emptyData.bind.detailLabelClosure {
                 block(emptyDataView.detailLabel)
             }
@@ -315,7 +327,7 @@ extension XYEmptyDataView {
             emptyDataView.globalVerticalSpace = emptyData.itemPadding
             
         }
-        
+        emptyDataView.position = position
         emptyDataView.contentEdgeInsets = emptyData.contentEdgeInsets
         emptyDataView.backgroundColor = emptyData.backgroundColor
         emptyDataView.contentView.backgroundColor = emptyData.contentBackgroundColor

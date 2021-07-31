@@ -8,19 +8,17 @@
 
 import UIKit
 
-/// 用于关联对象的keys
-private struct XYEmptyDataKeys {
-    static var config = "com.alpface.XYEmptyData.config"
-}
+private var emptyDataKey = "com.alpface.XYEmptyData.config"
 
 extension UIView {
     
     public var emptyData: XYEmptyData? {
         get {
-            return objc_getAssociatedObject(self, &XYEmptyDataKeys.config) as? XYEmptyData
+            return objc_getAssociatedObject(self, &emptyDataKey) as? XYEmptyData
         }
         set {
-            objc_setAssociatedObject(self, &XYEmptyDataKeys.config, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &emptyDataKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            newValue?.bind.showView = self
             noticeEmptyDataDidChanged()
         }
     }
@@ -33,10 +31,10 @@ extension UIView {
         guard let emptyData = emptyData else {
             return
         }
-        switch emptyData.view.status {
-        case .show:
-            emptyData.show(on: self, animated: true)
-        case .hide:
+        if let state = emptyData.state {
+            emptyData.show(with: state)
+        }
+        else {
             emptyData.hide()
         }
     }
@@ -55,12 +53,6 @@ extension UIView {
             del.emptyData(self.emptyData!, didTapButton: btn)
         }
         emptyData.view.isHidden = true
-        
-        emptyData.bind.sizeObserver = SizeObserver(target: self, eventHandler: { [weak self] size in
-            self?.reloadEmptyDataView()
-        })
     }
 }
 
-
-extension UIView: XYEmptyDataViewable {}

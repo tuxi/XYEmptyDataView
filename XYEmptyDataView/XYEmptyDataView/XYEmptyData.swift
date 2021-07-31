@@ -19,42 +19,62 @@ public enum XYEmptyDataAppearStatus {
     case didDisappear
 }
 
+public protocol XYEmptyDataState {
+    var image: UIImage? { get }
+    var title: String? { get }
+    var detail: String? { get }
+    var titleButton: String? { get }
+    var customView: UIView? { get }
+    
+    var position: XYEmptyData.Position { get }
+}
+
 public protocol XYEmptyDataViewAppearable: XYEmptyDataDelegate {
     /// 当emptyDataView即将显示的回调
-    func emptyData(_ emptyData: XYEmptyData, onApperStatus status: XYEmptyDataAppearStatus)
+    func emptyData(_ emptyData: XYEmptyData, didChangedApperStatus status: XYEmptyDataAppearStatus)
 }
 
 public protocol XYEmptyDataDelegate: AnyObject {
     
-    /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return NO
-    /// - Returns: 如果需要强制显示emptyDataView，return YES即可
-    func shouldForcedDisplay(inEmptyData emptyData: XYEmptyData) -> Bool
-    
     /// 点击空视图的`button`回调
     func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton)
+    
+    /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return `false`
+    /// - Returns: 如果需要强制显示`emptyDataView`，return `true`即可
+    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool
 }
 
-/// 空数据模型
+public protocol XYEmptyDataDataSource: AnyObject {
+    func image(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIImage?
+    func title(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String?
+    func detail(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String?
+    func button(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> String?
+    func customView(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> UIView?
+    func position(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> XYEmptyData.Position
+}
+
 public struct XYEmptyData {
     public typealias Delegate = XYEmptyDataDelegate
+    public typealias DataSource = XYEmptyDataDataSource
     public enum Position {
         case center(offset: CGFloat = 0)
         case top(offset: CGFloat = 0)
         case bottom(offset: CGFloat = 0)
     }
-    /// 内部状态
-    internal enum Status {
-        case show, hide
+    struct ViewModel {
+        var image: UIImage?
+        var title: String?
+        var detail: String?
+        var titleButton: String?
+        var customView: UIView?
     }
-    /// `ViewBinder`分为两种视图：`default` 和 `custom`
+
     public class ViewBinder {
         internal var titleLabelClosure: ((UILabel) -> Void)?
         internal var detailLabelClosure: ((UILabel) -> Void)?
         internal var imageViewClosure: ((UIImageView) -> Void)?
         internal var buttonClosure: ((UIButton) -> Void)?
         
-        internal var customView: (() -> UIView?)?
-        internal var position: (() -> Position?)?
         internal init() {}
         
         internal var destoryClosure: (() -> Void)?
@@ -63,13 +83,13 @@ public struct XYEmptyData {
         /// `sizeObserver`就是解决这个问题
         internal var sizeObserver: SizeObserver?
         
+        internal weak var showView: UIView?
+        internal var state: XYEmptyDataState?
+        
         deinit {
             destoryClosure?()
         }
     }
-    
-    /// 对齐方法，分为：上、下、中间，修改的话需要调用`.bind.position`
-    public let position: Position
     /// 内边距
     public var contentEdgeInsets: UIEdgeInsets = .zero
     /// view的背景颜色
@@ -81,26 +101,32 @@ public struct XYEmptyData {
     /// `imageView`的宽高，默认为`nil`，让其自适应
     public var imageSize: CGSize?
     public weak var delegate: Delegate?
+    public weak var dataSource: DataSource?
     public let bind = ViewBinder()
     internal var view = XYEmptyDataView()
-    public init(position: Position) {
-        self.position = position
+    
+    internal var state: XYEmptyDataState? {
+        set {
+            bind.state = newValue
+        }
+        get {
+            return bind.state
+        }
     }
     
-    func updateView() {
+    public init(state: XYEmptyDataState?) {
+        self.state = state
+    }
+    
+    func updateView(for state: XYEmptyDataState) {
         let emptyData = self
-        self.view.update(withEmptyData: emptyData)
+        self.view.update(withEmptyData: emptyData, for: state)
     }
 }
 
 public extension XYEmptyDataViewAppearable {
-    func emptyDataView(willAppear scrollView: UIScrollView) {}
-    func emptyDataView(didAppear scrollView: UIScrollView) {}
-    func emptyDataView(willDisappear scrollView: UIScrollView) {}
-    func emptyDataView(didDisappear scrollView: UIScrollView) {}
+    func emptyData(_ emptyData: XYEmptyData, didChangedApperStatus status: XYEmptyDataAppearStatus) {}
 }
-
-
 
 extension XYEmptyData.ViewBinder {
     @discardableResult
@@ -122,17 +148,6 @@ extension XYEmptyData.ViewBinder {
     @discardableResult
     public func image(_ closure: @escaping (UIImageView) -> Void) -> Self {
         self.imageViewClosure = closure
-        return self
-    }
-    
-    @discardableResult
-    public func custom(_ closure: @escaping () -> UIView?) -> Self {
-        self.customView = closure
-        return self
-    }
-    @discardableResult
-    public func position(_ closure: @escaping () -> XYEmptyData.Position?) -> Self {
-        self.position = closure
         return self
     }
 }
@@ -162,7 +177,7 @@ internal class SizeObserver: NSObject {
 }
 
 extension XYEmptyDataDelegate {
-    func shouldForcedDisplay(inEmptyData emptyData: XYEmptyData) -> Bool {
+    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool {
         return false
     }
 }
@@ -171,43 +186,74 @@ extension XYEmptyDataDelegate {
 internal extension XYEmptyData {
     /// 即将显示空数据时调用
     func emptyDataViewWillAppear() {
-        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, onApperStatus: .willAppear)
+        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, didChangedApperStatus: .willAppear)
     }
     
     /// 已经显示空数据时调用
     func emptyDataViewDidAppear() {
-        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, onApperStatus: .didAppear)
+        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, didChangedApperStatus: .didAppear)
     }
     
     /// 空数据即将消失时调用
     func emptyDataViewWillDisappear() {
-        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, onApperStatus: .willDisappear)
+        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, didChangedApperStatus: .willDisappear)
     }
     
     /// 空数据已经消失时调用
     func emptyDataViewDidDisappear() {
-        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, onApperStatus: .didDisappear)
+        (self.delegate as? XYEmptyDataViewAppearable)?.emptyData(self, didChangedApperStatus: .didDisappear)
     }
 }
 
 
 public extension XYEmptyData {
     /// 显示空视图
-    func show(on view: UIView, animated: Bool) {
+    func show(with state: XYEmptyDataState) {
+        guard let showView = self.bind.showView else {
+            return
+        }
+        self.bind.state = state
         emptyDataViewWillAppear()
-        self.view.show(withView: view, animated: animated)
-        self.updateView()
+        self.view.show(on: showView, animated: true)
+        self.updateView(for: state)
         emptyDataViewDidAppear()
-        self.view.status = .show
     }
     
     /// 隐藏空视图
     func hide() {
         emptyDataViewWillDisappear()
         self.view.resetSubviews()
-        self.view.removeFromSuperview()
         self.view.contentView.alpha = 0
         emptyDataViewDidDisappear()
-        self.view.status = .hide
+        self.view.removeFromSuperview()
+    }
+}
+
+extension XYEmptyDataState {
+    var image: UIImage? {
+        return nil
+    }
+    var title: String? {
+        return nil
+    }
+    var detail: String? {
+        return nil
+    }
+    var titleButton: String? {
+        return nil
+    }
+    var customView: UIView? {
+        return nil
+    }
+    
+    var position: XYEmptyData.Position {
+        return .center(offset: 0)
+    }
+    
+}
+
+extension XYEmptyDataDataSource {
+    func position(forEmptyData emptyData: XYEmptyData, inState state: XYEmptyDataState) -> XYEmptyData.Position {
+        return .center(offset: 0)
     }
 }
