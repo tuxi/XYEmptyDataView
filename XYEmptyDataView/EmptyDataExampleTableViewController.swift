@@ -16,7 +16,7 @@ class EmptyDataExampleTableViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.separatorStyle = .none
+        tableView.separatorStyle = .singleLine
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         return tableView
     }()
@@ -75,9 +75,6 @@ class EmptyDataExampleTableViewController: UIViewController {
         )
         
         navigationItem.rightBarButtonItems = [clearButton]
-        
-//        tableView.contentInsetAdjustmentBehavior = .never
-//        tableView.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
     }
     
     @objc private func clearData() {
@@ -87,10 +84,6 @@ class EmptyDataExampleTableViewController: UIViewController {
     }
 
     @objc private func headerClick() {
-//        let alert = UIAlertController(title: "谢谢🍾️🍾️🍺", message: nil, preferredStyle: .alert)
-//        alert.addAction(UIAlertAction(title: "好的", style: .default, handler: nil))
-//        self.present(alert, animated: true, completion: nil)
-        
         self.navigationController?.pushViewController(ExampleViewController(), animated: true) 
     }
     
@@ -118,24 +111,6 @@ extension EmptyDataExampleTableViewController: UITableViewDataSource, UITableVie
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        let line = cell.viewWithTag(111)
-        if line == nil {
-            let line = UIView(frame: .zero)
-            line.translatesAutoresizingMaskIntoConstraints = false
-            line.accessibilityIdentifier = "line_"
-            line.tag = 111
-            cell.addSubview(line)
-            line.backgroundColor = UIColor.lightGray
-            let viewDict = ["line": line]
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[line]|",
-                                                                   options: NSLayoutConstraint.FormatOptions(rawValue: 0),
-                                                                       metrics: nil,
-                                                                       views: viewDict))
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:[line(==0.8)]|",
-                                                                   options: NSLayoutConstraint.FormatOptions(rawValue: 0),
-                                                                       metrics: nil,
-                                                                       views: viewDict))
-        }
         cell.textLabel?.text = "\(indexPath.row)"
         return cell
     }
@@ -143,8 +118,6 @@ extension EmptyDataExampleTableViewController: UITableViewDataSource, UITableVie
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return "第" + NSNumber.init(value: section).stringValue + "组"
     }
-    
-    
 }
 
 extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {

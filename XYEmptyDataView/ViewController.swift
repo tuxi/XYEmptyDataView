@@ -11,13 +11,7 @@ import UIKit
 class ViewController: UIViewController {
     
     private lazy var tableView: UITableView = {
-        
         let tableView = UITableView(frame: .zero, style: .plain)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.separatorStyle = .none
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         return tableView
     }()
     
@@ -63,6 +57,11 @@ class ViewController: UIViewController {
         headerView.addTarget(self, action: #selector(headerClick), for: .touchUpInside)
         self.tableView.tableHeaderView = headerView
         
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.separatorStyle = .singleLine
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         view.addSubview(tableView)
         NSLayoutConstraint.activate(
             ["|[tableView]|", "V:|[tableView]|"].flatMap {
@@ -130,30 +129,12 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        let line = cell.viewWithTag(111)
-        if line == nil {
-            let line = UIView(frame: .zero)
-            line.translatesAutoresizingMaskIntoConstraints = false
-            line.accessibilityIdentifier = "line_"
-            line.tag = 111
-            cell.addSubview(line)
-            line.backgroundColor = UIColor.lightGray
-            let viewDict = ["line": line]
-            NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[line]|",
-                                                                       options: NSLayoutConstraint.FormatOptions(rawValue: 0),
-                                                                       metrics: nil,
-                                                                       views: viewDict))
-            NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:[line(==0.8)]|",
-                                                                       options: NSLayoutConstraint.FormatOptions(rawValue: 0),
-                                                                       metrics: nil,
-                                                                       views: viewDict))
-        }
         cell.textLabel?.text = "\(indexPath.row)"
         return cell
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return "第" + NSNumber.init(value: section).stringValue + "组"
+        return "第\(section)组"
     }
 }
 

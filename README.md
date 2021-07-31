@@ -1,180 +1,158 @@
 # XYEmptyDataView
-iOS项目中用于展示空数据的视图，UIScrollView空数据视图分类，Swift4.
-
-#### 使用简单
-XYEmptyDataView中使用了Method Swizzle，对UITableView和UICollectionView的reloadData方法进行加工，最终才有了如此简单使用的空数据视图，项目中有示例
-
-#### AutoLayout
-使用AutoLayout布局
-
+为`UIView`扩展的`emptyData`属性，用于展示空数据视图，
 
 #### 使用说明
-首先XYEmptyDataView拖入项目中
+
+- 空数据一般是展示在一个`UIview`上面，在`UIview`上显示或隐藏时，我们需要手动的触发它，比如：
 ```
-import UIKit
-
-class ViewController: UIViewController {
-
-    fileprivate lazy var tableView: UITableView = {
-    
-        let tableView = UITableView(frame: .zero)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.separatorStyle = .none
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        return tableView
-    }()
-    
-    fileprivate lazy var dataArray = [Any]()
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        
-        setupView()
-        setupEmptyDataView()
-        
-        tableView.reloadData()
-    }
-
-    private func setupEmptyDataView() {
-        tableView.xy_textLabelBlock = { label in
-            label.text = "空数据😁简单展示"
-        }
-        
-        tableView.xy_detailTextLabelBlock = { label in
-            label.text = "这是一个测试\n😝😝😝"
-        }
-        
-        tableView.xy_reloadButtonBlock = { button in
-            button.setTitle("刷新吧", for: .normal)
-            button.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
-            button.layer.cornerRadius = 5.0
-            button.layer.masksToBounds = true
-        }
-        
-        tableView.xy_imageViewBlock = { imageView in
-            imageView.image = UIImage.init(named: "wow")
-        }
-        
-        tableView.emptyDataDelegate = self
-    }
-
-    private func setupView() {
-        view.addSubview(tableView)
-        let viewDict = ["tableView": tableView]
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[tableView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewDict))
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewDict))
-        
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(ViewController.clearData))
-    }
-    
-    @objc private func clearData() {
-        dataArray.removeAll()
-        tableView.reloadData()
-    }
-
-}
-
-extension ViewController: UITableViewDataSource, UITableViewDelegate {
-
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return dataArray.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        let line = cell.viewWithTag(111)
-        if line == nil {
-            let line = UIView(frame: .zero)
-            line.translatesAutoresizingMaskIntoConstraints = false
-            line.accessibilityIdentifier = "line_"
-            line.tag = 111
-            cell.addSubview(line)
-            line.backgroundColor = UIColor.lightGray
-            let viewDict = ["line": line]
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "|[line]|",
-                                                                       options: NSLayoutFormatOptions(rawValue: 0),
-                                                                       metrics: nil,
-                                                                       views: viewDict))
-        NSLayoutConstraint.activate(NSLayoutConstraint.constraints(withVisualFormat: "V:[line(==0.8)]|",
-                                                                       options: NSLayoutFormatOptions(rawValue: 0),
-                                                                       metrics: nil,
-                                                                       views: viewDict))
-        }
-        cell.textLabel?.text = "\(indexPath.row)"
-        return cell
-    }
-    
-}
-
-extension ViewController: XYEmptyDataDelegate {
-    
-    func emptyDataView(_ scrollView: UIScrollView, didClickReload button: UIButton) {
-        scrollView.xy_loading = true
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
-            self.dataArray.removeAll()
-            for section in 0...3 {
-                var  array = Array<Any>()
-                var count = 0
-                if section % 2 == 0 {
-                    count = 3
-                }
-                else {
-                    count = 6
-                }
-                for row in 0...count {
-                    array.append(row)
-                }
-                self.dataArray.append(array)
-                
+private var isLoading = false {
+    didSet {
+        if isLoading == false {
+            if dataArray.count > 0 {
+                self.view.emptyData?.hide()
             }
-            self.tableView.xy_loading = false
-            self.tableView.reloadData()
+            else {
+                self.view.emptyData?.show(with: ExampleEmptyDataState.noMessage)
+            }
         }
-        
-    }
-    
-    func emptyDataView(didAppear scrollView: UIScrollView) {
-        navigationItem.rightBarButtonItem?.isEnabled = false
-    }
-    
-    func emptyDataView(didDisappear scrollView: UIScrollView) {
-        navigationItem.rightBarButtonItem?.isEnabled = true
-    }
-    
-    func emptyDataView(imageViewSizeforEmptyDataView scrollView: UIScrollView) -> CGSize {
-         let screenMin = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
-        return CGSize(width: screenMin * 0.3, height: screenMin * 0.3)
-    }
-    
-    func emptyDataView(contentOffsetforEmptyDataView scrollView: UIScrollView) -> CGPoint {
-        if scrollView.xy_loading == true {
-            return CGPoint(x: 0, y: -scrollView.frame.size.height*0.5 + 20.0)
+        else {
+            self.view.emptyData?.show(with: ExampleEmptyDataState.loading)
         }
-        return CGPoint(x: 0, y: -20)
     }
+}
+```
 
-    func emptyDataView(contentSubviewsGlobalVerticalSpaceForEmptyDataView scrollView: UIScrollView) -> CGFloat {
-        return 20.0
+- 而在`UITableView`或者`UICollectionView`上面显示时，不需要手动触发，我们只需要调用系统方法`reloadData`即可，这是因为对`reloadData`方法进行了方法交换，我已经自动处理了显示和隐藏的过程，这些是在`UIView+XYEmptyData.swift`中实现的。
+
+
+- 空数据视图，基本会展示2种状态的视图：1.无数据、2.网络异常，其他的可通过自定义，而基于不同的页面大致可能是文案或图片展示不同。
+基于以上，我们将不同的状态定义为枚举的一个case，当显示空数据时，展示不同的信息即可。
+
+定义一个空数据状态的枚举，让实现`XYEmptyDataState`协议，以规范行为
+```swift
+enum ExampleEmptyDataState: XYEmptyDataState {
+    /// 无本地生活
+    case noLocalLife
+    /// 无消息
+    case noMessage
+    /// 无网络
+    case noInternet
+    /// 加载中
+    case loading
+    
+    var title: ((UILabel) -> Void)? {
+        return {
+            switch self {
+            case .noLocalLife,
+                $0.text = "空视图测试"
+            case .noMessage:
+                $0.text = "还没有消息呢"
+            case .noInternet:
+                $0.text = nil
+            case .loading:
+                $0.text = nil
+            }
+        }
     }
     
-    func customView(forEmptyDataView scrollView: UIScrollView) -> UIView? {
-        if scrollView.xy_loading == true {
-            let indicatorView = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+    var detail: ((UILabel) -> Void)? {
+        return {
+            $0.numberOfLines = 0
+            switch self {
+            case .noLocalLife,
+                $0.text = "暂无数据"
+            case .noMessage:
+                $0.text = "暂无消息"
+            case .noInternet:
+                $0.text = "暂无网络"
+            case .loading:
+                $0.text = nil
+            }
+        }
+    }
+    
+    var button: ((UIButton) -> Void)? {
+        return {
+            $0.backgroundColor = UIColor.blue.withAlphaComponent(0.7)
+            $0.layer.cornerRadius = 5.0
+            $0.layer.masksToBounds = true
+            switch self {
+            case .loading:
+                $0.setTitle(nil, for: .normal)
+            case .noInternet:
+                $0.setTitle("设置", for: .normal)
+            default:
+                $0.setTitle("点击重试", for: .normal)
+            }
+        }
+    }
+    
+    var image: ((UIImageView) -> Void)? {
+        return {
+            switch self {
+            case .noLocalLife:
+                $0.image = UIImage(named: "icon_default_empty")
+            case .noMessage:
+                $0.image = UIImage(named: "empty_noBinddate")
+            case .noInternet:
+                $0.image = UIImage(named: "empty_network")
+            case .loading:
+                $0.image = nil
+            }
+        }
+    }
+    
+    var customView: UIView? {
+        switch self {
+        case .loading:
+            let indicatorView = UIActivityIndicatorView(style: .gray)
             indicatorView.startAnimating()
             return indicatorView
+        default:
+            return nil
         }
-        return nil
     }
 }
 
+```
+
+在一个`UITableView`初始化时，初始化空视图：
+```swift
+private func setupEmptyDataView() {
+    var emptyData = XYEmptyData()
+    emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
+    emptyData.format.imageSize = CGSize(width: 180, height: 180)
+    emptyData.delegate = self
+    tableView.emptyData = emptyData
+}
+```
+
+实现空数据的代理
+```swift
+extension ViewController: XYEmptyDataDelegate {
+    func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl) {
+        requestData()
+    }
+    
+    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
+        requestData()
+    }
+    
+    func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
+        if self.isLoading == true {
+            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
+            return .top(offset: height)
+        }
+        return .center(offset: 0)
+    }
+    
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
+        if self.isLoading == true {
+            return ExampleEmptyDataState.loading
+        }
+        return ExampleEmptyDataState.noLocalLife
+    }
+}
 ```
 
 <img src = "https://github.com/alpface/XYEmptyDataView/blob/master/XYEmptyDataView/IMG_0778.PNG?raw=true" width = "375" height = "667" alt = "Screenshot1.png"/>
