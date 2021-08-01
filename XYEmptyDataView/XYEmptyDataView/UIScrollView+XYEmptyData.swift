@@ -10,11 +10,16 @@ import UIKit
 
 private var isRegisterEmptyDataViewKey = "com.alpface.XYEmptyData.registerEemptyDataView"
 
-extension XYEmptyData {
-    enum DefaultState: XYEmptyDataState {
-        
-        case empty
-    }
+/// 为`UIScrollView.emptyData.delegate`扩展的关联状态的代理
+/// 由于`UITableView`和`UICollectionView`的空数据显示与隐藏已关联其数据源，并自动管理，所以其显示的内容需要用户反馈一个state
+public protocol XYEmptyDataDelegateState: XYEmptyDataDelegate {
+    
+    /// 返回一个空数据的状态，比如在网络不好时返回无网络，或者某个特定的页面的状态
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState
+    
+    /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return `false`
+    /// - Returns: 如果需要强制显示`emptyDataView`，return `true`即可
+    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool
 }
 
 extension UIScrollView {
@@ -22,12 +27,7 @@ extension UIScrollView {
     /// 刷新空视图， 当执行`tableView`的`readData`、`endUpdates`或者`CollectionView`的`readData`时会调用此方法，外面无需主动调用
     public override func reloadEmptyDataView() {
         if shouldDisplayEmptyDataView {
-            let emptyData = self.emptyData!
-            var state = emptyData.state ?? XYEmptyData.DefaultState.empty
-            if let _state = emptyData.delegate?.state(forEmptyData: emptyData) {
-                state = _state
-            }
-            self.emptyData?.show(with: state)
+            self.emptyData?.show(with: state ?? XYEmptyData.DefaultState.empty)
         } else {
             self.emptyData?.hide()
         }
@@ -66,10 +66,21 @@ private extension UIScrollView {
     
     /// 是否应该强制显示，即使有数据时，默认不需要的
     private var shouldForcedDisplayEmptyDataView: Bool {
-        guard let del = self.emptyData?.delegate else {
+        guard let emptyData = self.emptyData, let del = self.emptyData?.delegate as? XYEmptyDataDelegateState else {
             return false
         }
-        return del.shouldForcedDisplay(forEmptyData: self.emptyData!)
+        return del.shouldForcedDisplay(forEmptyData: emptyData)
+    }
+    
+    private var state: XYEmptyDataState? {
+        guard let emptyData = self.emptyData else {
+            return nil
+        }
+        var state = emptyData.state
+        if let _state = emptyData.delegate?.state(forEmptyData: emptyData) {
+            state = _state
+        }
+        return state
     }
     
     private var itemCount: Int {
@@ -82,8 +93,7 @@ private extension UIScrollView {
         }
         
         // UITableView
-        if self is UITableView {
-            let tableView = self as! UITableView
+        if let tableView = self as? UITableView {
             guard let dataSource = tableView.dataSource else {
                 return itemCount
             }
@@ -94,23 +104,19 @@ private extension UIScrollView {
             }
             let selName2 = "tableView:numberOfRowsInSection:"
             if dataSource.responds(to: NSSelectorFromString(selName2)) {
-                // 遍历所有组获取每组的行数，就相加得到所有item的数量
                 if sections > 0 {
                     for section in 0...(sections - 1) {
                         itemCount += dataSource.tableView(tableView, numberOfRowsInSection: section)
                     }
                 }
-                
             }
         }
         
         // UICollectionView
-        if self is UICollectionView {
-            let collectionView = self as! UICollectionView
+        if let collectionView = self as? UICollectionView {
             guard let dataSource = collectionView.dataSource else {
                 return itemCount
             }
-            
             var sections = 1
             let selName1 = "numberOfSectionsInCollectionView:"
             if dataSource.responds(to: NSSelectorFromString(selName1)) {
@@ -118,13 +124,11 @@ private extension UIScrollView {
             }
             let selName2 = "collectionView:numberOfItemsInSection:"
             if dataSource.responds(to: NSSelectorFromString(selName2)) {
-                // 遍历所有组获取每组的行数，就相加得到所有item的数量
                 if sections > 0 {
                     for section in 0...(sections - 1) {
                         itemCount += dataSource.collectionView(collectionView, numberOfItemsInSection: section)
                     }
                 }
-                
             }
         }
         return itemCount
@@ -198,5 +202,17 @@ extension UICollectionView {
             .callFunction(withInsatnce: self)
         
         reloadEmptyDataView()
+    }
+}
+
+public extension XYEmptyDataDelegateState {
+    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool {
+        return false
+    }
+}
+
+extension XYEmptyData {
+    enum DefaultState: XYEmptyDataState {
+        case empty
     }
 }

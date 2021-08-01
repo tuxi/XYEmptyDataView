@@ -23,15 +23,8 @@ public protocol XYEmptyDataDelegate: AnyObject {
     /// 点击空视图的`contentView`回调
     func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl)
     
-    /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return `false`
-    /// - Returns: 如果需要强制显示`emptyDataView`，return `true`即可
-    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool
-    
     /// 返回空数据显示的位置
     func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position
-    
-    /// 返回一个空数据的状态，比如在网络不好时返回无网络，或者某个特定的页面的状态
-    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState
 }
 
 public protocol XYEmptyDataAppearable: XYEmptyDataDelegate {
@@ -164,9 +157,6 @@ public extension XYEmptyDataAppearable {
 }
 
 public extension XYEmptyDataDelegate {
-    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool {
-        return false
-    }
     
     func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
         return .center(offset: 0)

@@ -154,7 +154,9 @@ extension ViewController: XYEmptyDataDelegate {
         }
         return .center(offset: 0)
     }
-    
+}
+
+extension ViewController: XYEmptyDataDelegateState {
     func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
         if self.isLoading == true {
             return ExampleEmptyDataState.loading

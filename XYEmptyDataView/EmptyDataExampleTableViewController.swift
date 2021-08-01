@@ -129,6 +129,16 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
         requestData()
     }
     
+    func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
+        if self.isLoading == true {
+            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
+            return .top(offset: height)
+        }
+        return .center(offset: 0)
+    }
+}
+
+extension EmptyDataExampleTableViewController: XYEmptyDataDelegateState {
     func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
         if self.isLoading == true {
             return ExampleEmptyDataState.loading
@@ -139,14 +149,6 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
         else {
             return ExampleEmptyDataState.noBinddate
         }
-    }
-    
-    func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
-        if self.isLoading == true {
-            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
-            return .top(offset: height)
-        }
-        return .center(offset: 0)
     }
 }
 
