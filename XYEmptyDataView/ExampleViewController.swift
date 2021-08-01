@@ -86,7 +86,6 @@ extension ExampleViewController: XYEmptyDataDelegate {
     func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
         self.requestData()
     }
-    
 }
 
 extension ExampleViewController: XYEmptyDataAppearable {

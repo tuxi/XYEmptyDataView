@@ -77,7 +77,7 @@ private extension UIScrollView {
             return nil
         }
         var state = emptyData.state
-        if let _state = emptyData.delegate?.state(forEmptyData: emptyData) {
+        if let _state = (delegate as? XYEmptyDataDelegateState)?.state(forEmptyData: emptyData) {
             state = _state
         }
         return state

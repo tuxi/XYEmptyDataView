@@ -165,10 +165,6 @@ public extension XYEmptyDataDelegate {
     func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
         
     }
-    
-    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
-        return XYEmptyData.DefaultState.empty
-    }
 }
 public extension XYEmptyDataState {
     var customView: UIView? {
