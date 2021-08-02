@@ -84,7 +84,7 @@ public struct Swizzler {
         }
         
         /// 调用原方法实现，只能响应没有参数的方法，有参数的由于类型不确定，在调用时传递的都是空，所以需要自己重写
-        func callFunction(withInsatnce ins: NSObject) {
+        func callFunction(withInstance ins: NSObject) {
             guard let method = class_getInstanceMethod(aClass, selector),
                   let swizzler = Swizzler.getSwizzle(with: method) else {
                 return

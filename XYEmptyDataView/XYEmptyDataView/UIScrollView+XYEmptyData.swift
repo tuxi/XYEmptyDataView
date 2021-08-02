@@ -162,7 +162,7 @@ extension UITableView {
         //        swizzleReloadData()
         let origin = try! Swizzler.Func(aClass: UITableView.self,
                                         selector: #selector(reloadData))
-        origin.callFunction(withInsatnce: self)
+        origin.callFunction(withInstance: self)
         reloadEmptyDataView()
     }
     
@@ -170,7 +170,7 @@ extension UITableView {
         //        swizzleEndUpdates()
         try! Swizzler.Func(aClass: UITableView.self,
                            selector: #selector(endUpdates))
-            .callFunction(withInsatnce: self)
+            .callFunction(withInstance: self)
         
         reloadEmptyDataView()
     }
@@ -199,7 +199,7 @@ extension UICollectionView {
         //        swizzleReloadData()
         try! Swizzler.Func(aClass: UICollectionView.self,
                            selector: #selector(reloadData))
-            .callFunction(withInsatnce: self)
+            .callFunction(withInstance: self)
         
         reloadEmptyDataView()
     }
