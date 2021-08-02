@@ -151,16 +151,16 @@ extension UITableView {
         // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
         try! Swizzler.swizzle(selector: #selector(reloadData),
                               newSelector: #selector(swizzleReloadData),
-                              aClass: self.classForCoder)
+                              aClass: UITableView.self)
         
         try! Swizzler.swizzle(selector: #selector(endUpdates),
                               newSelector: #selector(swizzleEndUpdates),
-                              aClass: self.classForCoder)
+                              aClass: UITableView.self)
     }
     
     @objc private func swizzleReloadData() {
         //        swizzleReloadData()
-        let origin = try! Swizzler.Func(aClass: self.classForCoder,
+        let origin = try! Swizzler.Func(aClass: UITableView.self,
                                         selector: #selector(reloadData))
         origin.callFunction(withInsatnce: self)
         reloadEmptyDataView()
@@ -168,7 +168,7 @@ extension UITableView {
     
     @objc private func swizzleEndUpdates() {
         //        swizzleEndUpdates()
-        try! Swizzler.Func(aClass: self.classForCoder,
+        try! Swizzler.Func(aClass: UITableView.self,
                            selector: #selector(endUpdates))
             .callFunction(withInsatnce: self)
         
@@ -192,12 +192,12 @@ extension UICollectionView {
         // 对reloadData方法的实现进行处理, 为加载reloadData时注入额外的实现
         try! Swizzler.swizzle(selector: #selector(reloadData),
                               newSelector: #selector(swizzleReloadData),
-                              aClass: self.classForCoder)
+                              aClass: UICollectionView.self)
     }
     
     @objc private func swizzleReloadData() {
         //        swizzleReloadData()
-        try! Swizzler.Func(aClass: self.classForCoder,
+        try! Swizzler.Func(aClass: UICollectionView.self,
                            selector: #selector(reloadData))
             .callFunction(withInsatnce: self)
         

@@ -50,6 +50,7 @@ public struct Swizzler {
             }
             /// 恢复原方法的调用，必须用`swizzle.original`去还原
             method_setImplementation(swizzle.original.method, swizzle.original.methodImp)
+            method_setImplementation(swizzle.new.method, swizzle.new.methodImp)
             Swizzler.removeSwizzle(for: method)
         }
         
