@@ -120,7 +120,7 @@ enum ExampleEmptyDataState: XYEmptyDataState {
 在一个`UITableView`初始化时，初始化空视图：
 ```swift
 private func setupEmptyDataView() {
-    var emptyData = XYEmptyData()
+    var emptyData = XYEmptyData.with(state: ExampleEmptyDataState.noLocalLife)
     emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
     emptyData.format.imageSize = CGSize(width: 180, height: 180)
     emptyData.delegate = self
@@ -134,26 +134,12 @@ extension ViewController: XYEmptyDataDelegate {
     func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl) {
         requestData()
     }
-    
-    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
-        requestData()
-    }
-    
     func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
         if self.isLoading == true {
             let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
             return .top(offset: height)
         }
         return .center(offset: 0)
-    }
-}
-
-extension ViewController: XYEmptyDataDelegateState {
-    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
-        if self.isLoading == true {
-            return ExampleEmptyDataState.loading
-        }
-        return ExampleEmptyDataState.noLocalLife
     }
 }
 ```
