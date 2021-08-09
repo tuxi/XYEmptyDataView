@@ -51,7 +51,7 @@ public struct XYEmptyData {
     /// 内部属性，用于配制一些view的可变属性
     internal let config: ViewConfig
     /// 空数据的view
-    internal var view = XYEmptyDataView()
+    internal let view = XYEmptyDataView()
     
     /// 初始化空数据
     ///
@@ -84,11 +84,13 @@ internal extension XYEmptyData {
 
 public extension XYEmptyData {
     /// 根据一个状态显示空视图
+    ///
+    /// - Parameters:
+    ///   - state: 临时状态，该状态不会被保存
     func show(with state: XYEmptyDataState) {
         guard let showView = self.config.superview else {
             return
         }
-        self.config.state = state
         viewWillAppear()
         self.view.show(on: showView, animated: true)
         let emptyData = self
@@ -96,7 +98,8 @@ public extension XYEmptyData {
         viewDidAppear()
     }
     
-    /// 根据初始状态显示空数据，如果实现`XYEmptyDataDelegateState`的状态绑定后，初始化状态无效
+    /// 根据初始状态显示空数据视图
+    /// 如果实现`XYEmptyDataDelegateState`的状态绑定后，初始化状态无效
     func show() {
         if let state = state {
             show(with: state)
@@ -159,7 +162,7 @@ extension XYEmptyData {
         /// 空数据view的父视图
         internal weak var superview: UIView?
         /// 展示空数据的状态
-        internal var state: XYEmptyDataState
+        internal let state: XYEmptyDataState
         
         deinit {
             destoryClosure?()

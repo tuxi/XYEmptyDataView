@@ -19,7 +19,7 @@ class ExampleViewController: UIViewController {
                     self.view.emptyData?.hide()
                 }
                 else {
-                    self.view.emptyData?.show(with: ExampleEmptyDataState.noMessage)
+                    self.view.emptyData?.show()
                 }
             }
             else {
