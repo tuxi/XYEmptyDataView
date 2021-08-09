@@ -15,7 +15,7 @@ class ViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.separatorStyle = .singleLine
+        tableView.separatorStyle = .none
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         return tableView
     }()
@@ -43,7 +43,6 @@ class ViewController: UIViewController {
     
     private func setupEmptyDataView() {
         var emptyData = XYEmptyData.with(state: ExampleEmptyDataState.noLocalLife)
-        
         emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
         emptyData.format.imageSize = CGSize(width: 180, height: 180)
         emptyData.delegate = self
@@ -145,11 +144,6 @@ extension ViewController: XYEmptyDataDelegate {
     func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl) {
         requestData()
     }
-    
-    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
-        requestData()
-    }
-    
     func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
         if self.isLoading == true {
             let height = self.tableView.tableHeaderView?.frame.maxY ?? 0

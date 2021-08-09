@@ -54,7 +54,9 @@ public struct XYEmptyData {
     internal var view = XYEmptyDataView()
     
     /// 初始化空数据
-    /// - Parameters state: 初始状态，如果实现`XYEmptyDataDelegateState`的状态绑定后， 初始状态无效
+    ///
+    /// - Parameters:
+    ///   - state: 初始状态，如果实现`XYEmptyDataDelegateState`的状态绑定后， 此属性无效
     public static func with(state: XYEmptyDataState) -> XYEmptyData {
         return XYEmptyData(config: ViewConfig(state: state))
     }
