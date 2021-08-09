@@ -38,10 +38,12 @@ public struct XYEmptyData {
     public var format = Format()
     public weak var delegate: Delegate?
     
-    internal let config = ViewConfig()
+    internal let config: ViewConfig
     internal var view = XYEmptyDataView()
     
-    public init() { }
+    public static func with(state: XYEmptyDataState) -> XYEmptyData {
+        return XYEmptyData(config: ViewConfig(state: state))
+    }
     
     func updateView(for state: XYEmptyDataState) {
         let emptyData = self
@@ -85,6 +87,10 @@ public extension XYEmptyData {
         viewDidAppear()
     }
     
+    func show() {
+        show(with: config.state)
+    }
+    
     /// 隐藏空视图
     func hide() {
         viewWillDisappear()
@@ -92,17 +98,6 @@ public extension XYEmptyData {
         self.view.contentView.alpha = 0
         viewDidDisappear()
         self.view.removeFromSuperview()
-    }
-}
-
-internal extension XYEmptyData {
-    var state: XYEmptyDataState? {
-        set {
-            config.state = newValue
-        }
-        get {
-            return config.state
-        }
     }
 }
 
@@ -134,7 +129,9 @@ extension XYEmptyData {
     }
 
     internal class ViewConfig {
-        internal init() {}
+        internal init(state: XYEmptyDataState) {
+            self.state = state
+        }
         
         internal var destoryClosure: (() -> Void)?
         
@@ -144,7 +141,7 @@ extension XYEmptyData {
         internal var sizeObserver: SizeObserver?
         
         internal weak var showView: UIView?
-        internal var state: XYEmptyDataState?
+        internal var state: XYEmptyDataState
         
         deinit {
             destoryClosure?()

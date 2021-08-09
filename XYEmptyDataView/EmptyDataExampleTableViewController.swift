@@ -42,7 +42,7 @@ class EmptyDataExampleTableViewController: UIViewController {
     }
 
     private func setupEmptyDataView() {
-        var emptyData = XYEmptyData()
+        var emptyData = XYEmptyData.with(state: ExampleEmptyDataState.noBinddate)
         emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
         emptyData.format.imageSize = CGSize(width: 180, height: 180)
         
@@ -78,7 +78,6 @@ class EmptyDataExampleTableViewController: UIViewController {
     }
     
     @objc private func clearData() {
-        self.tableView.emptyData?.state = ExampleEmptyDataState.noBinddate
         dataArray.removeAll()
         tableView.reloadData()
     }
@@ -138,8 +137,8 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
     }
 }
 
-extension EmptyDataExampleTableViewController: XYEmptyDataDelegateState {
-    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
+extension EmptyDataExampleTableViewController: XYEmptyDataStateDelegate {
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState? {
         if self.isLoading == true {
             return ExampleEmptyDataState.loading
         }

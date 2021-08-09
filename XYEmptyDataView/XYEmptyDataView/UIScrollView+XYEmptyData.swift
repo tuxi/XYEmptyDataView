@@ -12,10 +12,10 @@ private var isRegisterEmptyDataViewKey = "com.alpface.XYEmptyData.registerEempty
 
 /// 为`UIScrollView.emptyData.delegate`扩展的关联状态的代理
 /// 由于`UITableView`和`UICollectionView`的空数据显示与隐藏已关联其数据源，并自动管理，所以其显示的内容需要用户反馈一个state
-public protocol XYEmptyDataDelegateState: XYEmptyDataDelegate {
+public protocol XYEmptyDataStateDelegate: XYEmptyDataDelegate {
     
     /// 返回一个空数据的状态，比如在网络不好时返回无网络，或者某个特定的页面的状态
-    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState?
     
     /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return `false`
     /// - Returns: 如果需要强制显示`emptyDataView`，return `true`即可
@@ -25,9 +25,10 @@ public protocol XYEmptyDataDelegateState: XYEmptyDataDelegate {
 extension UIScrollView {
     
     /// 刷新空视图， 当执行`tableView`的`readData`、`endUpdates`或者`CollectionView`的`readData`时会调用此方法，外面无需主动调用
-    public override func reloadEmptyDataView() {
-        if shouldDisplayEmptyDataView {
-            self.emptyData?.show(with: state ?? XYEmptyData.DefaultState.empty)
+    public func reloadEmptyDataView() {
+        if shouldDisplayEmptyDataView,
+           let state = emptyDataState {
+            self.emptyData?.show(with: state)
         } else {
             self.emptyData?.hide()
         }
@@ -41,7 +42,7 @@ extension UIScrollView {
             return objc_getAssociatedObject(self, &isRegisterEmptyDataViewKey) as? Bool ?? false
         }
     }
-    override func noticeEmptyDataDidChanged() {
+    override func notifyEmptyDataDidChanged() {
         if let tableView = self as? UITableView {
             tableView.registerEmptyDataView()
         }
@@ -66,21 +67,21 @@ private extension UIScrollView {
     
     /// 是否应该强制显示，即使有数据时，默认不需要的
     private var shouldForcedDisplayEmptyDataView: Bool {
-        guard let emptyData = self.emptyData, let del = self.emptyData?.delegate as? XYEmptyDataDelegateState else {
+        guard let emptyData = self.emptyData,
+              let del = self.emptyData?.delegate as? XYEmptyDataStateDelegate else {
             return false
         }
         return del.shouldForcedDisplay(forEmptyData: emptyData)
     }
     
-    private var state: XYEmptyDataState? {
+    private var emptyDataState: XYEmptyDataState? {
         guard let emptyData = self.emptyData else {
             return nil
         }
-        var state = emptyData.state
-        if let _state = (emptyData.delegate as? XYEmptyDataDelegateState)?.state(forEmptyData: emptyData) {
-            state = _state
+        if let stateDelegate = (emptyData.delegate as? XYEmptyDataStateDelegate) {
+            return stateDelegate.state(forEmptyData: emptyData)
         }
-        return state
+        return emptyData.config.state
     }
     
     private var itemCount: Int {
@@ -205,7 +206,7 @@ extension UICollectionView {
     }
 }
 
-public extension XYEmptyDataDelegateState {
+public extension XYEmptyDataStateDelegate {
     func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool {
         return false
     }

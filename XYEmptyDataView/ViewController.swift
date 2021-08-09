@@ -37,7 +37,7 @@ class ViewController: UIViewController {
     }
     
     private func setupEmptyDataView() {
-        var emptyData = XYEmptyData()
+        var emptyData = XYEmptyData.with(state: ExampleEmptyDataState.noLocalLife)
         
         emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
         emptyData.format.imageSize = CGSize(width: 180, height: 180)
@@ -92,6 +92,9 @@ class ViewController: UIViewController {
     }
     
     private func requestData() {
+        if isLoading {
+            return
+        }
         isLoading = true
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
             self.dataArray.removeAll()
@@ -156,8 +159,8 @@ extension ViewController: XYEmptyDataDelegate {
     }
 }
 
-extension ViewController: XYEmptyDataDelegateState {
-    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState {
+extension ViewController: XYEmptyDataStateDelegate {
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState? {
         if self.isLoading == true {
             return ExampleEmptyDataState.loading
         }

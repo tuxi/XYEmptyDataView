@@ -19,24 +19,12 @@ extension UIView {
         set {
             objc_setAssociatedObject(self, &emptyDataKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             newValue?.config.showView = self
-            noticeEmptyDataDidChanged()
+            notifyEmptyDataDidChanged()
         }
     }
     
-    @objc func noticeEmptyDataDidChanged() {
+    @objc func notifyEmptyDataDidChanged() {
         setupEmptyDataView()
-    }
-    
-    @objc public func reloadEmptyDataView() {
-        guard let emptyData = emptyData else {
-            return
-        }
-        if let state = emptyData.state {
-            emptyData.show(with: state)
-        }
-        else {
-            emptyData.hide()
-        }
     }
     
     /// 初始化空数据视图
