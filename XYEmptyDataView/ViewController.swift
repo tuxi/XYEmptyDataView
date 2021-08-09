@@ -12,6 +12,11 @@ class ViewController: UIViewController {
     
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .plain)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.separatorStyle = .singleLine
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         return tableView
     }()
     
@@ -57,11 +62,6 @@ class ViewController: UIViewController {
         headerView.addTarget(self, action: #selector(headerClick), for: .touchUpInside)
         self.tableView.tableHeaderView = headerView
         
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.separatorStyle = .singleLine
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         view.addSubview(tableView)
         NSLayoutConstraint.activate(
             ["|[tableView]|", "V:|[tableView]|"].flatMap {
@@ -157,26 +157,20 @@ extension ViewController: XYEmptyDataDelegate {
         }
         return .center(offset: 0)
     }
+    
+    func didAppear(forEmptyData emptyData: XYEmptyData) {
+        clearButton.isEnabled = false
+    }
+    func didDisappear(forEmptyData emptyData: XYEmptyData) {
+        clearButton.isEnabled = true
+    }
 }
 
-extension ViewController: XYEmptyDataStateDelegate {
+extension ViewController: XYEmptyDataDelegateState {
     func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState? {
         if self.isLoading == true {
             return ExampleEmptyDataState.loading
         }
         return ExampleEmptyDataState.noLocalLife
-    }
-}
-
-extension ViewController: XYEmptyDataAppearable {
-    func emptyData(_ emptyData: XYEmptyData, didChangedAppearStatus status: XYEmptyData.AppearStatus) {
-        switch status {
-        case .didAppear:
-            clearButton.isEnabled = false
-        case .didDisappear:
-            clearButton.isEnabled = true
-        default:
-            break
-        }
     }
 }

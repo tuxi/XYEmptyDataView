@@ -10,24 +10,12 @@ import UIKit
 
 private var isRegisterEmptyDataViewKey = "com.alpface.XYEmptyData.registerEemptyDataView"
 
-/// 为`UIScrollView.emptyData.delegate`扩展的关联状态的代理
-/// 由于`UITableView`和`UICollectionView`的空数据显示与隐藏已关联其数据源，并自动管理，所以其显示的内容需要用户反馈一个state
-public protocol XYEmptyDataStateDelegate: XYEmptyDataDelegate {
-    
-    /// 返回一个空数据的状态，比如在网络不好时返回无网络，或者某个特定的页面的状态
-    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState?
-    
-    /// 当前所在页面的数据源itemCount>0时，是否应该实现emptyDataView，default return `false`
-    /// - Returns: 如果需要强制显示`emptyDataView`，return `true`即可
-    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool
-}
-
 extension UIScrollView {
     
     /// 刷新空视图， 当执行`tableView`的`readData`、`endUpdates`或者`CollectionView`的`readData`时会调用此方法，外面无需主动调用
-    public func reloadEmptyDataView() {
+    fileprivate func reloadEmptyDataView() {
         if shouldDisplayEmptyDataView,
-           let state = emptyDataState {
+           let state = self.emptyData?.state {
             self.emptyData?.show(with: state)
         } else {
             self.emptyData?.hide()
@@ -59,32 +47,14 @@ extension UIScrollView {
 /// 扩展显示空数据的条件
 private extension UIScrollView {
     /// 是否应该显示
-    private var shouldDisplayEmptyDataView: Bool {
-        return emptyData != nil &&
+    var shouldDisplayEmptyDataView: Bool {
+        return
+            emptyData != nil &&
             !frame.size.equalTo(.zero) &&
-            (itemCount <= 0 || shouldForcedDisplayEmptyDataView)
+            itemCount <= 0
     }
     
-    /// 是否应该强制显示，即使有数据时，默认不需要的
-    private var shouldForcedDisplayEmptyDataView: Bool {
-        guard let emptyData = self.emptyData,
-              let del = self.emptyData?.delegate as? XYEmptyDataStateDelegate else {
-            return false
-        }
-        return del.shouldForcedDisplay(forEmptyData: emptyData)
-    }
-    
-    private var emptyDataState: XYEmptyDataState? {
-        guard let emptyData = self.emptyData else {
-            return nil
-        }
-        if let stateDelegate = (emptyData.delegate as? XYEmptyDataStateDelegate) {
-            return stateDelegate.state(forEmptyData: emptyData)
-        }
-        return emptyData.config.state
-    }
-    
-    private var itemCount: Int {
+    var itemCount: Int {
         var itemCount = 0
         
         let selectorName = "dataSource"
@@ -203,17 +173,5 @@ extension UICollectionView {
             .callFunction(withInstance: self)
         
         reloadEmptyDataView()
-    }
-}
-
-public extension XYEmptyDataStateDelegate {
-    func shouldForcedDisplay(forEmptyData emptyData: XYEmptyData) -> Bool {
-        return false
-    }
-}
-
-extension XYEmptyData {
-    enum DefaultState: XYEmptyDataState {
-        case empty
     }
 }

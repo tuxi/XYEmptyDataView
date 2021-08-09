@@ -137,7 +137,7 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
     }
 }
 
-extension EmptyDataExampleTableViewController: XYEmptyDataStateDelegate {
+extension EmptyDataExampleTableViewController: XYEmptyDataDelegateState {
     func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState? {
         if self.isLoading == true {
             return ExampleEmptyDataState.loading
@@ -149,18 +149,12 @@ extension EmptyDataExampleTableViewController: XYEmptyDataStateDelegate {
             return ExampleEmptyDataState.noBinddate
         }
     }
-}
-
-extension EmptyDataExampleTableViewController: XYEmptyDataAppearable {
-    func emptyData(_ emptyData: XYEmptyData, didChangedAppearStatus status: XYEmptyData.AppearStatus) {
-        switch status {
-        case .didAppear:
-            clearButton.isEnabled = false
-        case .didDisappear:
-            clearButton.isEnabled = true
-        default:
-            break
-        }
+    
+    func didAppear(forEmptyData emptyData: XYEmptyData) {
+        clearButton.isEnabled = false
+    }
+    func didDisappear(forEmptyData emptyData: XYEmptyData) {
+        clearButton.isEnabled = true
     }
 }
 

@@ -301,7 +301,7 @@ private extension XYEmptyDataView {
 
 /// 更新视图
 extension XYEmptyDataView {
-    func update(withEmptyData emptyData: XYEmptyData, for state: XYEmptyDataState) {
+    func update(_ emptyData: XYEmptyData, for state: XYEmptyDataState) {
         let emptyDataView = self
         // 重置视图及其约束
         emptyDataView.resetSubviews()
@@ -318,8 +318,7 @@ extension XYEmptyDataView {
             // 设置emptyDataView子控件垂直间的间距
             emptyDataView.globalVerticalSpace = emptyData.format.itemPadding
         }
-        let position = emptyData.delegate?.position(forState: state, inEmptyData: emptyData) ?? .center(offset: 0)
-        emptyDataView.position = position
+        emptyDataView.position = emptyData.delegate?.position(forState: state, inEmptyData: emptyData) ?? .center(offset: 0)
         emptyDataView.contentEdgeInsets = emptyData.format.contentEdgeInsets
         emptyDataView.backgroundColor = emptyData.format.backgroundColor
         emptyDataView.contentView.backgroundColor = emptyData.format.contentBackgroundColor

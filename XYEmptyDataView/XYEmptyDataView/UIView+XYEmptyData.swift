@@ -18,7 +18,7 @@ extension UIView {
         }
         set {
             objc_setAssociatedObject(self, &emptyDataKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            newValue?.config.showView = self
+            newValue?.config.superview = self
             notifyEmptyDataDidChanged()
         }
     }
