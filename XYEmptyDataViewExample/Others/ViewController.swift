@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import XYEmptyDataView
 
 class ViewController: UIViewController {
     
@@ -142,6 +143,9 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 
 extension ViewController: XYEmptyDataDelegate {
     func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl) {
+        requestData()
+    }
+    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
         requestData()
     }
     func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {

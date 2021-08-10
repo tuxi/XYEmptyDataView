@@ -1,0 +1,6 @@
+framework module XYEmptyDataView {
+  umbrella header "XYEmptyDataView-umbrella.h"
+
+  export *
+  module * { export * }
+}

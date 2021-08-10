@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import XYEmptyDataView
 
 class EmptyDataExampleTableViewController: UIViewController {
     

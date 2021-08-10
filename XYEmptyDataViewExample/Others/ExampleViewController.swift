@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import XYEmptyDataView
 
 class ExampleViewController: UIViewController {
     private lazy var dataArray = [[Any]]()

@@ -1,0 +1,26 @@
+{
+  "name": "XYEmptyDataView",
+  "version": "0.1",
+  "summary": "Swift 项目中为UIView、UITableView扩展的空数据视图",
+  "description": "Swift 项目中优雅的空数据视图展示",
+  "homepage": "https://github.com/tuxi/XYEmptyDataView",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "xiaoyuan": "seyooe@gmail.com"
+  },
+  "social_media_url": "https://twitter.com/seyooe",
+  "platforms": {
+    "ios": "10.0"
+  },
+  "source": {
+    "git": "https://github.com/tuxi/XYEmptyDataView.git",
+    "tag": "0.1"
+  },
+  "source_files": "Source/**/*.{swift}",
+  "frameworks": "UIKit",
+  "swift_versions": "5.0",
+  "swift_version": "5.0"
+}

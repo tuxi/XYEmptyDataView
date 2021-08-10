@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import XYEmptyDataView
 
 enum ExampleEmptyDataState: XYEmptyDataState {
     /// 无本地生活
