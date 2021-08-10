@@ -10,8 +10,8 @@ Pod::Spec.new do |spec|
 
   spec.name         = "XYEmptyDataView"
   spec.version      = "0.1"
-  spec.summary      = "Swift 项目中为UIView、UITableView扩展的空数据视图"
-  spec.description  = "Swift 项目中优雅的空数据视图展示"
+  spec.summary      = "An empty data view with customizable status, which supports UIView, UITableView and UICollectionView"
+  spec.description  = "An empty data view with customizable status, which supports UIView, UITableView and UICollectionView"
 
   spec.homepage     = "https://github.com/tuxi/XYEmptyDataView"
   spec.license      = { :type => "MIT", :file => "LICENSE" }
