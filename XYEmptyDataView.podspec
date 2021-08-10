@@ -9,7 +9,7 @@
 Pod::Spec.new do |spec|
 
   spec.name         = "XYEmptyDataView"
-  spec.version      = "0.2"
+  spec.version      = "0.3"
   spec.summary      = "An empty data view with customizable status, which supports UIView, UITableView and UICollectionView"
   spec.description  = "An empty data view with customizable status, which supports UIView, UITableView and UICollectionView"
 
