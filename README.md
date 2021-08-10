@@ -1,35 +1,67 @@
-# XYEmptyDataView
-为`UIView`扩展的`emptyData`属性，用于展示空数据视图。
+# XYEmptyData
+为`UIView`扩展的`emptyData`属性，用于展示空视图。
+空数据视图，通常是在缺省状态下展示：不同页面的无数据状态、网络异常。这些UI相对简单，但是频繁的处理不同状态下的空数据视图似乎有些多余，通过`XYEmptyData`很好的解决这个问题。
+
+你可以实现`XYEmptyDataState`协议，去自定义不同状态下的空数据视图，这里我很中意`swift`中的枚举，因为它可以很好的区分这些状态。
 
 ### 使用说明
-- 空数据一般是展示在一个`UIview`上面，在`UIview`上显示或隐藏时，我们需要手动的触发它，比如：
+
+- 初始化空视图，初始化时设置一个初始`state`，以便需要时显示，
+由`UIview`的实例引用了`emptyData`，对空视图的操作，都在`emptyData`中。
 ```
-private var isLoading = false {
-    didSet {
-        if isLoading == false {
-            if dataArray.count > 0 {
-                self.view.emptyData?.hide()
+func setupEmptyDataView() {
+    var emptyData = XYEmptyData.with(state: ExampleEmptyDataState.noMessage)
+    emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
+    emptyData.format.imageSize = CGSize(width: 180, height: 180)
+    emptyData.delegate = self
+    view.emptyData = emptyData
+    emptyData.show()
+}
+
+```
+
+- 在`UIview`上展示空视图，除了初始化以外，在需要时，需主动调用`show()`或者`hide()`去显示或隐藏空视图
+
+```swift
+class ExampleViewController: UIViewController {
+    private lazy var dataArray = [[Any]]()
+    private var isLoading = false {
+        didSet {
+            if isLoading == false {
+                if dataArray.count > 0 {
+                    self.view.emptyData?.hide()
+                }
+                else {
+                    self.view.emptyData?.show()
+                }
             }
             else {
-                self.view.emptyData?.show()
+                self.view.emptyData?.show(with: ExampleEmptyDataState.loading)
             }
         }
+    }
+}
+```
+- 在`UITableView`或者`UICollectionView`上展示空视图，无需主动显示或隐藏，这是内部已交换`reloadData`方法，在执行`reloadData`方法时根据`state`刷新空视图，你可以使用初始化时候的状态，也可以根据需求绑定一个状态，比如：无数据、网络异常等，在显示时根据状态显示UI。绑定状态需要实现`XYEmptyDataDelegateState`协议
+
+```swift
+extension EmptyDataExampleTableViewController: XYEmptyDataDelegateState {
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState? {
+        if self.isLoading == true {
+            return ExampleEmptyDataState.loading
+        }
+        else if let error = self.error {
+            return ExampleEmptyDataState.error(error)
+        }
         else {
-            self.view.emptyData?.show(with: ExampleEmptyDataState.loading)
+            return ExampleEmptyDataState.noBinddate
         }
     }
 }
 ```
 
-- 而在`UITableView`或者`UICollectionView`上面显示时，不需要手动触发，我们只需要调用系统方法`reloadData`即可，这是因为对`reloadData`方法进行了方法交换，我已经自动处理了显示和隐藏的过程，这些是在`UIScrollView+XYEmptyData.swift`中实现的。
-
-
-- 空数据视图，通常会展示2种状态的视图：1.无数据、2.网络异常，其他的可通过自定义，而基于不同的页面大致可能是文案或图片展示不同，所以我们使用Swift中的枚举去区分这些状态。
-
-
 ### 示例
-基于以上，我们将不同的状态定义为枚举的一个case，当显示空数据时，展示不同的信息即可。
-定义一个空数据状态的枚举，让实现`XYEmptyDataState`协议，以规范行为
+`ExampleEmptyDataState`是根据业务定义的空视图状态，它实现了`XYEmptyDataState`协议，由于它是枚举，所以很好的反应不同状态下的样式。
 ```swift
 enum ExampleEmptyDataState: XYEmptyDataState {
     /// 无本地生活
@@ -117,32 +149,4 @@ enum ExampleEmptyDataState: XYEmptyDataState {
 
 ```
 
-在一个`UITableView`初始化时，初始化空视图：
-```swift
-private func setupEmptyDataView() {
-    var emptyData = XYEmptyData.with(state: ExampleEmptyDataState.noLocalLife)
-    emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
-    emptyData.format.imageSize = CGSize(width: 180, height: 180)
-    emptyData.delegate = self
-    tableView.emptyData = emptyData
-}
-```
-
-实现空数据的代理
-```swift
-extension ViewController: XYEmptyDataDelegate {
-    func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl) {
-        requestData()
-    }
-    func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
-        if self.isLoading == true {
-            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
-            return .top(offset: height)
-        }
-        return .center(offset: 0)
-    }
-}
-```
-
-<img src = "https://github.com/alpface/XYEmptyDataView/blob/master/XYEmptyDataView/IMG_0778.PNG?raw=true" width = "375" height = "667" alt = "Screenshot1.png"/>
-
+<img src = "https://github.com/alpface/XYEmptyDataView/blob/master/XYEmptyDataViewExample/IMG_0778.PNG?raw=true" width = "390" height = "844" alt = "Screenshot1.png"/>

@@ -16,6 +16,7 @@
 		D0CDDD3A26C2989E00EE0458 /* EmptyDataExampleTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CDDD3426C2989E00EE0458 /* EmptyDataExampleTableViewController.swift */; };
 		D0CDDD3B26C2989E00EE0458 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CDDD3726C2989E00EE0458 /* ViewController.swift */; };
 		D0CDDD3C26C2989E00EE0458 /* ExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CDDD3826C2989E00EE0458 /* ExampleViewController.swift */; };
+		D0CDDD3E26C2C4B400EE0458 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = D0CDDD3D26C2C4B400EE0458 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		D0CDDD3426C2989E00EE0458 /* EmptyDataExampleTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EmptyDataExampleTableViewController.swift; sourceTree = "<group>"; };
 		D0CDDD3726C2989E00EE0458 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		D0CDDD3826C2989E00EE0458 /* ExampleViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleViewController.swift; sourceTree = "<group>"; };
+		D0CDDD3D26C2C4B400EE0458 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E5224C85EDB686854167A152 /* Pods-XYEmptyDataViewExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-XYEmptyDataViewExample.release.xcconfig"; path = "Target Support Files/Pods-XYEmptyDataViewExample/Pods-XYEmptyDataViewExample.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -66,6 +68,7 @@
 		D0BFED5326C20E97007E49BF = {
 			isa = PBXGroup;
 			children = (
+				D0CDDD3D26C2C4B400EE0458 /* README.md */,
 				D0BFED5E26C20E97007E49BF /* XYEmptyDataViewExample */,
 				D0BFED5D26C20E97007E49BF /* Products */,
 				963FF04E6174166B65ABCB6D /* Pods */,
@@ -182,6 +185,7 @@
 			files = (
 				D0BFED6C26C20E9A007E49BF /* LaunchScreen.storyboard in Resources */,
 				D0BFED6926C20E9A007E49BF /* Assets.xcassets in Resources */,
+				D0CDDD3E26C2C4B400EE0458 /* README.md in Resources */,
 				D0BFED6726C20E97007E49BF /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
