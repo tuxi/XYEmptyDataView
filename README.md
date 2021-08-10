@@ -1,4 +1,4 @@
-# XYEmptyData
+# XYEmptyDataView
 为`UIView`扩展的`emptyData`属性，用于展示空视图。
 空数据视图，通常是在缺省状态下展示：不同页面的无数据状态、网络异常。这些UI相对简单，但是频繁的处理不同状态下的空数据视图似乎有些多余，通过`XYEmptyData`很好的解决这个问题。
 
@@ -6,9 +6,17 @@
 
 ### 使用说明
 
+#### CocoaPods 安装
+
+```ruby
+pod 'XYEmptyDataView'
+```
+
+#### 示例
+
 - 初始化空视图，初始化时设置一个初始`state`，以便需要时显示，
 由`UIview`的实例引用了`emptyData`，对空视图的操作，都在`emptyData`中。
-```
+```swift
 func setupEmptyDataView() {
     var emptyData = XYEmptyData.with(state: ExampleEmptyDataState.noMessage)
     emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
