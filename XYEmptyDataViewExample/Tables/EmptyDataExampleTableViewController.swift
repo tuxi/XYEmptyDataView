@@ -99,9 +99,9 @@ class EmptyDataExampleTableViewController: UIViewController {
             self.dataArray.removeAll()
             self.isLoading = false
             self.error = .serverNotConnect
-            self.tableView.beginUpdates()
-            self.tableView.endUpdates()
-//            self.tableView.reloadData()
+//            self.tableView.beginUpdates()
+//            self.tableView.endUpdates()
+            self.tableView.reloadData()
         }
     }
 }
@@ -133,10 +133,10 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
         requestData()
     }
     func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
-//        if self.isLoading == true {
-//            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
-//            return .top(offset: height)
-//        }
+        if self.isLoading == true {
+            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
+            return .top(offset: height)
+        }
         return .center(offset: 0)
     }
     
@@ -148,19 +148,19 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
     }
 }
 
-//extension EmptyDataExampleTableViewController: XYEmptyDataDelegateState {
-//    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState? {
-//        if self.isLoading == true {
-//            return ExampleEmptyDataState.loading
-//        }
-//        else if let error = self.error {
-//            return ExampleEmptyDataState.error(error)
-//        }
-//        else {
-//            return ExampleEmptyDataState.noBinddate
-//        }
-//    }
-//}
+extension EmptyDataExampleTableViewController: XYEmptyDataDelegateState {
+    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState? {
+        if self.isLoading == true {
+            return ExampleEmptyDataState.loading
+        }
+        else if let error = self.error {
+            return ExampleEmptyDataState.error(error)
+        }
+        else {
+            return ExampleEmptyDataState.noBinddate
+        }
+    }
+}
 
 enum EmptyExampleError: Error, CustomStringConvertible {
     case serverNotConnect

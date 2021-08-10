@@ -113,6 +113,8 @@ internal class XYEmptyDataView : UIView {
     private var contentViewConstraints = [NSLayoutConstraint]()
     private var subConstraints = [NSLayoutConstraint]()
     
+    var state: XYEmptyDataState?
+    
     deinit {
         print(String(describing: self) + #function)
     }
@@ -127,7 +129,7 @@ internal class XYEmptyDataView : UIView {
             view.addSubview(self)
         }
         
-        let superview: UIView = view
+        let superview = view
         superview.removeConstraints(superConstraints)
         superConstraints.removeAll()
         
@@ -135,15 +137,14 @@ internal class XYEmptyDataView : UIView {
         let top = scrollViewContentInset.top
         let right = scrollViewContentInset.right
         let bottom = scrollViewContentInset.bottom
-        let metrics: [String: Any] = ["left": left, "right": right, "top": top, "bottom": bottom]
         
         if superview is UIScrollView {
             superConstraints.append(contentsOf: [
-                "H:|-(left)-[self]-(right)-|",
-                "V:|-(top)-[self]-(bottom)-|"
+                "H:|[self]|",
+                "V:|[self]|"
             ]
             .flatMap {
-                NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: metrics, views: ["self": self])
+                NSLayoutConstraint.constraints(withVisualFormat: $0, options: [], metrics: nil, views: ["self": self])
             })
             
             superConstraints.append(contentsOf: [
@@ -203,7 +204,8 @@ internal class XYEmptyDataView : UIView {
     }
     
     private func showAnimated(_ animated: Bool) {
-        
+        // 解决`scrollView.adjustedContentInset`改变后，导致空视图view跳跃的问题
+        self.layoutIfNeeded()
         UIView.animate(withDuration: animated ? 0.3 : 0.0) {
             self.contentView.alpha = 1.0
         }
@@ -232,18 +234,11 @@ internal class XYEmptyDataView : UIView {
         var inset: UIEdgeInsets = .zero
         if self.superview is UIScrollView {
             let scrollView = self.superview as! UIScrollView
-            var safeAreaInsets = UIEdgeInsets.zero
-            var adjustedContentInset = UIEdgeInsets.zero
             if #available(iOS 11.0, *) {
-                safeAreaInsets = scrollView.safeAreaInsets
-                adjustedContentInset = scrollView.adjustedContentInset
+                inset = scrollView.adjustedContentInset
+            } else {
+                inset = scrollView.contentInset
             }
-            let contentInset = scrollView.contentInset
-            
-            inset.top = max(max(safeAreaInsets.top, adjustedContentInset.top), contentInset.top)
-            inset.bottom = max(max(safeAreaInsets.bottom, adjustedContentInset.bottom), contentInset.bottom)
-            inset.left = max(max(safeAreaInsets.left, adjustedContentInset.left), contentInset.left)
-            inset.right = max(max(safeAreaInsets.right, adjustedContentInset.right), contentInset.right)
         }
         return inset
     }
@@ -302,6 +297,7 @@ private extension XYEmptyDataView {
 /// 更新视图
 extension XYEmptyDataView {
     func update(_ emptyData: XYEmptyData, for state: XYEmptyDataState) {
+        self.state = state
         let emptyDataView = self
         // 重置视图及其约束
         emptyDataView.resetSubviews()
@@ -349,16 +345,12 @@ extension XYEmptyDataView {
         superConstraints.forEach {
             switch $0.firstAttribute {
             case .top:
-                //                $0.constant = inset.top
                 $0.constant = 0
             case .bottom:
-                //                $0.constant = inset.bottom
                 $0.constant = 0
             case .left, .leading:
-                //                $0.constant = inset.left
                 $0.constant = 0
             case .right, .trailing:
-                //                $0.constant = inset.right
                 $0.constant = 0
             case .width:
                 $0.constant = -(inset.left + inset.right)
