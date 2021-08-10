@@ -12,7 +12,6 @@ import XYEmptyDataView
 class EmptyDataExampleTableViewController: UIViewController {
     
     private lazy var tableView: UITableView = {
-       
         let tableView = UITableView(frame: .zero, style: .plain)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
@@ -46,7 +45,6 @@ class EmptyDataExampleTableViewController: UIViewController {
         var emptyData = XYEmptyData.with(state: ExampleEmptyDataState.noBinddate)
         emptyData.format.contentEdgeInsets = UIEdgeInsets(top: 0, left: 50, bottom: 0, right: 50)
         emptyData.format.imageSize = CGSize(width: 180, height: 180)
-        
         emptyData.delegate = self
         tableView.emptyData = emptyData
     }
@@ -58,7 +56,7 @@ class EmptyDataExampleTableViewController: UIViewController {
         headerView.titleLabel?.numberOfLines = 0
         headerView.titleLabel?.textAlignment = .center
         headerView.contentHorizontalAlignment = .center
-        headerView.setTitle("我是headerView\n\n点我", for: .normal)
+        headerView.setTitle("table \n\nheaderView", for: .normal)
         headerView.setTitleColor(.black, for: .normal)
         headerView.addTarget(self, action: #selector(headerClick), for: .touchUpInside)
         self.tableView.tableHeaderView = headerView
@@ -76,6 +74,11 @@ class EmptyDataExampleTableViewController: UIViewController {
         )
         
         navigationItem.rightBarButtonItems = [clearButton]
+        
+//        if #available(iOS 11.0, *) {
+//            tableView.contentInsetAdjustmentBehavior = .never
+//        }
+//        tableView.contentInset = UIEdgeInsets(top: 130, left: 0, bottom: 80, right: 0)
     }
     
     @objc private func clearData() {
@@ -88,12 +91,17 @@ class EmptyDataExampleTableViewController: UIViewController {
     }
     
     fileprivate func requestData() {
+        if isLoading {
+            return
+        }
         isLoading = true
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
             self.dataArray.removeAll()
             self.isLoading = false
             self.error = .serverNotConnect
-            self.tableView.reloadData()
+            self.tableView.beginUpdates()
+            self.tableView.endUpdates()
+//            self.tableView.reloadData()
         }
     }
 }
@@ -121,34 +129,15 @@ extension EmptyDataExampleTableViewController: UITableViewDataSource, UITableVie
 }
 
 extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
-    func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl) {
+    func emptyData(_ emptyData: XYEmptyData, didTapButtonInState state: XYEmptyDataState) {
         requestData()
     }
-    
-    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
-        requestData()
-    }
-    
     func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
-        if self.isLoading == true {
-            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
-            return .top(offset: height)
-        }
+//        if self.isLoading == true {
+//            let height = self.tableView.tableHeaderView?.frame.maxY ?? 0
+//            return .top(offset: height)
+//        }
         return .center(offset: 0)
-    }
-}
-
-extension EmptyDataExampleTableViewController: XYEmptyDataDelegateState {
-    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState? {
-        if self.isLoading == true {
-            return ExampleEmptyDataState.loading
-        }
-        else if let error = self.error {
-            return ExampleEmptyDataState.error(error)
-        }
-        else {
-            return ExampleEmptyDataState.noBinddate
-        }
     }
     
     func didAppear(forEmptyData emptyData: XYEmptyData) {
@@ -158,6 +147,20 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegateState {
         clearButton.isEnabled = true
     }
 }
+
+//extension EmptyDataExampleTableViewController: XYEmptyDataDelegateState {
+//    func state(forEmptyData emptyData: XYEmptyData) -> XYEmptyDataState? {
+//        if self.isLoading == true {
+//            return ExampleEmptyDataState.loading
+//        }
+//        else if let error = self.error {
+//            return ExampleEmptyDataState.error(error)
+//        }
+//        else {
+//            return ExampleEmptyDataState.noBinddate
+//        }
+//    }
+//}
 
 enum EmptyExampleError: Error, CustomStringConvertible {
     case serverNotConnect

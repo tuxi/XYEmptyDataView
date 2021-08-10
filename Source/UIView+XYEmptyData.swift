@@ -34,17 +34,19 @@ extension UIView {
         }
         emptyData.view.tapButonBlock = { [weak self] btn in
             guard let `self` = self,
-                  let del = self.emptyData?.delegate else {
+                  let emptyData = self.emptyData,
+                  let delegate = emptyData.delegate else {
                 return
             }
-            del.emptyData(self.emptyData!, didTapButton: btn)
+            delegate.emptyData(emptyData, didTapButtonInState: emptyData.view.state!)
         }
         emptyData.view.tapContentViewBlock = { [weak self] contentView in
             guard let `self` = self,
-                  let del = self.emptyData?.delegate else {
+                  let emptyData = self.emptyData,
+                  let delegate = emptyData.delegate else {
                 return
             }
-            del.emptyData(self.emptyData!, didTapContentView: contentView)
+            delegate.emptyData(emptyData, didTapContentViewInState: emptyData.view.state!)
         }
         emptyData.view.isHidden = true
     }

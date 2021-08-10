@@ -38,7 +38,7 @@ extension UIScrollView {
             collectionView.registerEmptyDataView()
         }
         
-        emptyData?.config.sizeObserver = SizeObserver(target: self, eventHandler: { [weak self] size in
+        emptyData?.config.sizeObserver = SizeObserver(target: self, eventHandler: { [weak self] keyPath  in
             self?.reloadEmptyDataView()
         })
     }

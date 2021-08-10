@@ -9,6 +9,7 @@
 import UIKit
 import XYEmptyDataView
 
+/// 在UIView上显示或隐藏空数据视图
 class ExampleViewController: UIViewController {
     private lazy var dataArray = [[Any]]()
     private lazy var clearButton = UIBarButtonItem(title: "clear", style: .plain, target: self, action: #selector(ExampleViewController.clearData))
@@ -17,7 +18,9 @@ class ExampleViewController: UIViewController {
         didSet {
             if isLoading == false {
                 if dataArray.count > 0 {
-                    self.view.emptyData?.hide()
+//                    self.view.emptyData?.hide()
+                    self.view.emptyData?.show(with: ExampleEmptyDataState.submitSuccess)
+                    clearButton.isEnabled = true
                 }
                 else {
                     self.view.emptyData?.show()
@@ -51,10 +54,14 @@ class ExampleViewController: UIViewController {
 
     @objc private func clearData() {
         dataArray.removeAll()
-        view.emptyData?.show(with: ExampleEmptyDataState.noMessage)
+        /// 回到初始状态
+        view.emptyData?.show()
     }
     
     private func requestData() {
+        if isLoading {
+            return
+        }
         isLoading = true
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0) {
             self.dataArray.removeAll()
@@ -79,13 +86,22 @@ class ExampleViewController: UIViewController {
 }
 
 extension ExampleViewController: XYEmptyDataDelegate {
-    
-    func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl) {
-        requestData()
+    func emptyData(_ emptyData: XYEmptyData, didTapButtonInState state: XYEmptyDataState) {
+        switch state as? ExampleEmptyDataState {
+        case .noMessage:
+            requestData()
+        default:
+            self.navigationController?.popToRootViewController(animated: true)
+        }
     }
     
-    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {
-        self.requestData()
+    func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
+        switch state as! ExampleEmptyDataState {
+        case .loading:
+            return .top()
+        default:
+            return .center(offset: -50)
+        }
     }
     
     func didAppear(forEmptyData emptyData: XYEmptyData) {

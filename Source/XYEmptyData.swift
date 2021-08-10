@@ -20,9 +20,9 @@ public protocol XYEmptyDataState {
 /// 空数据的代理
 public protocol XYEmptyDataDelegate: AnyObject {
     /// 点击空视图的`button`按钮的回调
-    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton)
+    func emptyData(_ emptyData: XYEmptyData, didTapButtonInState state: XYEmptyDataState)
     /// 点击空视图的`contentView`回调
-    func emptyData(_ emptyData: XYEmptyData, didTapContentView view: UIControl)
+    func emptyData(_ emptyData: XYEmptyData, didTapContentViewInState state: XYEmptyDataState)
     /// 返回空数据显示的位置
     func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position
     /// 空数据即将显示
@@ -86,7 +86,7 @@ public extension XYEmptyData {
     /// 根据一个状态显示空视图
     ///
     /// - Parameters:
-    ///   - state: 临时状态，该状态不会被保存
+    ///   - state: 临时状态，该状态不会被保存在`XYEmptyData`，会保存在`view.state`中
     func show(with state: XYEmptyDataState) {
         guard let showView = self.config.superview else {
             return
@@ -118,11 +118,16 @@ public extension XYEmptyData {
     }
     
     /// 获取空数据的状态，如果实现了`XYEmptyDataDelegateState`，初始状态无效
-    var state: XYEmptyDataState? {
+    internal var state: XYEmptyDataState? {
         if let stateDelegate = (delegate as? XYEmptyDataDelegateState) {
             return stateDelegate.state(forEmptyData: self)
         }
         return config.state
+    }
+    
+    /// 获取在显示中的空数据视图的状态，可能是临时状态，也可能是初始状态
+    internal var viewState: XYEmptyDataState? {
+        return view.state
     }
 }
 
@@ -175,7 +180,8 @@ public extension XYEmptyDataDelegate {
     func position(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> XYEmptyData.Position {
         return .center(offset: 0)
     }
-    func emptyData(_ emptyData: XYEmptyData, didTapButton button: UIButton) {}
+    func emptyData(_ emptyData: XYEmptyData, didTapButtonInState state: XYEmptyDataState) {}
+    func emptyData(_ emptyData: XYEmptyData, didTapContentViewInState state: XYEmptyDataState) {}
     func willAppear(forEmptyData emptyData: XYEmptyData) {}
     func didAppear(forEmptyData emptyData: XYEmptyData) {}
     func willDisappear(forEmptyData emptyData: XYEmptyData) {}
@@ -203,25 +209,59 @@ public extension XYEmptyDataState {
 
 
 internal class SizeObserver: NSObject {
+    enum KeyPath: CaseIterable {
+        case bounds(_ bounds: CGRect = .zero)
+        case contentSize(_ contentSize: CGSize = .zero)
+        
+        var keyPath: String {
+            switch self {
+            case .bounds:
+                return "bounds"
+            case .contentSize:
+                return "contentSize"
+            }
+        }
+        
+        static var allCases: [SizeObserver.KeyPath] {
+            return [.bounds(), .contentSize()]
+        }
+    }
     private weak var target: UIView?
-    private var eventHandler: (_ size: CGSize) -> Void
-    private let keyPath = "bounds"
-    init(target: UIView, eventHandler: @escaping (_ size: CGSize) -> Void) {
+    private var eventHandler: (_ keyPath: KeyPath) -> Void
+    init(target: UIView, eventHandler: @escaping (_ keyPath: KeyPath) -> Void) {
         self.eventHandler = eventHandler
         super.init()
         self.target = target
-        target.addObserver(self, forKeyPath: keyPath, options: [.old, .new, .initial], context: nil)
+        KeyPath.allCases.forEach {
+            target.addObserver(self, forKeyPath: $0.keyPath, options: [.old, .new, .initial], context: nil)
+        }
+        
     }
     
     deinit {
-        target?.removeObserver(self, forKeyPath: keyPath)
+        KeyPath.allCases.forEach {
+            target?.removeObserver(self, forKeyPath: $0.keyPath)
+        }
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        let new = change?[.newKey] as? CGRect ?? .zero
-        let old = change?[.oldKey] as? CGRect ?? .zero
-        if keyPath == self.keyPath, !old.size.equalTo(new.size) {
-            eventHandler(new.size)
+        
+        
+        KeyPath.allCases.forEach {
+            switch $0 {
+            case .bounds:
+                let new = change?[.newKey] as? CGRect ?? .zero
+                let old = change?[.oldKey] as? CGRect ?? .zero
+                if keyPath == $0.keyPath, !old.size.equalTo(new.size) {
+                    eventHandler(KeyPath.bounds(new))
+                }
+            case .contentSize:
+                let new = change?[.newKey] as? CGSize ?? .zero
+                let old = change?[.oldKey] as? CGSize ?? .zero
+                if keyPath == $0.keyPath, !old.equalTo(new) {
+                    eventHandler(KeyPath.contentSize(new))
+                }
+            }
         }
     }
 }

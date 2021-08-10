@@ -21,6 +21,8 @@ enum ExampleEmptyDataState: XYEmptyDataState {
     case error(Error)
     /// 加载中
     case loading
+    /// 提交成功
+    case submitSuccess
     
     var title: ((UILabel) -> Void)? {
         return {
@@ -36,6 +38,8 @@ enum ExampleEmptyDataState: XYEmptyDataState {
                 $0.text = nil
             case .error(_):
                 $0.text = "未知错误"
+            case .submitSuccess:
+                $0.text = "提交成功"
             }
         }
     }
@@ -55,6 +59,8 @@ enum ExampleEmptyDataState: XYEmptyDataState {
                 $0.text = nil
             case .error(_):
                 $0.text = "未知错误"
+            case .submitSuccess:
+                $0.text = "你的问题已提交至后台，请等待审核"
             }
         }
     }
@@ -67,6 +73,9 @@ enum ExampleEmptyDataState: XYEmptyDataState {
             switch self {
             case .loading:
                 $0.setTitle(nil, for: .normal)
+            case .submitSuccess:
+                $0.setTitle("好的", for: .normal)
+                $0.backgroundColor = UIColor.orange.withAlphaComponent(0.76)
             case .noInternet:
                 $0.setTitle("设置", for: .normal)
             default:
@@ -86,6 +95,8 @@ enum ExampleEmptyDataState: XYEmptyDataState {
                 $0.image = UIImage(named: "empty_noBinddate")
             case .noInternet, .error:
                 $0.image = UIImage(named: "empty_network")
+            case .submitSuccess:
+                $0.image = UIImage(named: "empty_noBinddate")
             case .loading:
                 $0.image = nil
             }
