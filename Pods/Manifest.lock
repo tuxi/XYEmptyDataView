@@ -1,5 +1,5 @@
 PODS:
-  - XYEmptyDataView (0.1)
+  - XYEmptyDataView (0.3)
 
 DEPENDENCIES:
   - XYEmptyDataView (from `./`)
@@ -9,7 +9,7 @@ EXTERNAL SOURCES:
     :path: "./"
 
 SPEC CHECKSUMS:
-  XYEmptyDataView: 823dc2e3221b4f0b5057213d6771762844b0f661
+  XYEmptyDataView: 8c56d0d3c509deaae7d0b99e453b86d54be65f7d
 
 PODFILE CHECKSUM: 5425c8a874c2b74408bb64fdadcbc85199ba1619
 

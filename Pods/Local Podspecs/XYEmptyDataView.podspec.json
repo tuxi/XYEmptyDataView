@@ -1,8 +1,8 @@
 {
   "name": "XYEmptyDataView",
-  "version": "0.1",
-  "summary": "Swift 项目中为UIView、UITableView扩展的空数据视图",
-  "description": "Swift 项目中优雅的空数据视图展示",
+  "version": "0.3",
+  "summary": "An empty data view with customizable status, which supports UIView, UITableView and UICollectionView",
+  "description": "An empty data view with customizable status, which supports UIView, UITableView and UICollectionView",
   "homepage": "https://github.com/tuxi/XYEmptyDataView",
   "license": {
     "type": "MIT",
@@ -17,7 +17,7 @@
   },
   "source": {
     "git": "https://github.com/tuxi/XYEmptyDataView.git",
-    "tag": "0.1"
+    "tag": "0.3"
   },
   "source_files": "Source/**/*.{swift}",
   "frameworks": "UIKit",

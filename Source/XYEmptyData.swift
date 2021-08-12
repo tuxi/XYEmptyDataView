@@ -223,7 +223,7 @@ internal class SizeObserver: NSObject {
         }
         
         static var allCases: [SizeObserver.KeyPath] {
-            return [.bounds(), .contentSize()]
+            return [.bounds()/*, .contentSize()*/]
         }
     }
     private weak var target: UIView?

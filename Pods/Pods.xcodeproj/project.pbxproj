@@ -8,21 +8,21 @@
 
 /* Begin PBXBuildFile section */
 		0DB640801E6B3725B4B41660C6CC0FC5 /* Pods-XYEmptyDataViewExample-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = CC8BCA07E53656C3E0C17F116EC889E8 /* Pods-XYEmptyDataViewExample-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		3F8A78E6C6FBAD1474D622E0C1DC5AE6 /* XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44496DD196EE7E864A96BD91F86B5C8A /* XYEmptyData.swift */; };
-		424BABD5CC8938492412FE102021C233 /* UIView+XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9055C89DD0A1A31D44CC55A7B9990647 /* UIView+XYEmptyData.swift */; };
-		658D9603784D212A9720CDA69AFB3C35 /* UIScrollView+XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B43E4A69CD8C7024C228E56E7119EB /* UIScrollView+XYEmptyData.swift */; };
-		6F8F930585AACFF9B5B9C6DC358D153C /* XYEmptyDataView-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = F842F883C830A88FA6E642618A3A5A2B /* XYEmptyDataView-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		3F8A78E6C6FBAD1474D622E0C1DC5AE6 /* XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E81935B33DCB8F19E0052FB4636524 /* XYEmptyData.swift */; };
+		424BABD5CC8938492412FE102021C233 /* UIView+XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB37A4BE46CB3EB87EFA4797F4A9674 /* UIView+XYEmptyData.swift */; };
+		658D9603784D212A9720CDA69AFB3C35 /* UIScrollView+XYEmptyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A8991E705C01765933B86C69F127639 /* UIScrollView+XYEmptyData.swift */; };
+		6F8F930585AACFF9B5B9C6DC358D153C /* XYEmptyDataView-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 47C7D22BEC0F48661C062462350C16FF /* XYEmptyDataView-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		870FBA32F103077A95953A08FCF105D3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAB6F611E86A4758835A715E4B4184F6 /* Foundation.framework */; };
-		998C9FE8D6D1D2CF2836C7BCFD25D4C8 /* Swizzler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DCB3B275FB8E75FB20EBD98B9917F69 /* Swizzler.swift */; };
+		998C9FE8D6D1D2CF2836C7BCFD25D4C8 /* Swizzler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BADEB1E31431EC6E222CFDE755D35C /* Swizzler.swift */; };
 		AC82B349C8158C3039A8D3AC191FE2BC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAB6F611E86A4758835A715E4B4184F6 /* Foundation.framework */; };
-		AD16A86B6FB7B833BD0868470D3D4D69 /* XYEmptyDataView-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C6879E2EA8A68BA0A2D87379150F420 /* XYEmptyDataView-dummy.m */; };
+		AD16A86B6FB7B833BD0868470D3D4D69 /* XYEmptyDataView-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = E916B22DF5BD8AC1CBA4E78D3CC1452D /* XYEmptyDataView-dummy.m */; };
 		AEF9C423B501588AF5FBAE46C0B17435 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D245E0514AAC1A2B9A6D5EA2F383E90F /* UIKit.framework */; };
 		CBB816FA9185F41E30126237D8D51EC0 /* Pods-XYEmptyDataViewExample-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C80C5C0166C9B786BF77CD1843BE107 /* Pods-XYEmptyDataViewExample-dummy.m */; };
-		FEFD5371D06822CC2E70A714E9E912EE /* XYEmptyDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6185CE4E6CF5141C15ECD3032A8B600E /* XYEmptyDataView.swift */; };
+		FEFD5371D06822CC2E70A714E9E912EE /* XYEmptyDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C31A087EA6B484DF435F6172DC72730 /* XYEmptyDataView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		15D9D5B1D83EA86F5BFACBCAC24FC870 /* PBXContainerItemProxy */ = {
+		539F036C60D67F79C8A134CD25503A63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
 			proxyType = 1;
@@ -32,34 +32,35 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		00EC14CA2071CEF4D55374E0586DECBE /* XYEmptyDataView.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = XYEmptyDataView.modulemap; sourceTree = "<group>"; };
 		0D3D926FA150CF7975083FE0E055FA8A /* Pods-XYEmptyDataViewExample-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-XYEmptyDataViewExample-Info.plist"; sourceTree = "<group>"; };
-		39F380E9A10ACD73536B853575AA8CBE /* XYEmptyDataView.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; path = XYEmptyDataView.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		3C6879E2EA8A68BA0A2D87379150F420 /* XYEmptyDataView-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "XYEmptyDataView-dummy.m"; sourceTree = "<group>"; };
-		3DF73617FB1C65FDEED3BF5FFB64122D /* XYEmptyDataView.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = XYEmptyDataView.modulemap; sourceTree = "<group>"; };
+		12E81935B33DCB8F19E0052FB4636524 /* XYEmptyData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = XYEmptyData.swift; path = Source/XYEmptyData.swift; sourceTree = "<group>"; };
+		2A8991E705C01765933B86C69F127639 /* UIScrollView+XYEmptyData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIScrollView+XYEmptyData.swift"; path = "Source/UIScrollView+XYEmptyData.swift"; sourceTree = "<group>"; };
 		40E6FF5CA46689E9A7EC421C9975EEBC /* XYEmptyDataView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = XYEmptyDataView.framework; path = XYEmptyDataView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		44496DD196EE7E864A96BD91F86B5C8A /* XYEmptyData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = XYEmptyData.swift; path = Source/XYEmptyData.swift; sourceTree = "<group>"; };
-		5DCB3B275FB8E75FB20EBD98B9917F69 /* Swizzler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Swizzler.swift; path = Source/Swizzler.swift; sourceTree = "<group>"; };
+		47C7D22BEC0F48661C062462350C16FF /* XYEmptyDataView-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "XYEmptyDataView-umbrella.h"; sourceTree = "<group>"; };
 		60F3BBF389B21B664ABE509891F19C66 /* Pods-XYEmptyDataViewExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-XYEmptyDataViewExample.release.xcconfig"; sourceTree = "<group>"; };
-		6185CE4E6CF5141C15ECD3032A8B600E /* XYEmptyDataView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = XYEmptyDataView.swift; path = Source/XYEmptyDataView.swift; sourceTree = "<group>"; };
+		776E094A39AC14BFA8D44B5E61715A5A /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; path = LICENSE; sourceTree = "<group>"; };
+		7CDE51882354212D1DBDBDDEFB4D3D62 /* XYEmptyDataView-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "XYEmptyDataView-prefix.pch"; sourceTree = "<group>"; };
 		7E4B7DEF01372A06837C0D247E853D16 /* Pods-XYEmptyDataViewExample-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-XYEmptyDataViewExample-frameworks.sh"; sourceTree = "<group>"; };
+		7FB37A4BE46CB3EB87EFA4797F4A9674 /* UIView+XYEmptyData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIView+XYEmptyData.swift"; path = "Source/UIView+XYEmptyData.swift"; sourceTree = "<group>"; };
 		8499DAFF7335BFB69F4913DA4097E4AC /* Pods-XYEmptyDataViewExample.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-XYEmptyDataViewExample.modulemap"; sourceTree = "<group>"; };
-		89380050A4AC6D713B0FD53B841D94C4 /* XYEmptyDataView-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "XYEmptyDataView-prefix.pch"; sourceTree = "<group>"; };
+		8C31A087EA6B484DF435F6172DC72730 /* XYEmptyDataView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = XYEmptyDataView.swift; path = Source/XYEmptyDataView.swift; sourceTree = "<group>"; };
 		8C80C5C0166C9B786BF77CD1843BE107 /* Pods-XYEmptyDataViewExample-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-XYEmptyDataViewExample-dummy.m"; sourceTree = "<group>"; };
-		9055C89DD0A1A31D44CC55A7B9990647 /* UIView+XYEmptyData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIView+XYEmptyData.swift"; path = "Source/UIView+XYEmptyData.swift"; sourceTree = "<group>"; };
+		9435AA48704E963D84B837E2D099C047 /* XYEmptyDataView.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = XYEmptyDataView.release.xcconfig; sourceTree = "<group>"; };
+		9C9DF9AD454B473B62460469F7D2FDB4 /* XYEmptyDataView.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = XYEmptyDataView.debug.xcconfig; sourceTree = "<group>"; };
 		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		9DA23DDE5DF02226D534C329BC6AF558 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; path = README.md; sourceTree = "<group>"; };
 		A3AB102FF6084616A73ED77D79306BD2 /* Pods-XYEmptyDataViewExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-XYEmptyDataViewExample.debug.xcconfig"; sourceTree = "<group>"; };
+		ABC85AA383743199F69D16503257043B /* XYEmptyDataView.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; path = XYEmptyDataView.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		BA7B045680E3210399F9BDC0BD5040F7 /* Pods-XYEmptyDataViewExample-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-XYEmptyDataViewExample-acknowledgements.markdown"; sourceTree = "<group>"; };
-		C2777962B8DA5F27CDB5C834843433BE /* XYEmptyDataView.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = XYEmptyDataView.debug.xcconfig; sourceTree = "<group>"; };
-		C3B43E4A69CD8C7024C228E56E7119EB /* UIScrollView+XYEmptyData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIScrollView+XYEmptyData.swift"; path = "Source/UIScrollView+XYEmptyData.swift"; sourceTree = "<group>"; };
+		BA82374ED72495AA0B34F10F2B5A825F /* XYEmptyDataView-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "XYEmptyDataView-Info.plist"; sourceTree = "<group>"; };
 		C8E6ED16A7A4B071A4FD02323B9E6D88 /* Pods-XYEmptyDataViewExample-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-XYEmptyDataViewExample-acknowledgements.plist"; sourceTree = "<group>"; };
 		CC8BCA07E53656C3E0C17F116EC889E8 /* Pods-XYEmptyDataViewExample-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-XYEmptyDataViewExample-umbrella.h"; sourceTree = "<group>"; };
-		D1C75F9FD0710B8AFE6029B2D87F4EAB /* XYEmptyDataView-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "XYEmptyDataView-Info.plist"; sourceTree = "<group>"; };
 		D245E0514AAC1A2B9A6D5EA2F383E90F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		DA48A44226C7ED799461A2BF84C251CA /* Pods_XYEmptyDataViewExample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Pods_XYEmptyDataViewExample.framework; path = "Pods-XYEmptyDataViewExample.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E3CC2A0490CD7BA3F0C42146C313A801 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; path = README.md; sourceTree = "<group>"; };
+		E916B22DF5BD8AC1CBA4E78D3CC1452D /* XYEmptyDataView-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "XYEmptyDataView-dummy.m"; sourceTree = "<group>"; };
 		EAB6F611E86A4758835A715E4B4184F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		F842F883C830A88FA6E642618A3A5A2B /* XYEmptyDataView-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "XYEmptyDataView-umbrella.h"; sourceTree = "<group>"; };
-		FB2C79DC398EBCDE533F6F59C69640D9 /* XYEmptyDataView.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = XYEmptyDataView.release.xcconfig; sourceTree = "<group>"; };
+		F9BADEB1E31431EC6E222CFDE755D35C /* Swizzler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Swizzler.swift; path = Source/Swizzler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +84,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0F1F5AC880DEB9C8B9D9A1CF2A8D7A44 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				00EC14CA2071CEF4D55374E0586DECBE /* XYEmptyDataView.modulemap */,
+				E916B22DF5BD8AC1CBA4E78D3CC1452D /* XYEmptyDataView-dummy.m */,
+				BA82374ED72495AA0B34F10F2B5A825F /* XYEmptyDataView-Info.plist */,
+				7CDE51882354212D1DBDBDDEFB4D3D62 /* XYEmptyDataView-prefix.pch */,
+				47C7D22BEC0F48661C062462350C16FF /* XYEmptyDataView-umbrella.h */,
+				9C9DF9AD454B473B62460469F7D2FDB4 /* XYEmptyDataView.debug.xcconfig */,
+				9435AA48704E963D84B837E2D099C047 /* XYEmptyDataView.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "Pods/Target Support Files/XYEmptyDataView";
+			sourceTree = "<group>";
+		};
 		1628BF05B4CAFDCC3549A101F5A10A17 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -98,15 +114,6 @@
 				40E6FF5CA46689E9A7EC421C9975EEBC /* XYEmptyDataView.framework */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		4873304C2C492FFFF52CAF5CDFB54708 /* Pod */ = {
-			isa = PBXGroup;
-			children = (
-				9DA23DDE5DF02226D534C329BC6AF558 /* README.md */,
-				39F380E9A10ACD73536B853575AA8CBE /* XYEmptyDataView.podspec */,
-			);
-			name = Pod;
 			sourceTree = "<group>";
 		};
 		59DA5C1F72E1D5BABC43EACBA672C3BA /* iOS */ = {
@@ -143,34 +150,19 @@
 			path = "Target Support Files/Pods-XYEmptyDataViewExample";
 			sourceTree = "<group>";
 		};
-		887EB4C3BAFE0B3E2F7E5D2C1AD2499D /* XYEmptyDataView */ = {
+		75FEB67AB3DC5AB4D9E1742E04671F29 /* XYEmptyDataView */ = {
 			isa = PBXGroup;
 			children = (
-				5DCB3B275FB8E75FB20EBD98B9917F69 /* Swizzler.swift */,
-				C3B43E4A69CD8C7024C228E56E7119EB /* UIScrollView+XYEmptyData.swift */,
-				9055C89DD0A1A31D44CC55A7B9990647 /* UIView+XYEmptyData.swift */,
-				44496DD196EE7E864A96BD91F86B5C8A /* XYEmptyData.swift */,
-				6185CE4E6CF5141C15ECD3032A8B600E /* XYEmptyDataView.swift */,
-				4873304C2C492FFFF52CAF5CDFB54708 /* Pod */,
-				AC536E350322E432A27B8A78C70170E9 /* Support Files */,
+				F9BADEB1E31431EC6E222CFDE755D35C /* Swizzler.swift */,
+				2A8991E705C01765933B86C69F127639 /* UIScrollView+XYEmptyData.swift */,
+				7FB37A4BE46CB3EB87EFA4797F4A9674 /* UIView+XYEmptyData.swift */,
+				12E81935B33DCB8F19E0052FB4636524 /* XYEmptyData.swift */,
+				8C31A087EA6B484DF435F6172DC72730 /* XYEmptyDataView.swift */,
+				E282CC197392A1E750829424ACAF0A9F /* Pod */,
+				0F1F5AC880DEB9C8B9D9A1CF2A8D7A44 /* Support Files */,
 			);
 			name = XYEmptyDataView;
 			path = ..;
-			sourceTree = "<group>";
-		};
-		AC536E350322E432A27B8A78C70170E9 /* Support Files */ = {
-			isa = PBXGroup;
-			children = (
-				3DF73617FB1C65FDEED3BF5FFB64122D /* XYEmptyDataView.modulemap */,
-				3C6879E2EA8A68BA0A2D87379150F420 /* XYEmptyDataView-dummy.m */,
-				D1C75F9FD0710B8AFE6029B2D87F4EAB /* XYEmptyDataView-Info.plist */,
-				89380050A4AC6D713B0FD53B841D94C4 /* XYEmptyDataView-prefix.pch */,
-				F842F883C830A88FA6E642618A3A5A2B /* XYEmptyDataView-umbrella.h */,
-				C2777962B8DA5F27CDB5C834843433BE /* XYEmptyDataView.debug.xcconfig */,
-				FB2C79DC398EBCDE533F6F59C69640D9 /* XYEmptyDataView.release.xcconfig */,
-			);
-			name = "Support Files";
-			path = "Pods/Target Support Files/XYEmptyDataView";
 			sourceTree = "<group>";
 		};
 		CF1408CF629C7361332E53B88F7BD30C = {
@@ -184,10 +176,20 @@
 			);
 			sourceTree = "<group>";
 		};
+		E282CC197392A1E750829424ACAF0A9F /* Pod */ = {
+			isa = PBXGroup;
+			children = (
+				776E094A39AC14BFA8D44B5E61715A5A /* LICENSE */,
+				E3CC2A0490CD7BA3F0C42146C313A801 /* README.md */,
+				ABC85AA383743199F69D16503257043B /* XYEmptyDataView.podspec */,
+			);
+			name = Pod;
+			sourceTree = "<group>";
+		};
 		ED5519DB9D0422830E913A2D50F26E0A /* Development Pods */ = {
 			isa = PBXGroup;
 			children = (
-				887EB4C3BAFE0B3E2F7E5D2C1AD2499D /* XYEmptyDataView */,
+				75FEB67AB3DC5AB4D9E1742E04671F29 /* XYEmptyDataView */,
 			);
 			name = "Development Pods";
 			sourceTree = "<group>";
@@ -226,7 +228,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				E59BB6287CC10A171B622FE546B129D2 /* PBXTargetDependency */,
+				E32F968E7D03C4BBC73C5DF8D29E532B /* PBXTargetDependency */,
 			);
 			name = "Pods-XYEmptyDataViewExample";
 			productName = "Pods-XYEmptyDataViewExample";
@@ -321,18 +323,18 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E59BB6287CC10A171B622FE546B129D2 /* PBXTargetDependency */ = {
+		E32F968E7D03C4BBC73C5DF8D29E532B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = XYEmptyDataView;
 			target = 491A23077A91359BB26BE1B894512AED /* XYEmptyDataView */;
-			targetProxy = 15D9D5B1D83EA86F5BFACBCAC24FC870 /* PBXContainerItemProxy */;
+			targetProxy = 539F036C60D67F79C8A134CD25503A63 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		70D4595158FF555CF5B49D57C8F4561D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C2777962B8DA5F27CDB5C834843433BE /* XYEmptyDataView.debug.xcconfig */;
+			baseConfigurationReference = 9C9DF9AD454B473B62460469F7D2FDB4 /* XYEmptyDataView.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
@@ -467,7 +469,7 @@
 		};
 		B3575D60A922B46B5C16655BECD11936 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FB2C79DC398EBCDE533F6F59C69640D9 /* XYEmptyDataView.release.xcconfig */;
+			baseConfigurationReference = 9435AA48704E963D84B837E2D099C047 /* XYEmptyDataView.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
