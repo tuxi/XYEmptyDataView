@@ -52,14 +52,21 @@ public struct XYEmptyData {
     internal let config: ViewConfig
     /// 空数据的view
     internal let view = XYEmptyDataView()
+//    var stateBinder: (() -> XYEmptyDataState)?
     
     /// 初始化空数据
     ///
     /// - Parameters:
     ///   - state: 初始状态，如果实现`XYEmptyDataDelegateState`的状态绑定后， 此属性无效
-    public static func with(state: XYEmptyDataState) -> XYEmptyData {
+    public static func with(state: XYEmptyDataState) -> Self {
         return XYEmptyData(config: ViewConfig(state: state))
     }
+    
+//    public static func create(stateBinder: @escaping () -> XYEmptyDataState) -> Self {
+//        var emptyData = XYEmptyData(config: ViewConfig(state: stateBinder()))
+//        emptyData.stateBinder = stateBinder
+//        return emptyData
+//    }
 }
 
 /// 扩展显示空数据的回调

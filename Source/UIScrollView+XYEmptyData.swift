@@ -10,14 +10,30 @@ import UIKit
 
 private var isRegisterEmptyDataViewKey = "com.alpface.XYEmptyData.registerEemptyDataView"
 
+/// 为 `UICollectionView` 和 `UITableView` 空数据扩展的delegate
+public protocol XYEmptyDataDelegateAuto {
+    /// 是否强制显示
+    func shouldForceDisplay(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> Bool
+}
+
 extension UIScrollView {
     
     /// 刷新空视图， 当执行`tableView`的`readData`、`endUpdates`或者`CollectionView`的`readData`时会调用此方法，外面无需主动调用
     fileprivate func reloadEmptyDataView() {
-        if shouldDisplayEmptyDataView,
-           let state = self.emptyData?.state {
+        guard let state = self.emptyData?.state else {
+            self.emptyData?.hide()
+            return
+        }
+        var shouldDisplay = shouldDisplayEmptyDataView
+        if let delegate = self.emptyData?.delegate as? XYEmptyDataDelegateAuto {
+            if !shouldDisplay {
+                shouldDisplay = delegate.shouldForceDisplay(forState: state, inEmptyData: self.emptyData!)
+            }
+        }
+        if shouldDisplay {
             self.emptyData?.show(with: state)
-        } else {
+        }
+        else {
             self.emptyData?.hide()
         }
     }
@@ -173,5 +189,11 @@ extension UICollectionView {
             .callFunction(withInstance: self)
         
         reloadEmptyDataView()
+    }
+}
+
+extension XYEmptyDataDelegateAuto {
+   public func shouldForceDisplay(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> Bool {
+        return false
     }
 }

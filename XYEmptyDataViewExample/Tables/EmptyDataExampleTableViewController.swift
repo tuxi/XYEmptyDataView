@@ -128,7 +128,8 @@ extension EmptyDataExampleTableViewController: UITableViewDataSource, UITableVie
     }
 }
 
-extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
+extension EmptyDataExampleTableViewController: XYEmptyDataDelegateAuto {
+    
     func emptyData(_ emptyData: XYEmptyData, didTapButtonInState state: XYEmptyDataState) {
         requestData()
     }
@@ -145,6 +146,10 @@ extension EmptyDataExampleTableViewController: XYEmptyDataDelegate {
     }
     func didDisappear(forEmptyData emptyData: XYEmptyData) {
         clearButton.isEnabled = true
+    }
+    
+    func shouldForceDisplay(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> Bool {
+        return isLoading
     }
 }
 
