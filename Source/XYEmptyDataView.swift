@@ -120,7 +120,6 @@ internal class XYEmptyDataView : UIView {
     }
     
     func show(on view: UIView, animated: Bool) {
-        clipsToBounds = true
         self.translatesAutoresizingMaskIntoConstraints = false
         if view.subviews.count > 1 {
             view.insertSubview(self, at: 0)
@@ -321,7 +320,7 @@ extension XYEmptyDataView {
         emptyDataView.imageViewSize = emptyData.format.imageSize ?? .zero
         
         emptyDataView.isHidden = false
-        emptyDataView.clipsToBounds = true
+        emptyDataView.clipsToBounds = false
         
         emptyDataView.setNeedsUpdateConstraints()
         

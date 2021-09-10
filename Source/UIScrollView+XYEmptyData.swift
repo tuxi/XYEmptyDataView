@@ -12,8 +12,10 @@ private var isRegisterEmptyDataViewKey = "com.alpface.XYEmptyData.registerEempty
 
 /// 为 `UICollectionView` 和 `UITableView` 空数据扩展的delegate
 public protocol XYEmptyDataDelegateAuto {
-    /// 是否强制显示
+    /// 当不符合显示时，是否强制显示
     func shouldForceDisplay(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> Bool
+    /// 应该显示或隐藏，默认不需要实现，由dataSource 计算，适用于
+    func shouldDisplay(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> Bool
 }
 
 extension UIScrollView {
@@ -64,10 +66,17 @@ extension UIScrollView {
 private extension UIScrollView {
     /// 是否应该显示
     var shouldDisplayEmptyDataView: Bool {
-        return
-            emptyData != nil &&
-            !frame.size.equalTo(.zero) &&
-            itemCount <= 0
+        var shouldDisplay = emptyData != nil && !frame.size.equalTo(.zero)
+        if !shouldDisplay {
+            return shouldDisplay
+        }
+        if let delegate = self.emptyData?.delegate as? XYEmptyDataDelegateAuto {
+            shouldDisplay = delegate.shouldDisplay(forState: self.emptyData!.state!, inEmptyData: self.emptyData!)
+        }
+        if !shouldDisplay {
+            return shouldDisplay
+        }
+        return itemCount <= 0
     }
     
     var itemCount: Int {
@@ -195,5 +204,9 @@ extension UICollectionView {
 extension XYEmptyDataDelegateAuto {
    public func shouldForceDisplay(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> Bool {
         return false
+    }
+    
+    public func shouldDisplay(forState state: XYEmptyDataState, inEmptyData emptyData: XYEmptyData) -> Bool {
+        return true
     }
 }
